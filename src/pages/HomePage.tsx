@@ -13,6 +13,7 @@ import {
 import { FilterBar } from '../components/listings/FilterBar'
 import { ListingCard } from '../components/listings/ListingCard'
 import { Button } from '../components/ui/Button'
+import { Empty } from '../components/ui/Empty'
 import { VERTICAL_META } from '../data/constants'
 import { useListings } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
@@ -41,31 +42,34 @@ export function HomePage() {
 
   return (
     <div className="space-y-8 pb-scroll-chrome">
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface-2 via-surface to-surface-3 p-5 md:p-10">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 left-10 h-40 w-40 rounded-full bg-teal/10 blur-3xl" />
-        <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan/30 bg-cyan/10 px-3 py-1 text-xs text-cyan">
+      <section className="relative overflow-hidden rounded-3xl border border-border surface-shine p-5 md:p-10 motion-fade-up">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-cyan/25 blur-3xl motion-orb" />
+        <div className="pointer-events-none absolute -bottom-16 left-6 h-44 w-44 rounded-full bg-teal/15 blur-3xl motion-orb-delay" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan/50 to-transparent" />
+
+        <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan/35 bg-cyan/10 px-3 py-1 text-xs font-medium text-cyan glow-cyan-soft">
           <Sparkles size={14} /> EventLogistik · Das Event-OS für DE
         </p>
-        <h1 className="max-w-2xl text-[1.65rem] font-bold leading-tight tracking-tight md:text-4xl">
+        <h1 className="max-w-2xl text-[1.75rem] font-bold leading-[1.15] tracking-tight md:text-4xl">
           {seekerBias === true ? (
             <>
-              Deine nächsten <span className="text-gradient">Gigs</span> — Rate klar, in Minuten beworben.
+              Deine nächsten <span className="text-shimmer">Gigs</span> — Rate klar. Bewerbung in
+              Minuten.
             </>
           ) : seekerBias === false ? (
             <>
-              Finde <span className="text-gradient">Crew & Jobs</span> schneller als per WhatsApp-Liste.
+              Crew & Jobs <span className="text-shimmer">schneller</span> als jede WhatsApp-Liste.
             </>
           ) : (
             <>
-              Jedes <span className="text-gradient">Gesuch</span> findet jedes{' '}
-              <span className="text-gradient">Angebot</span>.
+              Jedes <span className="text-shimmer">Gesuch</span> findet jedes{' '}
+              <span className="text-shimmer">Angebot</span>.
             </>
           )}
         </h1>
-        <p className="mt-3 max-w-xl text-sm text-muted md:text-base">
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-neutral-300 md:text-base">
           Marketplace, Jobs & Matching für Agenturen, Technikfirmen, Freelancer, Hotels, Transport und
-          Material — mit transparenten Tagessätzen und verifizierten Profilen.
+          Material — mit transparenten Tagessätzen, Spesen/ÜN und verifizierten Profilen.
         </p>
 
         {/* Hero fork — Jobs finden vs Jobs/Crew finden */}
@@ -73,34 +77,36 @@ export function HomePage() {
           <button
             type="button"
             onClick={() => navigate('/jobs?side=seek')}
-            className="group rounded-2xl border border-cyan/40 bg-cyan/10 p-4 text-left transition hover:border-cyan hover:bg-cyan/15"
+            className="group relative overflow-hidden rounded-2xl border border-cyan/45 bg-cyan/10 p-4 text-left transition hover:border-cyan hover:bg-cyan/15 hover:shadow-[0_0_28px_rgba(0,240,255,0.15)]"
           >
+            <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-cyan/20 blur-2xl opacity-0 transition group-hover:opacity-100" />
             <div className="mb-2 flex items-center gap-2 text-cyan">
               <Search size={20} />
               <span className="text-xs font-semibold uppercase tracking-wider">Jobsuche</span>
             </div>
             <div className="text-lg font-bold text-white">Ich suche Jobs / Gigs</div>
             <p className="mt-1 text-sm text-neutral-300">
-              Tagessatz, Spesen, Anfahrt & ÜN sichtbar · 1-Tap bewerben
+              Tagessatz · Spesen · Anfahrt · ÜN — alles sichtbar. 1-Tap bewerben.
             </p>
-            <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-cyan">
+            <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan">
               Jobs öffnen <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
             </span>
           </button>
           <button
             type="button"
             onClick={() => navigate('/jobs?side=hire')}
-            className="group rounded-2xl border border-teal/40 bg-teal/10 p-4 text-left transition hover:border-teal hover:bg-teal/15"
+            className="group relative overflow-hidden rounded-2xl border border-teal/45 bg-teal/10 p-4 text-left transition hover:border-teal hover:bg-teal/15 hover:shadow-[0_0_28px_rgba(20,184,166,0.15)]"
           >
+            <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-teal/20 blur-2xl opacity-0 transition group-hover:opacity-100" />
             <div className="mb-2 flex items-center gap-2 text-teal">
               <Users size={20} />
               <span className="text-xs font-semibold uppercase tracking-wider">Besetzung</span>
             </div>
             <div className="text-lg font-bold text-white">Ich biete Jobs / suche Crew</div>
             <p className="mt-1 text-sm text-neutral-300">
-              Structured Post inkl. Spesen/ÜN · Pipeline · Chat
+              Structured Post · Pipeline · Vergleich · Chat — wie ein Pro-Tool.
             </p>
-            <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal">
+            <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-teal">
               Crew finden <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
             </span>
           </button>
@@ -128,13 +134,16 @@ export function HomePage() {
 
         <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { label: 'Angebote', value: stats.offers },
-            { label: 'Gesuche', value: stats.requests },
+            { label: 'Angebote live', value: stats.offers },
+            { label: 'Gesuche live', value: stats.requests },
             { label: 'Buchungen', value: stats.bookings },
             { label: 'Projekte', value: stats.projects },
           ].map((s) => (
-            <div key={s.label} className="rounded-2xl border border-border bg-black/30 px-3 py-3">
-              <div className="text-xl font-bold text-cyan md:text-2xl">{s.value}</div>
+            <div
+              key={s.label}
+              className="rounded-2xl border border-border/80 bg-black/35 px-3 py-3 backdrop-blur-sm"
+            >
+              <div className="text-xl font-bold tabular-nums text-cyan md:text-2xl">{s.value}</div>
               <div className="text-[11px] text-muted md:text-xs">{s.label}</div>
             </div>
           ))}
@@ -145,15 +154,18 @@ export function HomePage() {
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <Briefcase size={18} className="text-cyan" /> Top Jobs — Rate, Spesen, Zeitraum
+              <Briefcase size={18} className="text-cyan" /> Hot Jobs — Rate, Spesen, Zeitraum
             </h2>
-            <Link to="/jobs?side=seek" className="text-sm text-cyan">
+            <Link
+              to="/jobs?side=seek"
+              className="text-sm font-medium text-cyan hover:underline underline-offset-2"
+            >
               Alle Jobs →
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             {featuredJobs.map((l) => (
-              <ListingCard key={l.id} listing={l} />
+              <ListingCard key={l.id} listing={l} highlightRate />
             ))}
           </div>
         </section>
@@ -171,10 +183,12 @@ export function HomePage() {
               to={meta.path}
               className="card-hover flex min-w-[9.5rem] shrink-0 items-center gap-3 rounded-2xl border border-border bg-surface-2 p-4 sm:min-w-0"
             >
-              <span className="text-2xl">{meta.emoji}</span>
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-3 text-xl">
+                {meta.emoji}
+              </span>
               <div>
                 <div className="font-medium">{meta.labelPlural}</div>
-                <div className="text-xs text-muted">Entdecken →</div>
+                <div className="text-xs text-cyan/80">Entdecken →</div>
               </div>
             </Link>
           ))}
@@ -201,12 +215,13 @@ export function HomePage() {
           ))}
         </div>
         {listings.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-            <p className="text-muted">Keine Treffer — Filter lockern oder neues Inserat anlegen.</p>
-            <Button className="mt-4" onClick={() => navigate('/listings/new')}>
-              Inserat erstellen
-            </Button>
-          </div>
+          <Empty
+            emoji="🔭"
+            title="Noch nichts in diesem Filter"
+            hint="Filter lockern — oder als Erste:r ein Inserat live schalten und den Markt setzen."
+            actionLabel="Inserat erstellen"
+            onAction={() => navigate('/listings/new')}
+          />
         )}
       </section>
 
@@ -228,7 +243,10 @@ export function HomePage() {
             text: 'Anfrage → Angebot → Buchung inkl. Messaging und Event-Projekten in einem Flow.',
           },
         ].map((f) => (
-          <div key={f.title} className="rounded-2xl border border-border bg-surface-2 p-5">
+          <div
+            key={f.title}
+            className="card-elevated rounded-2xl border border-border p-5"
+          >
             <f.icon className="mb-3 text-cyan" size={22} />
             <h3 className="font-semibold">{f.title}</h3>
             <p className="mt-1 text-sm text-muted">{f.text}</p>

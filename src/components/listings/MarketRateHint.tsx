@@ -12,11 +12,14 @@ export function MarketRateHint({
     <p className={cn('text-xs leading-relaxed text-muted', className)}>
       {compact ? (
         <>
-          Marktwert: <span className="text-neutral-300">{MARKET_RATE.short}</span> — Fachkraft
+          <span className="font-medium text-cyan/90">Marktwert DE 2026:</span>{' '}
+          <span className="text-neutral-300">{MARKET_RATE.short}</span> — Fachkraft
           400–500 € · Spezialist 600–800 € · keine Garantie
         </>
       ) : (
-        MARKET_RATE.full
+        <>
+          <span className="font-medium text-cyan/90">Marktwert:</span> {MARKET_RATE.full}
+        </>
       )}
     </p>
   )

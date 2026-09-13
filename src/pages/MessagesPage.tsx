@@ -73,8 +73,9 @@ export function MessagesPage() {
           ))}
           {threads.length === 0 && (
             <Empty
-              title="Noch keine Chats"
-              hint="Stelle eine Anfrage oder bewirb dich auf einen Job."
+              emoji="💬"
+              title="Dein Ops-Chat startet hier"
+              hint="Anfrage stellen oder auf einen Job bewerben — Threads landen sofort in diesem Desk."
               actionLabel="Jobs öffnen"
               onAction={() => navigate('/jobs')}
             />

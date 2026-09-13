@@ -14,12 +14,20 @@ export function JobConditions({
   listing: Listing
   compact?: boolean
 }) {
-  const items: { icon: typeof Car; label: string }[] = []
+  const items: { icon: typeof Car; label: string; short: string }[] = []
   if (listing.travel) {
-    items.push({ icon: Car, label: TRAVEL_OPTIONS[listing.travel] })
+    items.push({
+      icon: Car,
+      label: TRAVEL_OPTIONS[listing.travel],
+      short: listing.travel === 'included' ? 'Anfahrt inkl.' : listing.travel === 'per_km' ? 'km-Pauschale' : listing.travel === 'self' ? 'Anfahrt selbst' : 'Anfahrt TBD',
+    })
   }
   if (listing.overnight) {
-    items.push({ icon: Hotel, label: OVERNIGHT_OPTIONS[listing.overnight] })
+    items.push({
+      icon: Hotel,
+      label: OVERNIGHT_OPTIONS[listing.overnight],
+      short: listing.overnight === 'provided' || listing.overnight === 'hotel' ? 'ÜN gestellt' : listing.overnight === 'none' ? 'ohne ÜN' : 'ÜN TBD',
+    })
   }
   if (listing.expenses) {
     items.push({
@@ -27,18 +35,33 @@ export function JobConditions({
       label: listing.expensesNote
         ? `${EXPENSES_OPTIONS[listing.expenses]} — ${listing.expensesNote}`
         : EXPENSES_OPTIONS[listing.expenses],
+      short:
+        listing.expenses === 'included'
+          ? 'Spesen inkl.'
+          : listing.expenses === 'receipts'
+            ? 'Spesen Beleg'
+            : listing.expenses === 'flat'
+              ? 'Spesen Pauschale'
+              : listing.expenses === 'none'
+                ? 'keine Spesen'
+                : 'Spesen TBD',
     })
   }
   if (listing.dayHours) {
-    items.push({ icon: Timer, label: `${listing.dayHours}h-Tag` })
+    items.push({ icon: Timer, label: `${listing.dayHours}h-Tag`, short: `${listing.dayHours}h-Tag` })
   }
   if (items.length === 0) return null
 
   if (compact) {
     return (
-      <p className="mt-2 line-clamp-1 text-xs text-neutral-400">
-        {items.map((i) => i.label).join(' · ')}
-      </p>
+      <div className="mt-2.5 flex flex-wrap gap-1.5">
+        {items.slice(0, 4).map((i) => (
+          <span key={i.short} className="chip" title={i.label}>
+            <i.icon size={11} className="shrink-0 text-teal" />
+            {i.short}
+          </span>
+        ))}
+      </div>
     )
   }
 

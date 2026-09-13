@@ -14,9 +14,9 @@ export function Button({
 }) {
   const variants: Record<Variant, string> = {
     primary:
-      'bg-cyan text-black hover:bg-cyan/90 font-semibold glow-cyan disabled:opacity-50',
+      'bg-cyan text-black hover:bg-cyan/90 font-semibold glow-cyan shadow-[0_0_20px_rgba(0,240,255,0.18)] disabled:opacity-50',
     secondary:
-      'bg-surface-3 border border-border text-white hover:border-cyan/40 disabled:opacity-50',
+      'bg-surface-3 border border-border text-white hover:border-cyan/45 hover:bg-surface-3/80 disabled:opacity-50',
     ghost: 'bg-transparent text-neutral-300 hover:text-white hover:bg-white/5',
     danger: 'bg-rose-600/90 text-white hover:bg-rose-600',
   }

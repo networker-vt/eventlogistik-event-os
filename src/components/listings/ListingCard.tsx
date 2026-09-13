@@ -1,10 +1,17 @@
 import { Link } from 'react-router-dom'
-import { MapPin, Sparkles, Star } from 'lucide-react'
+import { MapPin, ShieldCheck, Sparkles, Star } from 'lucide-react'
 import type { Listing } from '../../types'
 import { Badge } from '../ui/Badge'
 import { VERTICAL_META } from '../../data/constants'
 import { formatDate, formatPriceRange } from '../../lib/utils'
 import { JobConditions } from './JobConditions'
+
+function trustLabel(level: Listing['ownerVerified']) {
+  if (level === 'business') return 'Business ✓'
+  if (level === 'id') return 'ID ✓'
+  if (level === 'email') return 'Mail ✓'
+  return null
+}
 
 export function ListingCard({
   listing,
@@ -15,14 +22,16 @@ export function ListingCard({
 }) {
   const meta = VERTICAL_META[listing.vertical]
   const rate = formatPriceRange(listing.priceFrom, listing.priceTo, listing.priceUnit)
+  const showRateTop = highlightRate || listing.vertical === 'job'
+  const trust = trustLabel(listing.ownerVerified)
 
   return (
     <Link
       to={`/listings/${listing.id}`}
-      className="card-hover block rounded-2xl border border-border bg-surface-2 p-4"
+      className="card-hover card-elevated group block rounded-2xl border border-border p-4"
     >
       <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-3 text-2xl">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border/80 bg-gradient-to-br from-surface-3 to-black/40 text-2xl shadow-inner">
           {listing.imageEmoji}
         </div>
         <div className="flex flex-wrap justify-end gap-1">
@@ -30,14 +39,22 @@ export function ListingCard({
             {listing.kind === 'offer' ? 'Angebot' : 'Gesuch'}
           </Badge>
           <Badge tone="teal">{meta?.label}</Badge>
+          {listing.featured && <Badge tone="cyan">Featured</Badge>}
         </div>
       </div>
 
-      {(highlightRate || listing.vertical === 'job') && (
-        <div className="mb-2 text-lg font-bold text-cyan">{rate}</div>
+      {showRateTop && (
+        <div className="mb-2 flex items-baseline gap-2">
+          <span className="text-xl font-bold tracking-tight text-cyan md:text-[1.35rem]">{rate}</span>
+          {listing.dayHours ? (
+            <span className="text-[11px] text-muted">{listing.dayHours}h-Tag</span>
+          ) : null}
+        </div>
       )}
 
-      <h3 className="line-clamp-2 text-base font-semibold text-white">{listing.title}</h3>
+      <h3 className="line-clamp-2 text-base font-semibold text-white transition group-hover:text-cyan/95">
+        {listing.title}
+      </h3>
       <p className="mt-1 line-clamp-2 text-sm text-muted">{listing.description}</p>
 
       {(listing.venue || listing.callTime || listing.dateFrom) && (
@@ -50,34 +67,38 @@ export function ListingCard({
       <JobConditions listing={listing} compact />
 
       {listing.matchReason && (
-        <p className="mt-2 inline-flex items-start gap-1 rounded-lg bg-cyan/10 px-2 py-1 text-[11px] text-cyan">
+        <p className="mt-2.5 inline-flex items-start gap-1.5 rounded-xl border border-cyan/20 bg-cyan/10 px-2.5 py-1.5 text-[11px] text-cyan">
           <Sparkles size={12} className="mt-0.5 shrink-0" />
           <span className="line-clamp-2">{listing.matchReason}</span>
         </p>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-neutral-400">
-        <span className="inline-flex items-center gap-1">
-          <MapPin size={12} /> {listing.city}
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <span className="chip">
+          <MapPin size={11} /> {listing.city}
         </span>
         {listing.rating != null && (
-          <span className="inline-flex items-center gap-1 text-amber-300">
-            <Star size={12} fill="currentColor" /> {listing.rating.toFixed(1)}
+          <span className="chip" style={{ color: '#fcd34d', borderColor: 'rgba(251,191,36,0.35)' }}>
+            <Star size={11} fill="currentColor" /> {listing.rating.toFixed(1)}
           </span>
         )}
-        {listing.dateFrom && <span>{formatDate(listing.dateFrom)}</span>}
-        {listing.ownerVerified !== 'none' && (
-          <Badge tone="green" className="!py-0">
-            ✓ {listing.ownerVerified === 'business' ? 'Business' : listing.ownerVerified === 'id' ? 'ID' : 'Mail'}
-          </Badge>
+        {trust && (
+          <span className="chip chip-trust">
+            <ShieldCheck size={11} /> {trust}
+          </span>
         )}
+        {listing.crafts?.slice(0, 2).map((c) => (
+          <span key={c} className="chip chip-teal">
+            {c}
+          </span>
+        ))}
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-border/70 pt-3">
-        {!(highlightRate || listing.vertical === 'job') ? (
-          <span className="text-sm font-medium text-cyan">{rate}</span>
+        {!showRateTop ? (
+          <span className="text-sm font-semibold text-cyan">{rate}</span>
         ) : (
-          <span className="text-xs text-muted">
+          <span className="text-xs font-medium text-cyan/90 group-hover:text-cyan">
             {listing.vertical === 'job' ? 'Jetzt bewerben →' : 'Jetzt anfragen →'}
           </span>
         )}

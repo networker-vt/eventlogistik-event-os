@@ -51,7 +51,7 @@ export function AppShell() {
           onClick={() => navigate('/')}
           className="mb-6 flex items-center gap-2 px-2 text-left"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan/15 text-lg">⚡</span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan/30 bg-cyan/15 text-lg shadow-[0_0_18px_rgba(0,240,255,0.2)]">⚡</span>
           <div>
             <div className="font-bold tracking-tight text-white">EventLogistik</div>
             <div className="text-[11px] uppercase tracking-wider text-cyan">Event-OS</div>
@@ -132,8 +132,8 @@ export function AppShell() {
             <span className="text-cyan">⚡</span>
             <span className="font-semibold">EventLogistik</span>
           </button>
-          <div className="hidden text-sm text-muted md:block">
-            Marketplace · Jobs · Matching · Ops
+          <div className="hidden text-sm text-neutral-400 md:block">
+            Marketplace · Jobs · Matching · <span className="text-cyan/80">Ops</span>
           </div>
           <div className="flex items-center gap-2">
             {user ? (

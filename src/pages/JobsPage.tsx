@@ -9,6 +9,7 @@ import {
   Scale,
   Search,
   Users,
+  Zap,
 } from 'lucide-react'
 import { FilterBar } from '../components/listings/FilterBar'
 import { ListingCard } from '../components/listings/ListingCard'
@@ -60,29 +61,51 @@ export function JobsPage() {
 
   return (
     <div className="space-y-5 pb-scroll-chrome">
-      <div className="rounded-3xl border border-border bg-surface-2 p-5">
-        <p className="text-sm text-cyan">💼 Jobs & Gigs</p>
-        <h1 className="mt-1 text-2xl font-bold">
-          {side === 'seek' ? 'Jobs finden — Rate zuerst' : 'Jobs posten & Crew besetzen'}
+      <div className="relative overflow-hidden rounded-3xl border border-border surface-shine p-5 motion-fade-up">
+        <div className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-cyan/20 blur-3xl motion-orb" />
+        <div className="pointer-events-none absolute -bottom-12 left-8 h-32 w-32 rounded-full bg-teal/15 blur-3xl motion-orb-delay" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan/40 to-transparent" />
+
+        <p className="inline-flex items-center gap-1.5 text-sm font-medium text-cyan">
+          <Zap size={14} /> Jobs Desk · Pro-Modus
+        </p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight md:text-3xl">
+          {side === 'seek' ? (
+            <>
+              Jobs finden — <span className="text-shimmer">Rate zuerst</span>
+            </>
+          ) : (
+            <>
+              Besetzen — <span className="text-shimmer">Pipeline & Compare</span>
+            </>
+          )}
         </h1>
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-300">
           {side === 'seek'
-            ? 'Keine versteckten Tagessätze. Zeitraum, Qualifikation, Ort, Anfahrt, Übernachtung und Spesen stehen im Inserat.'
-            : 'Structured Post: Zeitraum · Qualifikation · Ort · Anfahrt · Übernachtung · Spesen · Tagessatz (10h).'}
+            ? 'Keine versteckten Tagessätze. Zeitraum, Qualifikation, Ort, Anfahrt, Übernachtung und Spesen stehen im Inserat — bevor du dich bewirbst.'
+            : 'Structured Post in unter 2 Minuten: Zeitraum · Qualifikation · Ort · Anfahrt · ÜN · Spesen · Tagessatz (10h). Danach Pipeline, Compare, Chat.'}
         </p>
 
-        <div className="mt-4 flex rounded-xl border border-border bg-surface p-1">
+        <div className="mt-4 flex rounded-xl border border-border bg-black/40 p-1 backdrop-blur-sm">
           <button
             type="button"
             onClick={() => setSide('seek')}
-            className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-medium ${side === 'seek' ? 'bg-cyan text-black' : 'text-muted'}`}
+            className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold transition ${
+              side === 'seek'
+                ? 'bg-cyan text-black shadow-[0_0_20px_rgba(0,240,255,0.25)]'
+                : 'text-muted hover:text-white'
+            }`}
           >
             <Search size={16} /> Jobs finden
           </button>
           <button
             type="button"
             onClick={() => setSide('hire')}
-            className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-medium ${side === 'hire' ? 'bg-teal text-black' : 'text-muted'}`}
+            className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold transition ${
+              side === 'hire'
+                ? 'bg-teal text-black shadow-[0_0_20px_rgba(20,184,166,0.25)]'
+                : 'text-muted hover:text-white'
+            }`}
           >
             <Users size={16} /> Jobs / Crew
           </button>
@@ -94,7 +117,10 @@ export function JobsPage() {
               <Plus size={16} /> Job posten
             </Button>
           ) : (
-            <Button variant="secondary" onClick={() => navigate('/listings/new?vertical=job&kind=request')}>
+            <Button
+              variant="secondary"
+              onClick={() => navigate('/listings/new?vertical=job&kind=request')}
+            >
               Verfügbarkeit posten (Gesuch)
             </Button>
           )}
@@ -110,21 +136,24 @@ export function JobsPage() {
         <>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { icon: CheckCircle2, label: 'Rate + Spesen' },
-              { icon: MapPin, label: 'Ort & Zeitraum' },
-              { icon: Clock, label: '1-Tap Apply' },
+              { icon: CheckCircle2, label: 'Rate + Spesen', sub: 'transparent' },
+              { icon: MapPin, label: 'Ort & Zeitraum', sub: 'klar' },
+              { icon: Clock, label: '1-Tap Apply', sub: 'schnell' },
             ].map((x) => (
               <div
                 key={x.label}
-                className="flex flex-col items-center gap-1 rounded-xl border border-border bg-surface-2 px-2 py-3 text-center"
+                className="card-elevated flex flex-col items-center gap-1 rounded-xl border border-border px-2 py-3 text-center"
               >
                 <x.icon size={16} className="text-cyan" />
-                <span className="text-[11px] text-muted">{x.label}</span>
+                <span className="text-[11px] font-medium text-neutral-200">{x.label}</span>
+                <span className="text-[10px] uppercase tracking-wider text-muted">{x.sub}</span>
               </div>
             ))}
           </div>
 
-          <MarketRateHint />
+          <div className="rounded-2xl border border-cyan/20 bg-cyan/5 px-4 py-3">
+            <MarketRateHint />
+          </div>
 
           <div className="sticky-filters -mx-4 bg-surface/95 px-4 py-2 backdrop-blur md:mx-0 md:bg-transparent md:px-0 md:py-0">
             <FilterBar
@@ -138,8 +167,9 @@ export function JobsPage() {
 
           {listings.length === 0 ? (
             <Empty
-              title="Keine Jobs in diesem Filter"
-              hint="Tagessatz, Stadt oder Gewerk lockern — oder Verfügbarkeit als Gesuch posten."
+              emoji="🎯"
+              title="Noch kein Match in diesem Filter"
+              hint="Tagessatz, Stadt oder Gewerk lockern — oder Verfügbarkeit posten und Agenturen finden dich."
               actionLabel="Filter zurücksetzen"
               onAction={() => setFilters({ vertical: 'job', kind: 'offer' })}
             />
@@ -153,7 +183,9 @@ export function JobsPage() {
 
           {user && myJobBookings.length > 0 && (
             <section className="space-y-3">
-              <h2 className="font-semibold">Meine Bewerbungen</h2>
+              <h2 className="flex items-center gap-2 font-semibold">
+                <Briefcase size={16} className="text-cyan" /> Meine Bewerbungen
+              </h2>
               <div className="space-y-2">
                 {myJobBookings
                   .filter((b) => b.requesterId === user.id)
@@ -161,7 +193,7 @@ export function JobsPage() {
                     <Link
                       key={b.id}
                       to={`/bookings/${b.id}`}
-                      className="flex items-center justify-between gap-2 rounded-xl border border-border bg-surface-2 px-4 py-3"
+                      className="card-hover flex items-center justify-between gap-2 rounded-xl border border-border bg-surface-2 px-4 py-3"
                     >
                       <div className="min-w-0">
                         <div className="truncate font-medium">{b.listingTitle}</div>
@@ -170,7 +202,11 @@ export function JobsPage() {
                           {BOOKING_STATUS_LABELS[b.status]}
                         </div>
                       </div>
-                      <Badge tone={b.status === 'booked' ? 'green' : b.status === 'offer' ? 'cyan' : 'amber'}>
+                      <Badge
+                        tone={
+                          b.status === 'booked' ? 'green' : b.status === 'offer' ? 'cyan' : 'amber'
+                        }
+                      >
                         {BOOKING_STATUS_LABELS[b.status]}
                       </Badge>
                     </Link>
@@ -183,10 +219,15 @@ export function JobsPage() {
 
       {side === 'hire' && (
         <>
-          <div className="rounded-2xl border border-dashed border-teal/40 bg-teal/5 p-4 text-sm text-neutral-300">
-            <Briefcase className="mb-2 inline text-teal" size={18} /> Structured Post: Zeitraum · Ort ·
-            Qualifikation · Tagessatz (10h) · Anfahrt · Übernachtung · Spesen — unter 2 Minuten.
-            <MarketRateHint className="mt-2" />
+          <div className="rounded-2xl border border-teal/35 bg-gradient-to-br from-teal/10 to-transparent p-4 text-sm text-neutral-300">
+            <div className="mb-1 flex items-center gap-2 font-semibold text-teal">
+              <Briefcase size={18} /> Structured Post · unter 2 Minuten
+            </div>
+            Zeitraum · Ort · Qualifikation · Tagessatz (10h) · Anfahrt · Übernachtung · Spesen —
+            dann Pipeline & Compare.
+            <div className="mt-3 rounded-xl border border-border/60 bg-black/25 px-3 py-2">
+              <MarketRateHint />
+            </div>
           </div>
 
           <div className="sticky-filters -mx-4 bg-surface/95 px-4 py-2 backdrop-blur md:mx-0 md:bg-transparent md:px-0 md:py-0">
@@ -206,8 +247,9 @@ export function JobsPage() {
           </div>
           {listings.length === 0 && (
             <Empty
-              title="Noch keine Jobs sichtbar"
-              hint="Poste deinen ersten Job mit klarer Rate — Bewerbungen landen in der Pipeline."
+              emoji="🚀"
+              title="Dein erster Job setzt den Standard"
+              hint="Poste mit klarer Rate + Spesen/ÜN — Bewerbungen landen in der Pipeline, Compare in einem Tap."
               actionLabel="Job posten"
               onAction={() => navigate('/listings/new?vertical=job&kind=offer')}
             />
@@ -217,6 +259,7 @@ export function JobsPage() {
             <section className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="font-semibold">Meine Job-Posts</h2>
+                <span className="text-xs text-muted">{postedJobs.length} aktiv</span>
               </div>
               <div className="space-y-2">
                 {postedJobs.map((job) => {
@@ -224,7 +267,7 @@ export function JobsPage() {
                   return (
                     <div
                       key={job.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface-2 px-4 py-3"
+                      className="card-elevated flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border px-4 py-3"
                     >
                       <div className="min-w-0">
                         <div className="truncate font-medium">{job.title}</div>
@@ -243,7 +286,11 @@ export function JobsPage() {
                             <Scale size={14} /> Vergleichen
                           </Button>
                         )}
-                        <Button size="sm" variant="ghost" onClick={() => navigate(`/listings/${job.id}`)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => navigate(`/listings/${job.id}`)}
+                        >
                           Öffnen
                         </Button>
                       </div>
@@ -256,11 +303,20 @@ export function JobsPage() {
 
           {user && (
             <section className="space-y-3">
-              <h2 className="font-semibold">Bewerber-Pipeline</h2>
-              {myJobBookings.filter((b) => b.providerId === user.id || postedJobs.some((p) => p.id === b.listingId)).length === 0 ? (
-                <p className="text-sm text-muted">
-                  Noch keine Bewerbungen. Poste einen Job oder warte auf eingehende Anfragen.
-                </p>
+              <h2 className="flex items-center gap-2 font-semibold">
+                <Users size={16} className="text-teal" /> Bewerber-Pipeline
+              </h2>
+              {myJobBookings.filter(
+                (b) =>
+                  b.providerId === user.id || postedJobs.some((p) => p.id === b.listingId),
+              ).length === 0 ? (
+                <Empty
+                  emoji="📬"
+                  title="Pipeline bereit — noch leer"
+                  hint="Poste einen Job mit klarer Rate. Eingehende Bewerbungen erscheinen hier zum Compare & Chat."
+                  actionLabel="Job posten"
+                  onAction={() => navigate('/listings/new?vertical=job&kind=offer')}
+                />
               ) : (
                 <div className="space-y-2">
                   {myJobBookings
@@ -273,7 +329,7 @@ export function JobsPage() {
                       <Link
                         key={b.id}
                         to={`/bookings/${b.id}`}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface-2 px-4 py-3 hover:border-teal/40"
+                        className="card-hover flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface-2 px-4 py-3 hover:border-teal/40"
                       >
                         <div>
                           <div className="font-medium">{b.requesterName}</div>
