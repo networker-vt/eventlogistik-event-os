@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { AuthProvider } from './lib/auth'
+import { initStore } from './lib/store'
 import { AuthPage } from './pages/AuthPage'
 import { BookingPage } from './pages/BookingPage'
+import { CompareOffersPage } from './pages/CompareOffersPage'
 import { CreateListingPage } from './pages/CreateListingPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { HomePage } from './pages/HomePage'
@@ -12,6 +15,9 @@ import { MessagesPage } from './pages/MessagesPage'
 import { ProfilePage, PublicProfilePage } from './pages/ProfilePage'
 import { ProjectCreatePage, ProjectDetailPage } from './pages/ProjectPage'
 import { VerticalPage } from './pages/VerticalPage'
+import { AgbPage } from './pages/legal/AgbPage'
+import { DatenschutzPage } from './pages/legal/DatenschutzPage'
+import { ImpressumPage } from './pages/legal/ImpressumPage'
 import type { Vertical } from './types'
 
 function V({ vertical }: { vertical: Vertical }) {
@@ -19,6 +25,20 @@ function V({ vertical }: { vertical: Vertical }) {
 }
 
 export default function App() {
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    void initStore().finally(() => setReady(true))
+  }, [])
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-surface text-sm text-muted">
+        EventLogistik wird geladen…
+      </div>
+    )
+  }
+
   return (
     <AuthProvider>
       <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -32,6 +52,7 @@ export default function App() {
             <Route path="kuriere" element={<V vertical="courier" />} />
             <Route path="hotels" element={<V vertical="hotel" />} />
             <Route path="jobs" element={<JobsPage />} />
+            <Route path="jobs/compare/:listingId" element={<CompareOffersPage />} />
             <Route path="listings/new" element={<CreateListingPage />} />
             <Route path="listings/:id" element={<ListingDetailPage />} />
             <Route path="auth" element={<AuthPage />} />
@@ -43,6 +64,9 @@ export default function App() {
             <Route path="projects/:id" element={<ProjectDetailPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="profiles/:id" element={<PublicProfilePage />} />
+            <Route path="impressum" element={<ImpressumPage />} />
+            <Route path="datenschutz" element={<DatenschutzPage />} />
+            <Route path="agb" element={<AgbPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

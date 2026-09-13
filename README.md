@@ -2,88 +2,104 @@
 
 **Das All-in-One Event-OS für die deutsche Eventbranche** — Marketplace + Matching + Ops Lite + Trust.
 
-Dual Marketplace (Angebot ↔ Gesuch) für Freelancer, Firmen, Material, Transporter, Kuriere, Hotels und Jobs. Mobil-first PWA mit dunklem Premium-UI (#0a0a0a + Cyan/Teal).
+Dual Marketplace (Angebot ↔ Gesuch) für Freelancer, Firmen, Material, Transporter, Kuriere, Hotels und Jobs. Mobil-first **PWA** mit dunklem Premium-UI (#0a0a0a + Cyan/Teal).
 
-Repo: https://github.com/networker-vt/eventlogistik-event-os
+- **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
+- **Repo:** https://github.com/networker-vt/eventlogistik-event-os
+- **Releases / ZIP-Download:** https://github.com/networker-vt/eventlogistik-event-os/releases
+
+> Vite `base` ist fest `/eventlogistik-event-os/` (GitHub Pages Projektseite). Nicht ändern, solange unter diesem Pfad gehostet wird.
 
 ## Quick Start
 
 ```bash
 npm install
+cp .env.example .env   # Keys optional — ohne Keys läuft die Demo
 npm run dev
 ```
 
-Build:
+Build & Preview:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-Die App startet mit reichhaltigen **Seed-Daten** (`src/data/seed.ts`) und einem lokalen Store — **ohne** Supabase-Keys.
+Deploy Pages:
+
+```bash
+./scripts/deploy-pages.sh
+```
+
+Die App startet mit **Seed-Daten** und lokalem Store, wenn keine gültigen Supabase-Keys gesetzt sind. Mit `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` versucht sie, Supabase zu hydratisieren (graceful Fallback).
+
+## Production Upload
+
+1. `.env` aus `.env.example` befüllen (Supabase-Projekt + Anon-Key)
+2. Migration: `supabase/migrations/20260912_init.sql`
+3. `npm run build` — Artefakt in `dist/`
+4. `./scripts/deploy-pages.sh` **oder** ZIP aus Release hochladen/entpacken
+5. Rechtstexte unter `/impressum`, `/datenschutz`, `/agb` mit Firmendaten ersetzen
+6. Checkliste: [`LAUNCH.md`](./LAUNCH.md) · Store später: [`STORE_READY.md`](./STORE_READY.md)
+
+### Downloadbarer Build
+
+GitHub Release-Asset **`eventlogistik-event-os-web.zip`** = Inhalt von `dist/` (statisches Hosting). Nach dem Entpacken auf beliebigen Static Host legen — Base-Path `/eventlogistik-event-os/` beachten, oder neu mit anderem `base` bauen.
+
+## PWA installieren
+
+- **Android:** Banner oder Chrome-Menü → App installieren  
+- **iOS Safari:** Teilen → Zum Home-Bildschirm  
+- Offline-Shell via Service Worker (Workbox)
 
 ## Stack
 
-- React 19 + TypeScript + Vite
+- React 19 + TypeScript + Vite 8
 - Tailwind CSS v4
-- React Router
+- React Router 7
 - Lucide Icons
-- Supabase JS Client (Stub / optional live)
-- PWA Manifest
+- Supabase JS (optional live)
+- **vite-plugin-pwa** / Workbox
 
 ## Architektur
 
 ```
 src/
-  components/   # layout, ui, listings
-  data/         # seed.ts, constants (Städte, Gewerke)
+  components/   # layout, ui, listings, bookings
+  data/         # seed.ts, constants
   hooks/        # useStore
-  lib/          # store.ts (Repository), auth.tsx, supabase.ts, utils
-  pages/        # Feature-Screens
-  types/        # Listing, Booking, Message, Profile, Project
+  lib/          # store (local + Supabase prefer), auth, supabase, supabaseSync
+  pages/        # Feature-Screens + legal/
 supabase/
   migrations/   # SQL Schema + RLS Starter
+scripts/
+  deploy-pages.sh
 ```
 
-### Store-Interface
+### Store
 
-`src/lib/store.ts` kapselt Listings, Bookings, Threads, Messages und Projects hinter einer klaren API (localStorage + Seed). Später kann die Implementierung 1:1 gegen Supabase getauscht werden, ohne die UI umzubauen.
+`src/lib/store.ts` — sync Repository für UI. Beim Start: `initStore()` lädt bei konfiguriertem Supabase einen Snapshot; sonst Seed + `localStorage`. Mutationen schreiben lokal und best-effort nach Supabase.
 
-### Auth
+### Features (Auswahl)
 
-Mock-Auth in `src/lib/auth.tsx` (localStorage). Demo-Login als Eventagentur „Alex Müller / Nordlicht Events“. Rollen: Freelancer, Technikfirma, Hotel, Transporter, Kurier, Material, Agentur, Admin.
+- Jobs-Marketplace (Seek / Hire), Bewerber-Pipeline
+- **Angebote vergleichen** (`/jobs/compare/:listingId`)
+- Booking-Flow inkl. **Rating-Prompt** nach `completed`
+- Messaging, Projekte, Verifizierungs-Badges
+- Legal-Routen (Platzhalter DE)
 
-## Routen / Screens
+## Routen
 
 | Route | Beschreibung |
 |-------|----------------|
-| `/` | Unified Discovery (Stadt, Gewerk, Datum, Preis, Vertikale) |
-| `/freelancer` `/firmen` `/material` `/transporter` `/kuriere` `/hotels` `/jobs` | Vertikal-Marketplaces |
-| `/listings/:id` | Detail + Anfrage-Flow |
-| `/listings/new` | Angebot/Gesuch erstellen |
-| `/auth` | Registrierung / Login (rollen-basiert) |
-| `/dashboard` | KPIs, Projekte, Booking-Pipeline |
-| `/bookings/:id` | Inquiry → Offer → Accepted → Booked → Completed |
-| `/messages` `/messages/:threadId` | Messaging Threads |
-| `/projects/new` `/projects/:id` | Event-Container inkl. Ressourcen |
-| `/profile` `/profiles/:id` | Eigenes / öffentliches Profil + Badges |
-
-## Supabase anbinden
-
-1. Projekt in Supabase anlegen  
-2. SQL aus `supabase/migrations/20260912_init.sql` ausführen  
-3. `.env` aus `.env.example` kopieren:
-
-```env
-VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
-VITE_USE_MOCK=false
-```
-
-4. `src/lib/supabase.ts` erkennt gültige Keys automatisch (`isSupabaseConfigured`)  
-5. Nächster Schritt: Store-Methoden auf Supabase-Queries umstellen (Auth über `supabase.auth`, Tabellen wie in der Migration)
-
-**Hinweis:** In v1 ist die UI vollständig mit dem lokalen Store lauffähig. Der Supabase-Client und das Schema sind vorbereitet; Live-CRUD ist v1.1.
+| `/` | Unified Discovery |
+| `/jobs` | Jobs finden / posten |
+| `/jobs/compare/:listingId` | Bewerber side-by-side |
+| `/listings/:id` · `/listings/new` | Detail / erstellen |
+| `/bookings/:id` | Pipeline + Rating |
+| `/messages` | Chat |
+| `/dashboard` · `/projects/*` · `/profile` | Ops & Profil |
+| `/impressum` · `/datenschutz` · `/agb` | Legal stubs |
 
 ## Design
 
@@ -91,9 +107,14 @@ VITE_USE_MOCK=false
 - Mobile Bottom-Nav + Desktop Sidebar
 - Deutsche UI-Texte
 
-## Out of Scope (v1)
+## Docs
 
-Stripe / Payments, Native Apps, schweres ERP
+- [`LAUNCH.md`](./LAUNCH.md) — Go-Live-Checkliste
+- [`STORE_READY.md`](./STORE_READY.md) — PWA jetzt, TWA/Capacitor später
+
+## Out of Scope (aktuell)
+
+Stripe / Payments, native Store-Binaries, schweres ERP
 
 ## Lizenz
 

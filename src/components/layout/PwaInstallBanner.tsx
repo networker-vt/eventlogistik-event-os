@@ -69,11 +69,11 @@ export function PwaInstallBanner() {
           <Download size={18} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">App installieren</p>
+          <p className="text-sm font-semibold">EventLogistik installieren</p>
           <p className="mt-0.5 text-xs text-muted">
             {showIos && !deferred
-              ? 'Auf dem iPhone: Teilen → „Zum Home-Bildschirm“.'
-              : 'EventLogistik als App auf dem Homescreen — schneller Zugriff unterwegs.'}
+              ? 'iPhone/iPad: Teilen-Symbol → „Zum Home-Bildschirm“ → Hinzufügen. Danach wie eine App öffnen (Offline-Shell).'
+              : 'Als PWA auf den Homescreen — Offline-Shell, schneller Start, kein App-Store nötig.'}
           </p>
           {deferred && (
             <Button size="sm" className="mt-2" onClick={install}>

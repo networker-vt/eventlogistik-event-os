@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { RatingPrompt } from '../components/bookings/RatingPrompt'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Input, Select } from '../components/ui/Input'
@@ -78,6 +79,10 @@ export function BookingPage() {
         )}
       </div>
 
+      {booking.status === 'completed' && (
+        <RatingPrompt booking={booking} userId={user.id} userName={user.name} />
+      )}
+
       <div className="rounded-2xl border border-border bg-surface-2 p-5">
         <h2 className="mb-3 font-semibold">Status-Flow</h2>
         <div className="flex flex-wrap gap-2">
@@ -142,7 +147,7 @@ export function BookingPage() {
               Zum Chat
             </Button>
           )}
-          <Link to={`/listings/${booking.listingId}`} className="text-sm text-cyan self-center">
+          <Link to={`/listings/${booking.listingId}`} className="self-center text-sm text-cyan">
             Inserat öffnen
           </Link>
         </div>

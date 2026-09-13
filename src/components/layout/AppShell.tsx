@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Briefcase,
   Building2,
@@ -114,6 +114,11 @@ export function AppShell() {
               Anmelden
             </button>
           )}
+          <div className="flex flex-wrap gap-x-3 gap-y-1 px-1 pt-2 text-[11px] text-muted">
+            <Link to="/impressum" className="hover:text-cyan">Impressum</Link>
+            <Link to="/datenschutz" className="hover:text-cyan">Datenschutz</Link>
+            <Link to="/agb" className="hover:text-cyan">AGB</Link>
+          </div>
         </div>
       </aside>
 
@@ -153,6 +158,11 @@ export function AppShell() {
 
         <main className="flex-1 px-4 py-4 md:px-6 md:py-6">
           <Outlet />
+          <footer className="mt-10 flex flex-wrap gap-x-4 gap-y-2 border-t border-border pt-4 text-xs text-muted md:hidden">
+            <Link to="/impressum" className="hover:text-cyan">Impressum</Link>
+            <Link to="/datenschutz" className="hover:text-cyan">Datenschutz</Link>
+            <Link to="/agb" className="hover:text-cyan">AGB</Link>
+          </footer>
         </main>
       </div>
 

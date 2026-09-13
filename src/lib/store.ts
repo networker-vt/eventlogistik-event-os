@@ -14,11 +14,20 @@ import type {
   Message,
   Profile,
   Project,
+  Review,
+  StoreMode,
   Thread,
 } from '../types'
+import { isSupabaseConfigured } from './supabase'
+import {
+  fetchSupabaseSnapshot,
+  pushBookingStatusToSupabase,
+  pushListingToSupabase,
+} from './supabaseSync'
 import { uid } from './utils'
 
-const KEY = 'el_store_v2'
+const KEY = 'el_store_v3'
+const REVIEWS_KEY = 'el_reviews_v1'
 
 interface StoreData {
   listings: Listing[]
@@ -27,7 +36,10 @@ interface StoreData {
   messages: Message[]
   projects: Project[]
   profiles: Profile[]
+  reviews: Review[]
 }
+
+let mode: StoreMode = 'local'
 
 function defaultData(): StoreData {
   return {
@@ -37,7 +49,21 @@ function defaultData(): StoreData {
     messages: [...seedMessages],
     projects: [...seedProjects],
     profiles: [...seedProfiles],
+    reviews: loadReviews(),
   }
+}
+
+function loadReviews(): Review[] {
+  try {
+    const raw = localStorage.getItem(REVIEWS_KEY)
+    return raw ? (JSON.parse(raw) as Review[]) : []
+  } catch {
+    return []
+  }
+}
+
+function persistReviews(reviews: Review[]) {
+  localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews))
 }
 
 function load(): StoreData {
@@ -46,7 +72,10 @@ function load(): StoreData {
     if (!raw) return defaultData()
     const parsed = JSON.parse(raw) as StoreData
     if (!parsed.listings?.length) return defaultData()
-    return parsed
+    return {
+      ...parsed,
+      reviews: parsed.reviews?.length ? parsed.reviews : loadReviews(),
+    }
   } catch {
     return defaultData()
   }
@@ -54,6 +83,7 @@ function load(): StoreData {
 
 function save(data: StoreData) {
   localStorage.setItem(KEY, JSON.stringify(data))
+  persistReviews(data.reviews)
   window.dispatchEvent(new CustomEvent('el-store-changed'))
 }
 
@@ -72,7 +102,48 @@ function mutate(fn: (data: StoreData) => void) {
   return data
 }
 
+export function getStoreMode(): StoreMode {
+  return mode
+}
+
+export function isLiveBackend() {
+  return mode === 'supabase' && isSupabaseConfigured
+}
+
+/**
+ * Prefer Supabase when env keys are set and data is available.
+ * Graceful fallback to localStorage + seed demo otherwise.
+ */
+export async function initStore(): Promise<StoreMode> {
+  if (!isSupabaseConfigured) {
+    mode = 'local'
+    return mode
+  }
+  const snap = await fetchSupabaseSnapshot()
+  if (!snap) {
+    mode = 'local'
+    console.info(
+      '[EventLogistik] VITE_SUPABASE_* gesetzt, aber kein nutzbarer Snapshot — Demo-Store aktiv',
+    )
+    return mode
+  }
+  cache = {
+    listings: snap.listings,
+    bookings: snap.bookings.length ? snap.bookings : [...seedBookings],
+    threads: snap.threads.length ? snap.threads : [...seedThreads],
+    messages: snap.messages.length ? snap.messages : [...seedMessages],
+    projects: snap.projects.length ? snap.projects : [...seedProjects],
+    profiles: snap.profiles.length ? snap.profiles : [...seedProfiles],
+    reviews: loadReviews(),
+  }
+  save(cache)
+  mode = 'supabase'
+  console.info('[EventLogistik] Store: Supabase live (%d listings)', snap.listings.length)
+  return mode
+}
+
 export function resetStore() {
+  mode = 'local'
   cache = defaultData()
   save(cache)
 }
@@ -87,7 +158,7 @@ export function subscribeStore(cb: () => void) {
   }
 }
 
-/** Repository interface — later swap implementation for Supabase */
+/** Repository interface — Supabase preferred when configured + hydrated */
 export const store = {
   listListings(filters: ListingFilters = {}): Listing[] {
     let items = getData().listings.filter((l) => l.status === 'active')
@@ -115,7 +186,11 @@ export const store = {
     }
     if (filters.dateFrom) {
       items = items.filter(
-        (l) => !l.dateTo || l.dateTo >= filters.dateFrom! || !l.dateFrom || l.dateFrom >= filters.dateFrom!,
+        (l) =>
+          !l.dateTo ||
+          l.dateTo >= filters.dateFrom! ||
+          !l.dateFrom ||
+          l.dateFrom >= filters.dateFrom!,
       )
     }
     if (filters.q) {
@@ -145,6 +220,7 @@ export const store = {
     mutate((d) => {
       d.listings.unshift(item)
     })
+    void pushListingToSupabase(item)
     return item
   },
 
@@ -163,6 +239,12 @@ export const store = {
   listBookingsForUser(userId: string): Booking[] {
     return getData()
       .bookings.filter((b) => b.requesterId === userId || b.providerId === userId)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  },
+
+  listBookingsForListing(listingId: string): Booking[] {
+    return getData()
+      .bookings.filter((b) => b.listingId === listingId)
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   },
 
@@ -255,6 +337,7 @@ export const store = {
         })
       })
     })
+    void pushBookingStatusToSupabase(id, status, extra)
     return updated
   },
 
@@ -345,6 +428,50 @@ export const store = {
     })
   },
 
+  getReviewForBooking(bookingId: string, fromUserId: string): Review | undefined {
+    return getData().reviews.find(
+      (r) => r.bookingId === bookingId && r.fromUserId === fromUserId,
+    )
+  },
+
+  listReviewsForUser(userId: string): Review[] {
+    return getData()
+      .reviews.filter((r) => r.toUserId === userId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  },
+
+  submitReview(input: {
+    bookingId: string
+    listingId: string
+    fromUserId: string
+    fromUserName: string
+    toUserId: string
+    toUserName: string
+    rating: number
+    comment: string
+  }): Review {
+    const review: Review = {
+      id: uid('rev'),
+      ...input,
+      rating: Math.min(5, Math.max(1, Math.round(input.rating))),
+      createdAt: new Date().toISOString(),
+    }
+    mutate((d) => {
+      d.reviews = d.reviews.filter(
+        (r) => !(r.bookingId === input.bookingId && r.fromUserId === input.fromUserId),
+      )
+      d.reviews.push(review)
+      const profile = d.profiles.find((p) => p.id === input.toUserId)
+      if (profile) {
+        const all = d.reviews.filter((r) => r.toUserId === input.toUserId)
+        const avg = all.reduce((s, r) => s + r.rating, 0) / all.length
+        profile.rating = Math.round(avg * 10) / 10
+        profile.reviewCount = all.length
+      }
+    })
+    return review
+  },
+
   stats() {
     const d = getData()
     return {
@@ -352,6 +479,7 @@ export const store = {
       requests: d.listings.filter((l) => l.kind === 'request' && l.status === 'active').length,
       bookings: d.bookings.length,
       projects: d.projects.length,
+      mode,
     }
   },
 }

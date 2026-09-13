@@ -163,3 +163,18 @@ export interface AuthUser {
   name: string
   role: Role
 }
+
+export interface Review {
+  id: string
+  bookingId: string
+  listingId: string
+  fromUserId: string
+  fromUserName: string
+  toUserId: string
+  toUserName: string
+  rating: number
+  comment: string
+  createdAt: string
+}
+
+export type StoreMode = 'local' | 'supabase'

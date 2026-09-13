@@ -6,6 +6,7 @@ import {
   Clock,
   MapPin,
   Plus,
+  Scale,
   Search,
   Users,
 } from 'lucide-react'
@@ -206,6 +207,47 @@ export function JobsPage() {
               actionLabel="Job posten"
               onAction={() => navigate('/listings/new?vertical=job&kind=offer')}
             />
+          )}
+
+          {user && postedJobs.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-semibold">Meine Job-Posts</h2>
+              </div>
+              <div className="space-y-2">
+                {postedJobs.map((job) => {
+                  const apps = store.listBookingsForListing(job.id)
+                  return (
+                    <div
+                      key={job.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface-2 px-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate font-medium">{job.title}</div>
+                        <div className="text-xs text-muted">
+                          {apps.length} Bewerbung{apps.length === 1 ? '' : 'en'}
+                          {job.priceFrom != null ? ` · ab ${formatPrice(job.priceFrom)}` : ''}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {apps.length >= 2 && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => navigate(`/jobs/compare/${job.id}`)}
+                          >
+                            <Scale size={14} /> Vergleichen
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => navigate(`/listings/${job.id}`)}>
+                          Öffnen
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
           )}
 
           {user && (
