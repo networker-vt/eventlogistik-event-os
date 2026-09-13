@@ -9,6 +9,8 @@ import {
   Sparkles,
   Users,
   Zap,
+  Library,
+  GraduationCap,
 } from 'lucide-react'
 import { FilterBar } from '../components/listings/FilterBar'
 import { ListingCard } from '../components/listings/ListingCard'
@@ -19,6 +21,9 @@ import { useListings } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
 import type { ListingFilters, Role } from '../types'
+import { CATALOG_COMPANY_COUNT, CATALOG_VENUE_COUNT } from '../data/catalog'
+import { INNOVATION_COUNT } from '../data/innovation'
+import { FORTBILDUNG_COUNT, MEDIEN_COUNT } from '../data/wissen'
 
 function isSeekerRole(role?: Role) {
   return role === 'freelancer' || role === 'courier' || role === 'transporter'
@@ -170,6 +175,49 @@ export function HomePage() {
           </div>
         </section>
       )}
+
+
+      <section className="grid gap-3 sm:grid-cols-3">
+        <Link
+          to="/katalog/firmen"
+          className="card-hover rounded-2xl border border-teal/35 bg-teal/10 p-4"
+        >
+          <div className="mb-2 flex items-center gap-2 text-teal">
+            <Library size={18} />
+            <span className="text-xs font-semibold uppercase tracking-wider">Katalog</span>
+          </div>
+          <div className="font-semibold text-white">Öffentliche Firmendaten</div>
+          <p className="mt-1 text-xs text-neutral-300">
+            {CATALOG_COMPANY_COUNT}+ VT-Firmen · {CATALOG_VENUE_COUNT} Locations · Transporteure
+          </p>
+        </Link>
+        <Link
+          to="/innovation"
+          className="card-hover rounded-2xl border border-cyan/35 bg-cyan/10 p-4"
+        >
+          <div className="mb-2 flex items-center gap-2 text-cyan">
+            <Sparkles size={18} />
+            <span className="text-xs font-semibold uppercase tracking-wider">Innovation</span>
+          </div>
+          <div className="font-semibold text-white">KI · XR · LED · Audio</div>
+          <p className="mt-1 text-xs text-neutral-300">
+            {INNOVATION_COUNT} kuratierte News-Karten aus der Fachpresse
+          </p>
+        </Link>
+        <Link
+          to="/wissen/fortbildung"
+          className="card-hover rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4"
+        >
+          <div className="mb-2 flex items-center gap-2 text-amber-300">
+            <GraduationCap size={18} />
+            <span className="text-xs font-semibold uppercase tracking-wider">Wissen</span>
+          </div>
+          <div className="font-semibold text-white">Medien & Fortbildung</div>
+          <p className="mt-1 text-xs text-neutral-300">
+            {MEDIEN_COUNT} Branchenmedien · {FORTBILDUNG_COUNT} Lehrgangs-Hinweise
+          </p>
+        </Link>
+      </section>
 
       <section>
         <div className="mb-3 flex items-center justify-between">

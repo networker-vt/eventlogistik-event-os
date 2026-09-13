@@ -52,6 +52,21 @@ GitHub Release-Asset **`eventlogistik-event-os-web.zip`** = Inhalt von `dist/` (
 - **iOS Safari:** Teilen → Zum Home-Bildschirm  
 - Offline-Shell via Service Worker (Workbox)
 
+
+
+## Öffentlicher Katalog · Datenschutz (GDPR)
+
+LoadIn führt einen **öffentlichen Business-Katalog** (`src/data/catalog/`):
+
+- **Quellen:** dry-hire.com Deutschland-Verzeichnis, Firmen-Impressumsseiten, allgemein veröffentlichte Venue-Adressen.
+- **Felder:** nur öffentlich gelistete Firmendaten (Name, Straße, PLZ, Ort, Geschäfts-Telefon, Geschäfts-E-Mail, Website).
+- **Nicht enthalten:** private Freelancer-Handynummern, private E-Mails oder Profile von Instaff/Facebook/WhatsApp o. Ä. Freelancer in der Seed-Demo sind fiktiv/anonymisiert.
+- Jeder Eintrag hat `source` und `dataClass: 'public_business'`.
+- UI-Hinweis: „Öffentliche Firmendaten · Angaben ohne Gewähr · Korrekturen: …“
+- **Innovation / Wissen:** redaktionell kuratierte Outbound-Links (News, Branchenmedien, Fortbildungen) — keine Buchungen, keine gescrapten Nutzer-DBs.
+
+Routes: `/katalog/firmen`, `/katalog/locations`, `/katalog/transporteure`, `/katalog/plattformen`, `/katalog/fahrzeuggroessen`, `/innovation`, `/wissen/medien`, `/wissen/fortbildung`.
+
 ## Stack
 
 - React 19 + TypeScript + Vite 8

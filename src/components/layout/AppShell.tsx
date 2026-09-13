@@ -11,6 +11,9 @@ import {
   Truck,
   UserRound,
   Bike,
+  BookOpen,
+  Library,
+  Sparkles,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../lib/auth'
@@ -32,6 +35,9 @@ const modules = [
   { to: '/kuriere', label: 'Kuriere', icon: Bike },
   { to: '/hotels', label: 'Hotels', icon: Hotel },
   { to: '/jobs', label: 'Jobs & Gigs', icon: Briefcase },
+  { to: '/katalog/firmen', label: 'Katalog', icon: Library },
+  { to: '/innovation', label: 'Innovation', icon: Sparkles },
+  { to: '/wissen/medien', label: 'Wissen', icon: BookOpen },
 ]
 
 export function AppShell() {

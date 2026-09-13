@@ -27,7 +27,7 @@ import {
 import { uid } from './utils'
 
 const KEY = 'el_store_v4'
-const SEED_REV = 4
+const SEED_REV = 5
 const REVIEWS_KEY = 'el_reviews_v1'
 
 interface StoreData {

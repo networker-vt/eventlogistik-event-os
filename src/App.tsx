@@ -19,6 +19,15 @@ import { AgbPage } from './pages/legal/AgbPage'
 import { DatenschutzPage } from './pages/legal/DatenschutzPage'
 import { ImpressumPage } from './pages/legal/ImpressumPage'
 import type { Vertical } from './types'
+import { KatalogLayout } from './pages/katalog/KatalogLayout'
+import { FirmenPage } from './pages/katalog/FirmenPage'
+import { LocationsPage } from './pages/katalog/LocationsPage'
+import { TransporteurePage } from './pages/katalog/TransporteurePage'
+import { PlattformenPage } from './pages/katalog/PlattformenPage'
+import { FahrzeuggroessenPage } from './pages/katalog/FahrzeuggroessenPage'
+import { InnovationPage } from './pages/innovation/InnovationPage'
+import { MedienPage } from './pages/wissen/MedienPage'
+import { FortbildungPage } from './pages/wissen/FortbildungPage'
 
 function V({ vertical }: { vertical: Vertical }) {
   return <VerticalPage vertical={vertical} />
@@ -65,6 +74,18 @@ export default function App() {
             <Route path="projects/:id" element={<ProjectDetailPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="profiles/:id" element={<PublicProfilePage />} />
+            <Route path="katalog" element={<KatalogLayout />}>
+              <Route index element={<Navigate to="firmen" replace />} />
+              <Route path="firmen" element={<FirmenPage />} />
+              <Route path="locations" element={<LocationsPage />} />
+              <Route path="transporteure" element={<TransporteurePage />} />
+              <Route path="plattformen" element={<PlattformenPage />} />
+              <Route path="fahrzeuggroessen" element={<FahrzeuggroessenPage />} />
+            </Route>
+            <Route path="innovation" element={<InnovationPage />} />
+            <Route path="news" element={<Navigate to="/innovation" replace />} />
+            <Route path="wissen/medien" element={<MedienPage />} />
+            <Route path="wissen/fortbildung" element={<FortbildungPage />} />
             <Route path="impressum" element={<ImpressumPage />} />
             <Route path="datenschutz" element={<DatenschutzPage />} />
             <Route path="agb" element={<AgbPage />} />

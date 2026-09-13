@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Input, Select, Textarea } from '../components/ui/Input'
 import { MarketRateHint } from '../components/listings/MarketRateHint'
@@ -16,6 +16,7 @@ import { DEMO_USER_ID, seedProfiles } from '../data/seed'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
 import type { ExpensesCover, ListingKind, OvernightCover, TravelCover, Vertical } from '../types'
+import { vehicleSizes } from '../data/catalog'
 
 const EMOJI: Record<Vertical, string> = {
   freelancer: '👷',
@@ -54,6 +55,7 @@ export function CreateListingPage() {
   const [expenses, setExpenses] = useState<ExpensesCover>('receipts')
   const [expensesNote, setExpensesNote] = useState('')
   const [dayHours, setDayHours] = useState(String(MARKET_RATE.dayHours))
+  const [vehicleSizeId, setVehicleSizeId] = useState(vehicleSizes[0]?.id ?? '')
 
   const meta = useMemo(() => VERTICAL_META[vertical], [vertical])
   const isJob = vertical === 'job'
@@ -96,10 +98,16 @@ export function CreateListingPage() {
       ownerName: p.companyName || u.name,
       ownerVerified: p.verified,
       rating: p.rating,
-      tags: tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tags: [
+        ...tags.split(',').map((t) => t.trim()).filter(Boolean),
+        ...(vertical === 'transporter' && vehicleSizeId
+          ? [vehicleSizes.find((v) => v.id === vehicleSizeId)?.shortLabel ?? vehicleSizeId]
+          : []),
+      ],
+      capacity:
+        vertical === 'transporter' && vehicleSizeId
+          ? vehicleSizes.find((v) => v.id === vehicleSizeId)?.label
+          : undefined,
       imageEmoji: EMOJI[vertical],
       featured: false,
       venue: venue || undefined,
@@ -183,6 +191,29 @@ export function CreateListingPage() {
             ))}
           </Select>
         </div>
+
+
+        {vertical === 'transporter' && (
+          <Select
+            label="Fahrzeuggröße"
+            value={vehicleSizeId}
+            onChange={(e) => setVehicleSizeId(e.target.value)}
+          >
+            {vehicleSizes.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.label} ({v.volumeM3Hint ?? '—'} · {v.payloadHint ?? '—'})
+              </option>
+            ))}
+          </Select>
+        )}
+        {vertical === 'transporter' && (
+          <p className="text-xs text-muted">
+            Referenz:{' '}
+            <Link to="/katalog/fahrzeuggroessen" className="text-cyan hover:underline">
+              Fahrzeuggrößen-Katalog
+            </Link>
+          </p>
+        )}
 
         {isJob && (
           <div className="grid gap-3 sm:grid-cols-2">
