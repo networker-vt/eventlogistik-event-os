@@ -29,7 +29,7 @@ export function ProfilePage() {
         <h1 className="text-xl font-bold">Profil</h1>
         <p className="mt-2 text-sm text-muted">Melde dich an, um dein Profil zu verwalten.</p>
         <div className="mt-4 flex justify-center gap-2">
-          <Button onClick={loginDemo}>Demo</Button>
+          <Button onClick={() => loginDemo()}>Demo</Button>
           <Button variant="secondary" onClick={() => navigate('/auth')}>
             Auth
           </Button>

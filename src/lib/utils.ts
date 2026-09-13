@@ -20,6 +20,24 @@ export function formatPrice(amount?: number, unit?: string) {
   return unit ? `${formatted} / ${unit}` : formatted
 }
 
+export function formatPriceRange(from?: number, to?: number, unit?: string) {
+  if (from == null && to == null) return formatPrice(undefined, unit)
+  if (from != null && to != null && to !== from) {
+    const a = new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: from < 10 ? 2 : 0,
+    }).format(from)
+    const b = new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: to < 10 ? 2 : 0,
+    }).format(to)
+    return unit ? `${a}–${b} / ${unit}` : `${a}–${b}`
+  }
+  return formatPrice(from ?? to, unit)
+}
+
 export function formatDate(iso?: string) {
   if (!iso) return '—'
   try {

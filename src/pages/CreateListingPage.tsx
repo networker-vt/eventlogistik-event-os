@@ -2,11 +2,20 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Input, Select, Textarea } from '../components/ui/Input'
-import { CITIES, CRAFTS, VERTICAL_META } from '../data/constants'
+import { MarketRateHint } from '../components/listings/MarketRateHint'
+import {
+  CITIES,
+  CRAFTS,
+  EXPENSES_OPTIONS,
+  MARKET_RATE,
+  OVERNIGHT_OPTIONS,
+  TRAVEL_OPTIONS,
+  VERTICAL_META,
+} from '../data/constants'
 import { DEMO_USER_ID, seedProfiles } from '../data/seed'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
-import type { ListingKind, Vertical } from '../types'
+import type { ExpensesCover, ListingKind, OvernightCover, TravelCover, Vertical } from '../types'
 
 const EMOJI: Record<Vertical, string> = {
   freelancer: '👷',
@@ -39,6 +48,12 @@ export function CreateListingPage() {
   const [venue, setVenue] = useState('')
   const [callTime, setCallTime] = useState('')
   const [requirements, setRequirements] = useState('')
+  const [priceTo, setPriceTo] = useState('')
+  const [travel, setTravel] = useState<TravelCover>('tbd')
+  const [overnight, setOvernight] = useState<OvernightCover>('tbd')
+  const [expenses, setExpenses] = useState<ExpensesCover>('receipts')
+  const [expensesNote, setExpensesNote] = useState('')
+  const [dayHours, setDayHours] = useState(String(MARKET_RATE.dayHours))
 
   const meta = useMemo(() => VERTICAL_META[vertical], [vertical])
   const isJob = vertical === 'job'
@@ -72,6 +87,7 @@ export function CreateListingPage() {
       city,
       crafts: craft ? [craft] : [],
       priceFrom: priceFrom ? Number(priceFrom) : undefined,
+      priceTo: priceTo ? Number(priceTo) : undefined,
       priceUnit,
       currency: 'EUR',
       dateFrom: dateFrom || undefined,
@@ -89,8 +105,13 @@ export function CreateListingPage() {
       venue: venue || undefined,
       callTime: callTime || undefined,
       requirements: reqs.length ? reqs : undefined,
+      travel: isJob ? travel : undefined,
+      overnight: isJob ? overnight : undefined,
+      expenses: isJob ? expenses : undefined,
+      expensesNote: isJob && expensesNote.trim() ? expensesNote.trim() : undefined,
+      dayHours: isJob && dayHours ? Number(dayHours) : undefined,
       matchReason: isJob
-        ? `Tagessatz ${priceFrom ? `${priceFrom} €` : 'klar'} · ${city} · ${p.verified !== 'none' ? 'Verifiziertes Profil' : 'Neu'}`
+        ? `Tagessatz ${priceFrom ? `${priceFrom} €` : 'klar'} · ${city} · ${TRAVEL_OPTIONS[travel]} · ${p.verified !== 'none' ? 'Verifiziertes Profil' : 'Neu'}`
         : undefined,
     })
     navigate(`/listings/${listing.id}`)
@@ -104,7 +125,7 @@ export function CreateListingPage() {
         </h1>
         <p className="text-sm text-muted">
           {isJob
-            ? 'Strukturiert in unter 2 Minuten: Datum, Ort, Rolle, Budget, Call-Zeiten, Requirements.'
+            ? 'Strukturiert in unter 2 Minuten: Zeitraum, Ort, Qualifikation, Tagessatz, Anfahrt, Übernachtung, Spesen.'
             : `Dual Marketplace: als Angebot oder Gesuch für ${meta.labelPlural}.`}
         </p>
       </div>
@@ -190,14 +211,34 @@ export function CreateListingPage() {
             value={priceFrom}
             onChange={(e) => setPriceFrom(e.target.value)}
           />
+          {isJob ? (
+            <Input
+              label="bis (€) optional"
+              type="number"
+              min="0"
+              step="1"
+              value={priceTo}
+              onChange={(e) => setPriceTo(e.target.value)}
+            />
+          ) : (
+            <Input
+              label="Einheit"
+              value={priceUnit}
+              onChange={(e) => setPriceUnit(e.target.value)}
+              placeholder="Tag / km / Zimmer"
+            />
+          )}
           <Input
-            label="Einheit"
-            value={priceUnit}
-            onChange={(e) => setPriceUnit(e.target.value)}
-            placeholder="Tag / km / Zimmer"
+            label={isJob ? 'Einheit' : 'Tags (Komma)'}
+            value={isJob ? priceUnit : tags}
+            onChange={(e) => (isJob ? setPriceUnit(e.target.value) : setTags(e.target.value))}
+            placeholder={isJob ? 'Tag' : 'Corporate, LED'}
           />
-          <Input label="Tags (Komma)" value={tags} onChange={(e) => setTags(e.target.value)} />
         </div>
+        {isJob && <MarketRateHint />}
+        {isJob && (
+          <Input label="Tags (Komma)" value={tags} onChange={(e) => setTags(e.target.value)} />
+        )}
         <div className="grid gap-3 sm:grid-cols-2">
           <Input
             label="Datum von"
@@ -215,12 +256,63 @@ export function CreateListingPage() {
         </div>
 
         {isJob && (
-          <Textarea
-            label="Requirements (eine pro Zeile)"
-            value={requirements}
-            onChange={(e) => setRequirements(e.target.value)}
-            placeholder={'GrandMA3\nSicherheitsschuhe S3\nschwarze Showkleidung'}
-          />
+          <>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Select
+                label="Anfahrt"
+                value={travel}
+                onChange={(e) => setTravel(e.target.value as TravelCover)}
+              >
+                {Object.entries(TRAVEL_OPTIONS).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                label="Übernachtung"
+                value={overnight}
+                onChange={(e) => setOvernight(e.target.value as OvernightCover)}
+              >
+                {Object.entries(OVERNIGHT_OPTIONS).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                label="Spesen"
+                value={expenses}
+                onChange={(e) => setExpenses(e.target.value as ExpensesCover)}
+              >
+                {Object.entries(EXPENSES_OPTIONS).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                label="Arbeitstag (Stunden)"
+                type="number"
+                min="4"
+                max="16"
+                value={dayHours}
+                onChange={(e) => setDayHours(e.target.value)}
+              />
+            </div>
+            <Input
+              label="Spesen / Anfahrt — Kurznotiz"
+              value={expensesNote}
+              onChange={(e) => setExpensesNote(e.target.value)}
+              placeholder="z.B. 0,35 €/km · 28 € Pauschale · Hotel auf Firmenkonto"
+            />
+            <Textarea
+              label="Qualifikationen / Requirements (eine pro Zeile)"
+              value={requirements}
+              onChange={(e) => setRequirements(e.target.value)}
+              placeholder={'GrandMA3 Programmer\nSicherheitsschuhe S3\nschwarze Showkleidung'}
+            />
+          </>
         )}
 
         {!user && (

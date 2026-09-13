@@ -18,7 +18,7 @@ interface AuthContextValue {
   user: AuthUser | null
   profile: Profile | null
   loading: boolean
-  loginDemo: () => void
+  loginDemo: (profileId?: string) => void
   login: (email: string, name: string, role: Role) => void
   register: (email: string, name: string, role: Role, city: string) => Profile
   logout: () => void
@@ -73,12 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else localStorage.removeItem(AUTH_KEY)
   }, [])
 
-  const loginDemo = useCallback(() => {
-    const p = seedProfiles.find((x) => x.id === DEMO_USER_ID)!
-    persist(
-      { id: p.id, email: p.email, name: p.name, role: p.role },
-      p,
-    )
+  const loginDemo = useCallback((profileId?: string) => {
+    const id = typeof profileId === 'string' ? profileId : undefined
+    const p =
+      seedProfiles.find((x) => x.id === id) ??
+      seedProfiles.find((x) => x.id === DEMO_USER_ID)!
+    store.upsertProfile(p)
+    persist({ id: p.id, email: p.email, name: p.name, role: p.role }, p)
   }, [persist])
 
   const login = useCallback(
@@ -110,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         reviewCount: 0,
         createdAt: new Date().toISOString(),
       }
+      store.upsertProfile(p)
       persist({ id, email, name, role }, p)
     },
     [persist],

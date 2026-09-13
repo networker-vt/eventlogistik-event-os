@@ -82,7 +82,8 @@ scripts/
 
 ### Features (Auswahl)
 
-- Jobs-Marketplace (Seek / Hire), Bewerber-Pipeline
+- Jobs-Marketplace (Seek / Hire) mit DE-2026-Tagessatz-Orientierung (Fachkraft 400–500 € · Specialist 600–800 €, 10h-Tag) — Anfahrt, Übernachtung, Spesen Pflichtfelder
+- Bewerber-Pipeline
 - **Angebote vergleichen** (`/jobs/compare/:listingId`)
 - Booking-Flow inkl. **Rating-Prompt** nach `completed`
 - Messaging, Projekte, Verifizierungs-Badges

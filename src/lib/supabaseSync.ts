@@ -43,6 +43,11 @@ export function mapListingRow(row: Record<string, unknown>): Listing {
     venue: (row.venue as string) || undefined,
     callTime: (row.call_time as string) || undefined,
     requirements: (row.requirements as string[]) || undefined,
+    travel: (row.travel as Listing['travel']) || undefined,
+    overnight: (row.overnight as Listing['overnight']) || undefined,
+    expenses: (row.expenses as Listing['expenses']) || undefined,
+    expensesNote: (row.expenses_note as string) || undefined,
+    dayHours: row.day_hours != null ? Number(row.day_hours) : undefined,
   }
 }
 
@@ -109,6 +114,14 @@ export function listingToRow(l: Listing) {
     featured: l.featured ?? false,
     status: l.status,
     created_at: l.createdAt,
+    venue: l.venue ?? null,
+    call_time: l.callTime ?? null,
+    requirements: l.requirements ?? null,
+    travel: l.travel ?? null,
+    overnight: l.overnight ?? null,
+    expenses: l.expenses ?? null,
+    expenses_note: l.expensesNote ?? null,
+    day_hours: l.dayHours ?? null,
   }
 }
 

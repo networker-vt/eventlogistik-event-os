@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { MapPin, ShieldCheck, Sparkles, Star } from 'lucide-react'
+import { MapPin, Scale, ShieldCheck, Sparkles, Star } from 'lucide-react'
+import { JobConditions } from '../components/listings/JobConditions'
+import { MarketRateHint } from '../components/listings/MarketRateHint'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Select, Textarea } from '../components/ui/Input'
@@ -9,7 +11,7 @@ import { DEMO_USER_ID, seedProfiles } from '../data/seed'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
 import { useStoreVersion } from '../hooks/useStore'
-import { formatDate, formatPrice, verificationLabel } from '../lib/utils'
+import { formatDate, formatPriceRange, verificationLabel } from '../lib/utils'
 
 export function ListingDetailPage() {
   const { id } = useParams()
@@ -44,19 +46,28 @@ export function ListingDetailPage() {
 
   const meta = VERTICAL_META[listing.vertical]
   const owner = store.getProfile(listing.ownerId)
-  const rate = formatPrice(listing.priceFrom ?? listing.priceTo, listing.priceUnit)
+  const rate = formatPriceRange(listing.priceFrom, listing.priceTo, listing.priceUnit)
+  const isOwner = Boolean(user && user.id === listing.ownerId)
+  const apps = isJob ? store.listBookingsForListing(listing.id) : []
 
   const submitInquiry = () => {
     let requesterId = user?.id
     let requesterName = user?.name
     if (!requesterId || !requesterName) {
-      loginDemo()
-      const demo = seedProfiles.find((x) => x.id === DEMO_USER_ID)!
+      const ownerIsDemoAgency = listing.ownerId === DEMO_USER_ID
+      const pick =
+        seedProfiles.find((x) => x.id === (ownerIsDemoAgency ? 'user-2' : DEMO_USER_ID)) ??
+        seedProfiles.find((x) => x.id !== listing.ownerId)!
+      const asId = pick.id === listing.ownerId
+        ? seedProfiles.find((x) => x.id !== listing.ownerId)!.id
+        : pick.id
+      loginDemo(asId)
+      const demo = seedProfiles.find((x) => x.id === asId)!
       requesterId = demo.id
       requesterName = demo.name
     }
     if (requesterId === listing.ownerId) {
-      alert('Du kannst dein eigenes Inserat nicht anfragen.')
+      alert('Du kannst dein eigenes Inserat nicht anfragen. Wechsle das Profil oder öffne ein fremdes Inserat.')
       return
     }
     const { booking, thread } = store.createInquiry({
@@ -88,6 +99,7 @@ export function ListingDetailPage() {
             <div className="text-xs uppercase tracking-wider text-cyan">Tagessatz / Budget</div>
             <div className="text-2xl font-bold text-white">{rate}</div>
             <p className="text-xs text-muted">Transparent · kein Bait — Rate steht im Inserat</p>
+            <MarketRateHint compact className="mt-1" />
           </div>
         )}
 
@@ -116,7 +128,7 @@ export function ListingDetailPage() {
           </div>
         </div>
 
-        {(listing.venue || listing.callTime) && (
+        {(listing.venue || listing.callTime || listing.dateFrom) && (
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {listing.venue && (
               <div className="rounded-xl border border-border bg-surface-3/50 px-3 py-2 text-sm">
@@ -130,14 +142,28 @@ export function ListingDetailPage() {
                 {listing.callTime}
               </div>
             )}
+            {listing.dateFrom && (
+              <div className="rounded-xl border border-border bg-surface-3/50 px-3 py-2 text-sm">
+                <div className="text-[11px] text-muted">Zeitraum</div>
+                {formatDate(listing.dateFrom)}
+                {listing.dateTo ? ` – ${formatDate(listing.dateTo)}` : ''}
+              </div>
+            )}
+            <div className="rounded-xl border border-border bg-surface-3/50 px-3 py-2 text-sm">
+              <div className="text-[11px] text-muted">Standort</div>
+              {listing.city}
+              {listing.venue ? ` · ${listing.venue}` : ''}
+            </div>
           </div>
         )}
+
+        <JobConditions listing={listing} />
 
         <p className="mt-5 whitespace-pre-wrap text-neutral-300">{listing.description}</p>
 
         {listing.requirements && listing.requirements.length > 0 && (
           <div className="mt-4">
-            <h3 className="mb-2 text-sm font-semibold">Requirements</h3>
+            <h3 className="mb-2 text-sm font-semibold">Qualifikationen / Requirements</h3>
             <ul className="space-y-1 text-sm text-neutral-300">
               {listing.requirements.map((r) => (
                 <li key={r} className="flex gap-2">
@@ -209,7 +235,29 @@ export function ListingDetailPage() {
         </div>
       )}
 
-      {done ? (
+      {isOwner ? (
+        <div className="space-y-3 rounded-2xl border border-teal/30 bg-teal/10 p-5">
+          <h2 className="font-semibold text-teal">Dein Inserat</h2>
+          <p className="text-sm text-neutral-300">
+            {isJob
+              ? `${apps.length} Bewerbung${apps.length === 1 ? '' : 'en'} — Pipeline im Hire-Board oder Vergleich.`
+              : 'Anfragen landen in Chat und Booking-Flow.'}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {isJob && (
+              <Button onClick={() => navigate('/jobs?side=hire')}>Hire-Board</Button>
+            )}
+            {isJob && apps.length >= 2 && (
+              <Button variant="secondary" onClick={() => navigate(`/jobs/compare/${listing.id}`)}>
+                <Scale size={16} /> Bewerber vergleichen
+              </Button>
+            )}
+            <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+              Dashboard
+            </Button>
+          </div>
+        </div>
+      ) : done ? (
         <div className="rounded-2xl border border-cyan/30 bg-cyan/10 p-5">
           <h2 className="font-semibold text-cyan">
             {isJob ? 'Bewerbung gesendet' : 'Anfrage gesendet'}

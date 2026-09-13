@@ -24,6 +24,8 @@ export const CRAFTS = [
   'Kameratechnik',
   'Pyrotechnik',
   'Logistik / Fahrer',
+  'Medienserver',
+  'FOH / Systemtech',
 ] as const
 
 export const VERTICAL_META: Record<
@@ -63,4 +65,42 @@ export const PROJECT_STATUS_LABELS: Record<string, string> = {
   draft: 'Entwurf',
   active: 'Aktiv',
   done: 'Abgeschlossen',
+}
+
+export type TravelCoverKey = 'included' | 'per_km' | 'self' | 'tbd'
+export type OvernightCoverKey = 'provided' | 'hotel' | 'none' | 'tbd'
+export type ExpensesCoverKey = 'receipts' | 'flat' | 'included' | 'none' | 'tbd'
+
+export const TRAVEL_OPTIONS: Record<TravelCoverKey, string> = {
+  included: 'Anfahrt gestellt / inkl.',
+  per_km: 'Anfahrt nach km',
+  self: 'Anfahrt selbst',
+  tbd: 'Anfahrt nach Absprache',
+}
+
+export const OVERNIGHT_OPTIONS: Record<OvernightCoverKey, string> = {
+  provided: 'Übernachtung gestellt',
+  hotel: 'Hotel buchbar / gestellt',
+  none: 'Keine Übernachtung',
+  tbd: 'Übernachtung nach Absprache',
+}
+
+export const EXPENSES_OPTIONS: Record<ExpensesCoverKey, string> = {
+  receipts: 'Spesen nach Beleg',
+  flat: 'Spesenpauschale',
+  included: 'Spesen inkl. im Tagessatz',
+  none: 'Keine Spesen',
+  tbd: 'Spesen nach Absprache',
+}
+
+/** DE 2026 Orientierung — keine Garantie, 10h-Tag */
+export const MARKET_RATE = {
+  fachkraftFrom: 400,
+  fachkraftTo: 500,
+  specialistFrom: 600,
+  specialistTo: 800,
+  dayHours: 10,
+  short: '400–800 € Orientierung (10h-Tag)',
+  full:
+    'Marktwert-Orientierung DE 2026 (10h-Tag): Fachkraft ca. 400–500 € · Spezialist (FOH, grandMA, Medienserver) ca. 600–800 € · Corporate oft über Club. Keine Garantie — nur Orientierung, Markt schwankt.',
 }

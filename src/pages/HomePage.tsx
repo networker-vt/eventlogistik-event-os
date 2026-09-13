@@ -81,7 +81,7 @@ export function HomePage() {
             </div>
             <div className="text-lg font-bold text-white">Ich suche Jobs / Gigs</div>
             <p className="mt-1 text-sm text-neutral-300">
-              Tagessatz sofort sichtbar · Gewerk, Stadt, Datum · 1-Tap bewerben
+              Tagessatz, Spesen, Anfahrt & ÜN sichtbar · 1-Tap bewerben
             </p>
             <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-cyan">
               Jobs öffnen <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
@@ -98,7 +98,7 @@ export function HomePage() {
             </div>
             <div className="text-lg font-bold text-white">Ich biete Jobs / suche Crew</div>
             <p className="mt-1 text-sm text-neutral-300">
-              Structured Post &lt; 2 Min · Bewerber-Pipeline · In-App Chat
+              Structured Post inkl. Spesen/ÜN · Pipeline · Chat
             </p>
             <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal">
               Crew finden <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
@@ -145,7 +145,7 @@ export function HomePage() {
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <Briefcase size={18} className="text-cyan" /> Top Jobs mit klarer Rate
+              <Briefcase size={18} className="text-cyan" /> Top Jobs — Rate, Spesen, Zeitraum
             </h2>
             <Link to="/jobs?side=seek" className="text-sm text-cyan">
               Alle Jobs →

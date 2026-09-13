@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { FilterBar } from '../components/listings/FilterBar'
 import { ListingCard } from '../components/listings/ListingCard'
+import { MarketRateHint } from '../components/listings/MarketRateHint'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
@@ -66,8 +67,8 @@ export function JobsPage() {
         </h1>
         <p className="mt-2 text-sm text-muted">
           {side === 'seek'
-            ? 'Keine versteckten Tagessätze. Filtern, bewerben, Status tracken — besser als WhatsApp-Listen.'
-            : 'Strukturierter Job-Post in unter 2 Minuten. Bewerber-Pipeline, Chat mit Kontext, verifizierte Crew.'}
+            ? 'Keine versteckten Tagessätze. Zeitraum, Qualifikation, Ort, Anfahrt, Übernachtung und Spesen stehen im Inserat.'
+            : 'Structured Post: Zeitraum · Qualifikation · Ort · Anfahrt · Übernachtung · Spesen · Tagessatz (10h).'}
         </p>
 
         <div className="mt-4 flex rounded-xl border border-border bg-surface p-1">
@@ -98,7 +99,7 @@ export function JobsPage() {
             </Button>
           )}
           {!user && (
-            <Button variant="ghost" onClick={loginDemo}>
+            <Button variant="ghost" onClick={() => loginDemo()}>
               Demo starten
             </Button>
           )}
@@ -109,8 +110,8 @@ export function JobsPage() {
         <>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { icon: CheckCircle2, label: 'Rate upfront' },
-              { icon: MapPin, label: 'Stadt & Datum' },
+              { icon: CheckCircle2, label: 'Rate + Spesen' },
+              { icon: MapPin, label: 'Ort & Zeitraum' },
               { icon: Clock, label: '1-Tap Apply' },
             ].map((x) => (
               <div
@@ -122,6 +123,8 @@ export function JobsPage() {
               </div>
             ))}
           </div>
+
+          <MarketRateHint />
 
           <div className="sticky-filters -mx-4 bg-surface/95 px-4 py-2 backdrop-blur md:mx-0 md:bg-transparent md:px-0 md:py-0">
             <FilterBar
@@ -181,8 +184,9 @@ export function JobsPage() {
       {side === 'hire' && (
         <>
           <div className="rounded-2xl border border-dashed border-teal/40 bg-teal/5 p-4 text-sm text-neutral-300">
-            <Briefcase className="mb-2 inline text-teal" size={18} /> Structured Post: Datum · Ort/Venue ·
-            Rolle/Gewerk · Budget/Tagessatz · Call-Zeiten · Requirements — unter 2 Minuten.
+            <Briefcase className="mb-2 inline text-teal" size={18} /> Structured Post: Zeitraum · Ort ·
+            Qualifikation · Tagessatz (10h) · Anfahrt · Übernachtung · Spesen — unter 2 Minuten.
+            <MarketRateHint className="mt-2" />
           </div>
 
           <div className="sticky-filters -mx-4 bg-surface/95 px-4 py-2 backdrop-blur md:mx-0 md:bg-transparent md:px-0 md:py-0">

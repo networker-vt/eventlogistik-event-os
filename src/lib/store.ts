@@ -26,7 +26,8 @@ import {
 } from './supabaseSync'
 import { uid } from './utils'
 
-const KEY = 'el_store_v3'
+const KEY = 'el_store_v4'
+const SEED_REV = 4
 const REVIEWS_KEY = 'el_reviews_v1'
 
 interface StoreData {
@@ -70,19 +71,29 @@ function load(): StoreData {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return defaultData()
-    const parsed = JSON.parse(raw) as StoreData
+    const parsed = JSON.parse(raw) as StoreData & { seedRev?: number }
     if (!parsed.listings?.length) return defaultData()
-    return {
+    const data: StoreData = {
       ...parsed,
       reviews: parsed.reviews?.length ? parsed.reviews : loadReviews(),
     }
+    if (parsed.seedRev !== SEED_REV) {
+      const seedIds = new Set(seedListings.map((l) => l.id))
+      const seedProfileIds = new Set(seedProfiles.map((p) => p.id))
+      const userListings = data.listings.filter((l) => !seedIds.has(l.id))
+      const userProfiles = data.profiles.filter((p) => !seedProfileIds.has(p.id))
+      data.listings = [...seedListings, ...userListings]
+      data.profiles = [...seedProfiles, ...userProfiles]
+      ;(data as StoreData & { seedRev?: number }).seedRev = SEED_REV
+    }
+    return data
   } catch {
     return defaultData()
   }
 }
 
 function save(data: StoreData) {
-  localStorage.setItem(KEY, JSON.stringify(data))
+  localStorage.setItem(KEY, JSON.stringify({ ...data, seedRev: SEED_REV }))
   persistReviews(data.reviews)
   window.dispatchEvent(new CustomEvent('el-store-changed'))
 }

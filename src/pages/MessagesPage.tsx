@@ -34,7 +34,7 @@ export function MessagesPage() {
     return (
       <div className="rounded-2xl border border-border bg-surface-2 p-8 text-center">
         <p className="mb-4">Chat benötigt Login.</p>
-        <Button onClick={loginDemo}>Demo starten</Button>
+        <Button onClick={() => loginDemo()}>Demo starten</Button>
       </div>
     )
   }

@@ -80,9 +80,22 @@ export interface Listing {
   venue?: string
   callTime?: string
   requirements?: string[]
+  /** Anfahrt — Transparenz vs. WhatsApp-Listen */
+  travel?: TravelCover
+  /** Übernachtung */
+  overnight?: OvernightCover
+  /** Spesen */
+  expenses?: ExpensesCover
+  expensesNote?: string
+  /** Angenommene Arbeitstag-Länge (DE Event: typisch 10h) */
+  dayHours?: number
   /** Warum dieses Angebot gerankt / empfohlen wird */
   matchReason?: string
 }
+
+export type TravelCover = 'included' | 'per_km' | 'self' | 'tbd'
+export type OvernightCover = 'provided' | 'hotel' | 'none' | 'tbd'
+export type ExpensesCover = 'receipts' | 'flat' | 'included' | 'none' | 'tbd'
 
 export interface Message {
   id: string

@@ -25,7 +25,7 @@ export function DashboardPage() {
           Melde dich an, um Bookings, Bewerbungen, Chats und Projekte zu sehen.
         </p>
         <div className="mt-5 flex justify-center gap-2">
-          <Button onClick={loginDemo}>Demo starten</Button>
+          <Button onClick={() => loginDemo()}>Demo starten</Button>
           <Button variant="secondary" onClick={() => navigate('/auth')}>
             Anmelden
           </Button>

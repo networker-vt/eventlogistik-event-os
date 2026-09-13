@@ -43,7 +43,7 @@ export function CompareOffersPage() {
   if (!user) {
     return (
       <div className="p-8 text-center">
-        <Button onClick={loginDemo}>Demo Login</Button>
+        <Button onClick={() => loginDemo()}>Demo Login</Button>
       </div>
     )
   }

@@ -3,7 +3,8 @@ import { MapPin, Sparkles, Star } from 'lucide-react'
 import type { Listing } from '../../types'
 import { Badge } from '../ui/Badge'
 import { VERTICAL_META } from '../../data/constants'
-import { formatDate, formatPrice } from '../../lib/utils'
+import { formatDate, formatPriceRange } from '../../lib/utils'
+import { JobConditions } from './JobConditions'
 
 export function ListingCard({
   listing,
@@ -13,7 +14,7 @@ export function ListingCard({
   highlightRate?: boolean
 }) {
   const meta = VERTICAL_META[listing.vertical]
-  const rate = formatPrice(listing.priceFrom ?? listing.priceTo, listing.priceUnit)
+  const rate = formatPriceRange(listing.priceFrom, listing.priceTo, listing.priceUnit)
 
   return (
     <Link
@@ -39,13 +40,14 @@ export function ListingCard({
       <h3 className="line-clamp-2 text-base font-semibold text-white">{listing.title}</h3>
       <p className="mt-1 line-clamp-2 text-sm text-muted">{listing.description}</p>
 
-      {(listing.venue || listing.callTime) && (
+      {(listing.venue || listing.callTime || listing.dateFrom) && (
         <p className="mt-2 line-clamp-1 text-xs text-neutral-400">
-          {listing.venue}
-          {listing.venue && listing.callTime ? ' · ' : ''}
-          {listing.callTime}
+          {[listing.dateFrom && formatDate(listing.dateFrom), listing.venue, listing.callTime]
+            .filter(Boolean)
+            .join(' · ')}
         </p>
       )}
+      <JobConditions listing={listing} compact />
 
       {listing.matchReason && (
         <p className="mt-2 inline-flex items-start gap-1 rounded-lg bg-cyan/10 px-2 py-1 text-[11px] text-cyan">
@@ -75,7 +77,9 @@ export function ListingCard({
         {!(highlightRate || listing.vertical === 'job') ? (
           <span className="text-sm font-medium text-cyan">{rate}</span>
         ) : (
-          <span className="text-xs text-muted">Jetzt anfragen →</span>
+          <span className="text-xs text-muted">
+            {listing.vertical === 'job' ? 'Jetzt bewerben →' : 'Jetzt anfragen →'}
+          </span>
         )}
         <span className="truncate text-xs text-muted">{listing.ownerName}</span>
       </div>

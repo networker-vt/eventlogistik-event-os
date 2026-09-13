@@ -98,10 +98,10 @@ export function FilterBar({
             }
           >
             <option value="">Tagessatz ab</option>
-            <option value="250">ab 250 €</option>
-            <option value="350">ab 350 €</option>
-            <option value="450">ab 450 €</option>
-            <option value="550">ab 550 €</option>
+            <option value="400">ab 400 € (Fachkraft)</option>
+            <option value="500">ab 500 €</option>
+            <option value="600">ab 600 € (Specialist)</option>
+            <option value="700">ab 700 €</option>
           </Select>
           <Select
             value={value.priceMax?.toString() ?? ''}
@@ -113,10 +113,10 @@ export function FilterBar({
             }
           >
             <option value="">Tagessatz bis</option>
-            <option value="300">bis 300 €</option>
-            <option value="400">bis 400 €</option>
-            <option value="500">bis 500 €</option>
-            <option value="700">bis 700 €</option>
+            <option value="500">bis 500 € (Fachkraft)</option>
+            <option value="600">bis 600 €</option>
+            <option value="800">bis 800 € (Specialist)</option>
+            <option value="1000">bis 1.000 €</option>
           </Select>
         </>
       )}
