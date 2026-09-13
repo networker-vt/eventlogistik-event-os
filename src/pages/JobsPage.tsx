@@ -174,7 +174,7 @@ export function JobsPage() {
               onAction={() => setFilters({ vertical: 'job', kind: 'offer' })}
             />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="stagger-in grid gap-4 sm:grid-cols-2">
               {listings.map((l) => (
                 <ListingCard key={l.id} listing={l} highlightRate />
               ))}
@@ -240,7 +240,7 @@ export function JobsPage() {
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="stagger-in grid gap-4 sm:grid-cols-2">
             {listings.map((l) => (
               <ListingCard key={l.id} listing={l} highlightRate />
             ))}

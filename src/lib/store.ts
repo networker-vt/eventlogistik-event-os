@@ -134,7 +134,7 @@ export async function initStore(): Promise<StoreMode> {
   if (!snap) {
     mode = 'local'
     console.info(
-      '[EventLogistik] VITE_SUPABASE_* gesetzt, aber kein nutzbarer Snapshot — Demo-Store aktiv',
+      '[LoadIn] VITE_SUPABASE_* gesetzt, aber kein nutzbarer Snapshot — Demo-Store aktiv',
     )
     return mode
   }
@@ -149,7 +149,7 @@ export async function initStore(): Promise<StoreMode> {
   }
   save(cache)
   mode = 'supabase'
-  console.info('[EventLogistik] Store: Supabase live (%d listings)', snap.listings.length)
+  console.info('[LoadIn] Store: Supabase live (%d listings)', snap.listings.length)
   return mode
 }
 

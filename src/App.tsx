@@ -33,8 +33,9 @@ export default function App() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-surface text-sm text-muted">
-        EventLogistik wird geladen…
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-surface">
+        <div className="h-10 w-10 rounded-2xl border border-cyan/30 bg-cyan/10 skeleton-shimmer" />
+        <p className="text-sm text-muted">LoadIn wird geladen…</p>
       </div>
     )
   }

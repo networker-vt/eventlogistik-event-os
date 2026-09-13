@@ -53,8 +53,8 @@ export function AppShell() {
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan/30 bg-cyan/15 text-lg shadow-[0_0_18px_rgba(0,240,255,0.2)]">⚡</span>
           <div>
-            <div className="font-bold tracking-tight text-white">EventLogistik</div>
-            <div className="text-[11px] uppercase tracking-wider text-cyan">Event-OS</div>
+            <div className="font-bold tracking-tight text-white">LoadIn</div>
+            <div className="text-[11px] uppercase tracking-wider text-cyan">Crew · Gigs · Gear</div>
           </div>
         </button>
 
@@ -130,7 +130,7 @@ export function AppShell() {
             className="flex min-h-11 items-center gap-2 md:hidden"
           >
             <span className="text-cyan">⚡</span>
-            <span className="font-semibold">EventLogistik</span>
+            <span className="font-semibold">LoadIn</span>
           </button>
           <div className="hidden text-sm text-neutral-400 md:block">
             Marketplace · Jobs · Matching · <span className="text-cyan/80">Ops</span>
@@ -157,7 +157,9 @@ export function AppShell() {
         </header>
 
         <main className="flex-1 px-4 py-4 md:px-6 md:py-6 max-md:pb-2">
-          <Outlet />
+          <div key={location.pathname + location.search} className="page-enter">
+            <Outlet />
+          </div>
           <footer className="mt-10 flex flex-wrap gap-x-4 gap-y-2 border-t border-border pt-4 text-xs text-muted md:hidden">
             <Link to="/impressum" className="hover:text-cyan">Impressum</Link>
             <Link to="/datenschutz" className="hover:text-cyan">Datenschutz</Link>
@@ -187,13 +189,23 @@ export function AppShell() {
             end={item.to === '/'}
             className={({ isActive }) =>
               cn(
-                'flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 px-1 text-[10px] text-neutral-500 touch-manipulation',
+                'relative flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 px-1 text-[10px] text-neutral-500 touch-manipulation transition-colors duration-200',
                 isActive && 'text-cyan',
               )
             }
           >
-            <item.icon size={22} />
-            {item.label}
+            {({ isActive }) => (
+              <>
+                <span
+                  className={cn(
+                    'absolute top-0 h-0.5 w-6 rounded-full bg-cyan transition-all duration-200',
+                    isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-50',
+                  )}
+                />
+                <item.icon size={22} className={cn('transition-transform duration-200', isActive && 'scale-110')} />
+                {item.label}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

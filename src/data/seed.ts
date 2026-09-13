@@ -1120,7 +1120,7 @@ export const seedProjects: Project[] = [
     dateTo: '2026-10-10',
     ownerId: DEMO_USER_ID,
     description:
-      'Corporate Tech Summit: Crew, Hotelblock, Transport & Licht. Alles über EventLogistik orchestrieren.',
+      'Corporate Tech Summit: Crew, Hotelblock, Transport & Licht. Alles über LoadIn orchestrieren.',
     resources: [
       { bookingId: 'bk-1', vertical: 'freelancer', label: 'Sara König — Licht', status: 'offer' },
       { bookingId: 'bk-2', vertical: 'transporter', label: 'FleetMove Sprinter', status: 'inquiry' },

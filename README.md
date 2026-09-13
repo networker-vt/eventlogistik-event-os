@@ -1,6 +1,6 @@
-# EventLogistik Event-OS
+# LoadIn
 
-**Das All-in-One Event-OS für die deutsche Eventbranche** — Marketplace + Matching + Ops Lite + Trust.
+**Das Event-OS für Crew, Gigs, Gear & Transport** — Marketplace + Matching + Ops Lite + Trust. Load-in-Energie, nicht Spedition.
 
 Dual Marketplace (Angebot ↔ Gesuch) für Freelancer, Firmen, Material, Transporter, Kuriere, Hotels und Jobs. Mobil-first **PWA** mit dunklem Premium-UI (#0a0a0a + Cyan/Teal).
 

@@ -106,6 +106,9 @@
       0 12px 36px rgba(0, 0, 0, 0.4),
       0 0 0 1px color-mix(in oklab, var(--color-cyan) 18%, transparent);
   }
+  .card-hover:active {
+    transform: translateY(0) scale(0.985);
+  }
   .safe-pt {
     padding-top: max(0.75rem, env(safe-area-inset-top));
   }
@@ -185,6 +188,17 @@
   }
 }
 
+/* Skeleton base (static when reduced motion) */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-cyan) 8%, var(--color-surface-3)),
+    color-mix(in oklab, var(--color-cyan) 22%, var(--color-surface-2)),
+    color-mix(in oklab, var(--color-cyan) 8%, var(--color-surface-3))
+  );
+  background-size: 200% 100%;
+}
+
 /* Motion-safe accents — only when user allows motion */
 @media (prefers-reduced-motion: no-preference) {
   @keyframes el-pulse-glow {
@@ -199,6 +213,24 @@
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  @keyframes el-page-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes el-skeleton {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  @keyframes el-success-pop {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes el-check-in {
+    0% { opacity: 0; transform: scale(0.6); }
+    60% { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
   .motion-orb {
     animation: el-pulse-glow 7s ease-in-out infinite;
   }
@@ -206,7 +238,10 @@
     animation: el-pulse-glow 9s ease-in-out 1.2s infinite;
   }
   .motion-fade-up {
-    animation: el-fade-up 0.45s ease-out both;
+    animation: el-fade-up 0.4s ease-out both;
+  }
+  .page-enter {
+    animation: el-page-in 0.22s ease-out both;
   }
   .text-shimmer {
     background: linear-gradient(90deg, #00f0ff, #14b8a6, #00f0ff);
@@ -216,13 +251,40 @@
     color: transparent;
     animation: el-shimmer 4.5s linear infinite;
   }
+  .skeleton-shimmer {
+    animation: el-skeleton 1.4s ease-in-out infinite;
+  }
+  .success-pop {
+    animation: el-success-pop 0.28s ease-out both;
+  }
+  .success-check {
+    animation: el-check-in 0.35s ease-out both;
+  }
+
+  /* Subtle list stagger — first 8 children only */
+  .stagger-in > * {
+    animation: el-fade-up 0.32s ease-out both;
+  }
+  .stagger-in > *:nth-child(1) { animation-delay: 0.02s; }
+  .stagger-in > *:nth-child(2) { animation-delay: 0.05s; }
+  .stagger-in > *:nth-child(3) { animation-delay: 0.08s; }
+  .stagger-in > *:nth-child(4) { animation-delay: 0.11s; }
+  .stagger-in > *:nth-child(5) { animation-delay: 0.14s; }
+  .stagger-in > *:nth-child(6) { animation-delay: 0.17s; }
+  .stagger-in > *:nth-child(7) { animation-delay: 0.2s; }
+  .stagger-in > *:nth-child(8) { animation-delay: 0.23s; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .motion-orb,
   .motion-orb-delay,
   .motion-fade-up,
-  .text-shimmer {
+  .text-shimmer,
+  .page-enter,
+  .skeleton-shimmer,
+  .success-pop,
+  .success-check,
+  .stagger-in > * {
     animation: none !important;
   }
   .text-shimmer {
@@ -231,7 +293,8 @@
     background-clip: text;
     color: transparent;
   }
-  .card-hover:hover {
+  .card-hover:hover,
+  .card-hover:active {
     transform: none;
   }
 }

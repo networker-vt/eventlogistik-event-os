@@ -152,11 +152,11 @@ export async function fetchSupabaseSnapshot(): Promise<{
     ])
 
     if (listingsRes.error) {
-      console.info('[EventLogistik] Supabase listings:', listingsRes.error.message)
+      console.info('[LoadIn] Supabase listings:', listingsRes.error.message)
       return null
     }
     if (!listingsRes.data?.length) {
-      console.info('[EventLogistik] Supabase listings leer — Demo-Store bleibt aktiv')
+      console.info('[LoadIn] Supabase listings leer — Demo-Store bleibt aktiv')
       return null
     }
 
@@ -219,7 +219,7 @@ export async function fetchSupabaseSnapshot(): Promise<{
 
     return { listings, profiles, bookings, threads, messages, projects }
   } catch (e) {
-    console.info('[EventLogistik] Supabase hydrate failed — Demo-Store:', e)
+    console.info('[LoadIn] Supabase hydrate failed — Demo-Store:', e)
     return null
   }
 }
@@ -229,7 +229,7 @@ export async function pushListingToSupabase(listing: Listing) {
   try {
     await supabase.from('listings').upsert(listingToRow(listing))
   } catch (e) {
-    console.info('[EventLogistik] listing sync skip:', e)
+    console.info('[LoadIn] listing sync skip:', e)
   }
 }
 
@@ -248,6 +248,6 @@ export async function pushBookingStatusToSupabase(
     if (extra?.note) patch.note = extra.note
     await supabase.from('bookings').update(patch).eq('id', id)
   } catch (e) {
-    console.info('[EventLogistik] booking sync skip:', e)
+    console.info('[LoadIn] booking sync skip:', e)
   }
 }

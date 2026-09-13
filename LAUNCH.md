@@ -1,4 +1,4 @@
-# Launch-Checkliste — EventLogistik Event-OS
+# Launch-Checkliste — LoadIn
 
 Deutsche Go-Live-Checkliste. Haken setzen, bevor Traffic / Presse / Ads.
 
@@ -18,7 +18,7 @@ Lokal / CI / Hosting:
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...   # nur anon/public key — nie service_role im Frontend
 VITE_USE_MOCK=false
-VITE_APP_NAME=EventLogistik
+VITE_APP_NAME=LoadIn
 VITE_APP_URL=https://networker-vt.github.io/eventlogistik-event-os/
 ```
 

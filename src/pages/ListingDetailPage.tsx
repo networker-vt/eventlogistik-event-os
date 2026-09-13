@@ -258,7 +258,10 @@ export function ListingDetailPage() {
           </div>
         </div>
       ) : done ? (
-        <div className="rounded-2xl border border-cyan/30 bg-cyan/10 p-5">
+        <div className="success-pop rounded-2xl border border-cyan/30 bg-cyan/10 p-5">
+          <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-cyan/40 bg-cyan/15 text-cyan success-check">
+            ✓
+          </div>
           <h2 className="font-semibold text-cyan">
             {isJob ? 'Bewerbung gesendet' : 'Anfrage gesendet'}
           </h2>

@@ -1,4 +1,4 @@
-# Store-Ready — EventLogistik als installierbare App
+# Store-Ready — LoadIn als installierbare App
 
 Kurzüberblick (Deutsch): Was **jetzt** bereit ist und wie ihr später den **Play Store** (und optional App Store) erreicht.
 
@@ -13,7 +13,7 @@ Die Web-App ist eine echte Progressive Web App:
 
 ### Handy installieren
 
-**Android (Chrome):** Seite öffnen → Banner „EventLogistik installieren“ oder Menü ⋮ → „App installieren“ / „Zum Startbildschirm“.
+**Android (Chrome):** Seite öffnen → Banner „LoadIn installieren“ oder Menü ⋮ → „App installieren“ / „Zum Startbildschirm“.
 
 **iPhone/iPad (Safari):** Teilen-Symbol → **Zum Home-Bildschirm** → Hinzufügen.
 
@@ -38,7 +38,7 @@ Downloadbarer Build (ZIP): siehe GitHub Releases (`eventlogistik-event-os-web.zi
 
 ```bash
 npm install @capacitor/core @capacitor/cli
-npx cap init EventLogistik com.eventlogistik.app --web-dir dist
+npx cap init LoadIn com.eventlogistik.app --web-dir dist
 npm run build
 npx cap add android
 npx cap sync

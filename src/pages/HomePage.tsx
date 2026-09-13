@@ -48,7 +48,7 @@ export function HomePage() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan/50 to-transparent" />
 
         <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan/35 bg-cyan/10 px-3 py-1 text-xs font-medium text-cyan glow-cyan-soft">
-          <Sparkles size={14} /> EventLogistik · Das Event-OS für DE
+          <Sparkles size={14} /> LoadIn · Event-OS für Crew, Gigs & Gear
         </p>
         <h1 className="max-w-2xl text-[1.75rem] font-bold leading-[1.15] tracking-tight md:text-4xl">
           {seekerBias === true ? (
@@ -68,8 +68,8 @@ export function HomePage() {
           )}
         </h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-neutral-300 md:text-base">
-          Marketplace, Jobs & Matching für Agenturen, Technikfirmen, Freelancer, Hotels, Transport und
-          Material — mit transparenten Tagessätzen, Spesen/ÜN und verifizierten Profilen.
+          Load in. Crew raus. Show läuft. Marketplace & Matching für Agenturen, Technikfirmen,
+          Freelancer, Hotels, Transport und Material — mit klaren Tagessätzen, Spesen/ÜN und Trust.
         </p>
 
         {/* Hero fork — Jobs finden vs Jobs/Crew finden */}
@@ -163,7 +163,7 @@ export function HomePage() {
               Alle Jobs →
             </Link>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="stagger-in grid gap-3 sm:grid-cols-3">
             {featuredJobs.map((l) => (
               <ListingCard key={l.id} listing={l} highlightRate />
             ))}
@@ -209,7 +209,7 @@ export function HomePage() {
         <div className="sticky-filters -mx-4 bg-surface/95 px-4 py-2 backdrop-blur md:mx-0 md:bg-transparent md:px-0 md:py-0">
           <FilterBar value={filters} onChange={setFilters} sticky />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="stagger-in grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {listings.map((l) => (
             <ListingCard key={l.id} listing={l} />
           ))}

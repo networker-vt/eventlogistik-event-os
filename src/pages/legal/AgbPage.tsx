@@ -5,14 +5,14 @@ export function AgbPage() {
     <LegalLayout title="Allgemeine Geschäftsbedingungen (AGB)">
       <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
         <strong>Platzhalter / TODO:</strong> Keine verbindlichen Vertragsbedingungen. Vor
-        kommerziellem Betrieb rechtlich prüfen lassen. EventLogistik vermittelt (geplant)
+        kommerziellem Betrieb rechtlich prüfen lassen. LoadIn vermittelt (geplant)
         Kontakte/Bookings — Zahlungsabwicklung ist in v1 out of scope.
       </p>
 
       <h2>§ 1 Geltungsbereich</h2>
       <p>
         TODO: Anbieter, Nutzerkreis (B2B / Freelancer), Geltung für Nutzung der Plattform
-        EventLogistik Event-OS.
+        LoadIn Event-OS.
       </p>
 
       <h2>§ 2 Leistungsbeschreibung</h2>
