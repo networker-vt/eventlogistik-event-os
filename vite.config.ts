@@ -18,6 +18,12 @@ export default defineConfig({
         'icons/icon.svg',
         'icons/icon-192.png',
         'icons/icon-512.png',
+        'icons/icon-1024.png',
+        'icons/apple-touch-icon.png',
+        'icons/loadin-logo.png',
+        'icons/loadin-wordmark.png',
+        'icons/splash-750x1334.png',
+        'icons/splash-1290x2796.png',
       ],
       manifest: {
         name: 'LoadIn',
@@ -57,6 +63,12 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
+          },
+          {
+            src: 'icons/icon-1024.png',
+            sizes: '1024x1024',
+            type: 'image/png',
+            purpose: 'any',
           },
         ],
         screenshots: [

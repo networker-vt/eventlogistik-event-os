@@ -31,6 +31,11 @@ import { FortbildungPage } from './pages/wissen/FortbildungPage'
 import { MehrPage } from './pages/MehrPage'
 import { MeinPage } from './pages/MeinPage'
 import { WalletPage } from './pages/WalletPage'
+import { IdeenPage } from './pages/IdeenPage'
+import { IntegrationenPage } from './pages/IntegrationenPage'
+import { EmpfehlenPage } from './pages/EmpfehlenPage'
+import { captureRefFromSearch } from './lib/referral'
+import { hydrateSafeTweaks } from './lib/ideas'
 
 function V({ vertical }: { vertical: Vertical }) {
   return <VerticalPage vertical={vertical} />
@@ -40,6 +45,8 @@ export default function App() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    hydrateSafeTweaks()
+    captureRefFromSearch(window.location.search)
     void initStore().finally(() => setReady(true))
   }, [])
 
@@ -73,6 +80,9 @@ export default function App() {
             <Route path="mehr" element={<MehrPage />} />
             <Route path="mein" element={<MeinPage />} />
             <Route path="wallet" element={<WalletPage />} />
+            <Route path="ideen" element={<IdeenPage />} />
+            <Route path="integrationen" element={<IntegrationenPage />} />
+            <Route path="empfehlen" element={<EmpfehlenPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:threadId" element={<MessagesPage />} />
             <Route path="bookings/:id" element={<BookingPage />} />

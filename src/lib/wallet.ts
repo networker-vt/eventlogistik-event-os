@@ -3,7 +3,7 @@ import { uid } from './utils'
 const KEY = 'el_wallet_v1'
 const EVT = 'el-wallet-changed'
 
-export type WalletMethodId = 'paypal' | 'card' | 'sepa' | 'btc' | 'usdc'
+export type WalletMethodId = 'paypal' | 'card' | 'sepa' | 'btc' | 'usdc' | 'usdt'
 
 export interface WalletMethod {
   id: WalletMethodId
@@ -14,7 +14,7 @@ export interface WalletMethod {
 
 export interface WalletTx {
   id: string
-  type: 'pay' | 'topup' | 'payout' | 'connect'
+  type: 'pay' | 'topup' | 'payout' | 'connect' | 'withdraw_crypto'
   amountEur: number
   methodId: WalletMethodId
   status: 'demo_success'
@@ -71,10 +71,17 @@ export const WALLET_METHODS: {
     hint: 'Stablecoin-Demo — kein On-Chain, kein Circle',
     icon: '◎',
   },
+  {
+    id: 'usdt',
+    group: 'crypto',
+    label: 'USDT',
+    hint: 'Tether-Demo — kein On-Chain, kein Issuer-Call',
+    icon: '₮',
+  },
 ]
 
 export const WALLET_DISCLAIMER_DE =
-  'Demo-Wallet. Es findet keine echte Zahlungsbewegung statt. PayPal, Kreditkarte, SEPA und Krypto (BTC, USDC) sind reine UI-Stubs. Ohne gültige Provider-API-Keys (PayPal, Stripe, Krypto-Anbieter) werden keine echten Transaktionen ausgelöst. LoadIn bewegt kein Geld und ruft keine Zahlungs-APIs auf.'
+  'Demo bis Stripe, PayPal und ein Banking-Partner inkl. KYC angebunden sind. Es findet keine echte Zahlungsbewegung statt. PayPal, Karte, SEPA/IBAN und Krypto (BTC, USDC, USDT) sind UI-Stubs. Ohne Provider-Keys und Live-Schalter bewegt LoadIn kein Geld und ruft keine Zahlungs-APIs auf.'
 
 const DEMO_DISPLAY: Record<WalletMethodId, string> = {
   paypal: 'demo@loadin.event',
@@ -82,6 +89,7 @@ const DEMO_DISPLAY: Record<WalletMethodId, string> = {
   sepa: 'DE•• •••• •••• •••• 8901',
   btc: 'bc1q…loadin (Demo)',
   usdc: '0xLOAD…USDC (Demo)',
+  usdt: 'TLoad…USDT (Demo)',
 }
 
 function defaultState(): WalletState {
@@ -93,6 +101,7 @@ function defaultState(): WalletState {
       sepa: { id: 'sepa', connected: false },
       btc: { id: 'btc', connected: false },
       usdc: { id: 'usdc', connected: false },
+      usdt: { id: 'usdt', connected: false },
     },
     txs: [
       {
@@ -114,6 +123,8 @@ function load(): WalletState {
     if (!raw) return defaultState()
     const parsed = JSON.parse(raw) as WalletState
     if (typeof parsed.balanceEur !== 'number' || !parsed.methods) return defaultState()
+    const base = defaultState()
+    parsed.methods = { ...base.methods, ...parsed.methods }
     return parsed
   } catch {
     return defaultState()
@@ -232,4 +243,67 @@ export function resetWallet() {
 
 export function methodMeta(id: WalletMethodId) {
   return WALLET_METHODS.find((m) => m.id === id)
+}
+
+
+export function mockPayoutIban(input: { iban: string; bic?: string; holder: string; amountEur: number }): WalletState {
+  const next = structuredClone(get())
+  const amt = Math.max(0, input.amountEur)
+  next.balanceEur = Math.max(0, next.balanceEur - amt)
+  const masked = input.iban.replace(/\s+/g, '').slice(-4)
+  next.txs.unshift({
+    id: uid('tx'),
+    type: 'payout',
+    amountEur: amt,
+    methodId: 'sepa',
+    status: 'demo_success',
+    label: `Auszahlung Bank · ****${masked || 'IBAN'} (Demo, kein Transfer)`,
+    createdAt: new Date().toISOString(),
+  })
+  commit(next)
+  return next
+}
+
+export function mockCryptoWithdraw(input: {
+  asset: Extract<WalletMethodId, 'btc' | 'usdc' | 'usdt'>
+  address: string
+  amountEur: number
+}): WalletState {
+  const next = structuredClone(get())
+  const amt = Math.max(0, input.amountEur)
+  next.balanceEur = Math.max(0, next.balanceEur - amt)
+  const short = input.address.slice(0, 6)
+  next.txs.unshift({
+    id: uid('tx'),
+    type: 'withdraw_crypto',
+    amountEur: amt,
+    methodId: input.asset,
+    status: 'demo_success',
+    label: `Krypto-Auszahlung ${input.asset.toUpperCase()} · ${short}… (Demo, kein On-Chain)`,
+    createdAt: new Date().toISOString(),
+  })
+  commit(next)
+  return next
+}
+
+export function mockPlatformCheckout(input: { amountEur: number; label: string }): WalletState {
+  const next = structuredClone(get())
+  const amt = Math.max(0, input.amountEur)
+  next.balanceEur = Math.max(0, next.balanceEur - amt)
+  const method: WalletMethodId = next.methods.card.connected
+    ? 'card'
+    : next.methods.paypal.connected
+      ? 'paypal'
+      : 'sepa'
+  next.txs.unshift({
+    id: uid('tx'),
+    type: 'pay',
+    amountEur: amt,
+    methodId: method,
+    status: 'demo_success',
+    label: input.label,
+    createdAt: new Date().toISOString(),
+  })
+  commit(next)
+  return next
 }

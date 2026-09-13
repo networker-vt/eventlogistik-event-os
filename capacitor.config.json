@@ -1,0 +1,14 @@
+{
+  "appId": "de.loadin.app",
+  "appName": "LoadIn",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "backgroundColor": "#0a0a0a"
+    }
+  }
+}

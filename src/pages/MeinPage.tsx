@@ -1,5 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Briefcase, Heart, LayoutDashboard, Library, UserRound, Wallet } from 'lucide-react'
+import { Briefcase, Heart, LayoutDashboard, Library, Lightbulb, UserRound, Wallet } from 'lucide-react'
+import { IdeenInbox } from '../components/ideas/IdeenInbox'
+import { useIdeas } from '../hooks/useIdeas'
 import { FavoriteButton } from '../components/favorites/FavoriteButton'
 import { ListingCard } from '../components/listings/ListingCard'
 import { Badge } from '../components/ui/Badge'
@@ -11,6 +13,7 @@ import { formatDate } from '../lib/utils'
 
 export function MeinPage() {
   const { items } = useFavorites()
+  const { ideas } = useIdeas()
   const navigate = useNavigate()
 
   const listingFavs = items.filter((f) => f.type === 'listing')
@@ -52,6 +55,18 @@ export function MeinPage() {
             <Wallet size={16} /> Wallet
           </Link>
           <Link
+            to="/ideen"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-cyan/30 bg-cyan/10 px-3 py-2 text-sm text-cyan"
+          >
+            <Lightbulb size={16} /> Ideen-Box
+          </Link>
+          <Link
+            to="/empfehlen"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-neutral-300 hover:border-cyan/30"
+          >
+            Empfehlen
+          </Link>
+          <Link
             to="/dashboard"
             className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-neutral-300 hover:border-cyan/30"
           >
@@ -69,6 +84,12 @@ export function MeinPage() {
           Inserate · {catalogFavs.length} Katalog
         </p>
       </header>
+
+      <IdeenInbox
+        ideas={ideas}
+        title="Ideen-Inbox (Operator)"
+        hint="Lokal auf diesem Gerät — Keyword-Tags, Priorität, geplante Lücken. Kein Server."
+      />
 
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-lg font-semibold">

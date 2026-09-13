@@ -18,6 +18,9 @@ import { cn } from '../../lib/utils'
 import { useAuth } from '../../lib/auth'
 import { PwaInstallBanner } from './PwaInstallBanner'
 import { CreateSheet } from './CreateSheet'
+import { BrandIcon, BrandMark } from '../brand/BrandMark'
+import { IdeenFab } from '../ideas/IdeenFab'
+import { copyrightLine } from '../../lib/legal'
 
 const mobileNav = [
   { to: '/', label: 'Home', icon: Home, end: true },
@@ -66,10 +69,9 @@ export function AppShell() {
             type="button"
             onClick={() => navigate('/')}
             className="mr-2 flex shrink-0 items-center gap-2 text-left"
+            aria-label="LoadIn Start"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan/30 bg-cyan/15 text-lg shadow-[0_0_18px_rgba(0,240,255,0.2)]">
-              ⚡
-            </span>
+            <BrandIcon size={36} />
             <div className="leading-tight">
               <div className="font-bold tracking-tight text-white">LoadIn</div>
               <div className="text-[10px] uppercase tracking-wider text-cyan">Crew · Gigs · Gear</div>
@@ -191,8 +193,7 @@ export function AppShell() {
           onClick={() => navigate('/')}
           className="flex min-h-11 items-center gap-2"
         >
-          <span className="text-cyan">⚡</span>
-          <span className="font-semibold">LoadIn</span>
+          <BrandMark compact />
         </button>
         <div className="flex items-center gap-2">
           {user ? (
@@ -220,30 +221,43 @@ export function AppShell() {
           <div key={location.pathname + location.search} className="page-enter">
             <Outlet />
           </div>
-          <footer className="mt-10 flex flex-wrap gap-x-4 gap-y-2 border-t border-border pt-4 text-xs text-muted">
-            <Link to="/impressum" className="hover:text-cyan">
-              Impressum
-            </Link>
-            <Link to="/datenschutz" className="hover:text-cyan">
-              Datenschutz
-            </Link>
-            <Link to="/agb" className="hover:text-cyan">
-              AGB
-            </Link>
-            <Link to="/mehr" className="hover:text-cyan md:hidden">
-              Mehr
-            </Link>
-            <Link to="/mein" className="hover:text-cyan">
-              Favoriten
-            </Link>
-            <Link to="/wallet" className="hover:text-cyan">
-              Wallet
-            </Link>
+          <footer className="mt-10 space-y-3 border-t border-border pt-4 text-xs text-muted">
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              <Link to="/impressum" className="hover:text-cyan">
+                Impressum
+              </Link>
+              <Link to="/datenschutz" className="hover:text-cyan">
+                Datenschutz
+              </Link>
+              <Link to="/agb" className="hover:text-cyan">
+                AGB
+              </Link>
+              <Link to="/ideen" className="hover:text-cyan">
+                Ideen-Box
+              </Link>
+              <Link to="/integrationen" className="hover:text-cyan">
+                Integrationen
+              </Link>
+              <Link to="/empfehlen" className="hover:text-cyan">
+                Empfehlen
+              </Link>
+              <Link to="/mehr" className="hover:text-cyan md:hidden">
+                Mehr
+              </Link>
+              <Link to="/mein" className="hover:text-cyan">
+                Favoriten
+              </Link>
+              <Link to="/wallet" className="hover:text-cyan">
+                Wallet
+              </Link>
+            </div>
+            <p>{copyrightLine()}</p>
           </footer>
         </main>
       </div>
 
       <CreateSheet open={createOpen} onClose={() => setCreateOpen(false)} />
+      <IdeenFab />
       <PwaInstallBanner />
 
       {/* Mobile bottom nav — max 5 */}

@@ -11,6 +11,7 @@ import { DEMO_USER_ID, seedProfiles } from '../data/seed'
 import { store } from './store'
 import type { AuthUser, Profile, Role } from '../types'
 import { uid } from './utils'
+import { consumePendingReferral } from './referral'
 
 const AUTH_KEY = 'el_auth_user'
 
@@ -80,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       seedProfiles.find((x) => x.id === DEMO_USER_ID)!
     store.upsertProfile(p)
     persist({ id: p.id, email: p.email, name: p.name, role: p.role }, p)
+    consumePendingReferral(p.id)
   }, [persist])
 
   const login = useCallback(
@@ -113,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       store.upsertProfile(p)
       persist({ id, email, name, role }, p)
+      consumePendingReferral(id)
     },
     [persist],
   )
@@ -135,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       store.upsertProfile(p)
       persist({ id, email, name, role }, p)
+      consumePendingReferral(id)
       return p
     },
     [persist],

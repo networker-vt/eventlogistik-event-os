@@ -37,6 +37,9 @@ const QUICK_CHIPS = [
   { label: 'Katalog', to: '/katalog/firmen' },
   { label: 'Favoriten', to: '/mein' },
   { label: 'Wallet', to: '/wallet' },
+  { label: 'Ideen-Box', to: '/ideen' },
+  { label: 'Empfehlen', to: '/empfehlen' },
+  { label: 'Integrationen', to: '/integrationen' },
   { label: 'Mehr', to: '/mehr' },
 ]
 

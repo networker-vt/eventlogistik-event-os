@@ -67,10 +67,11 @@ Oder manuell: `npm run build` → `cp dist/index.html dist/404.html` → force-p
 
 ## 8. Rechtliches
 
-- [ ] `/impressum` — echte Firmendaten (TMG)
-- [ ] `/datenschutz` — final (DSGVO), AVV mit Supabase/Host
-- [ ] `/agb` — anwaltlich geprüft
-- [ ] Links in Footer/AppShell sind verdrahtet
+- [x] `/impressum` — Mirco Küßner, Schlebuscher Weg 8, 51061 Köln (natürliche Person, kein HR)
+- [x] `/datenschutz` — startklar, Host GitHub Pages, Kontakt E-Mail
+- [ ] `/agb` — Entwurf liegt, **Marktplatz-AGB vor kommerziellem Betrieb anwaltlich prüfen**
+- [x] Links in Footer/AppShell verdrahtet
+- [ ] AVV mit Supabase, sobald live
 
 ## 9. Go-Live Schritte
 
@@ -91,6 +92,18 @@ Oder manuell: `npm run build` → `cp dist/index.html dist/404.html` → force-p
 
 ## Zahlungen (bewusst Mock)
 
-- Wallet unter `/wallet` ist **Demo-UX**. Keine PayPal-/Stripe-/Krypto-API-Calls.
-- Ohne Provider-Keys (und ohne bewussten Live-Schalter) darf kein echtes Geld bewegt werden.
-- Disclaimer in DE ist Pflicht in Wallet + Pay-Sheet.
+- Wallet unter `/wallet` ist **Demo-UX** bis Stripe/PayPal/Banking-Partner + KYC.
+- FX-Rechner (EUR/USD/GBP/CHF/USDT) zeigt **indikative** Kurse (Frankfurter.app oder statisch).
+- IBAN- und Krypto-Withdraw sind Formular-Stubs. Keine PayPal-/Stripe-/Chain-Calls.
+- Ohne Provider-Keys und Live-Schalter darf kein echtes Geld bewegt werden.
+
+## Neue Routen (v1.4)
+
+- `/ideen` — Ideen-Box
+- `/integrationen` — ERP/Rental-Connect (Mock)
+- `/empfehlen` — Referral + Featured-Credits
+- `/wallet` — Payments-Netzwerk (Mock + FX)
+
+## Stores
+
+Siehe `STORE_READY.md` und `scripts/prepare-capacitor.md`. Einreichung nur mit Apple- und Google-Konten des Operators.

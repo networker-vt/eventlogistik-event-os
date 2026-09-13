@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { copyrightLine } from '../../lib/legal'
 
 export function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -22,6 +23,7 @@ export function LegalLayout({ title, children }: { title: string; children: Reac
           Zur App
         </Link>
       </nav>
+      <p className="text-xs text-muted">{copyrightLine()}</p>
     </article>
   )
 }

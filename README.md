@@ -39,7 +39,7 @@ Die App startet mit **Seed-Daten** und lokalem Store, wenn keine gültigen Supab
 2. Migration: `supabase/migrations/20260912_init.sql`
 3. `npm run build` — Artefakt in `dist/`
 4. `./scripts/deploy-pages.sh` **oder** ZIP aus Release hochladen/entpacken
-5. Rechtstexte unter `/impressum`, `/datenschutz`, `/agb` mit Firmendaten ersetzen
+5. Rechtstexte unter `/impressum`, `/datenschutz`, `/agb` sind mit Operator-Daten gefüllt (Privatperson). AGB vor Marktplatz-Live anwaltlich prüfen.
 6. Checkliste: [`LAUNCH.md`](./LAUNCH.md) · Store später: [`STORE_READY.md`](./STORE_READY.md)
 
 ### Downloadbarer Build
@@ -72,7 +72,7 @@ Routes: `/katalog/firmen`, `/katalog/locations`, `/katalog/transporteure`, `/kat
 **Mobile (Bottom, max 5):** Home · Jobs · + (Erstellen) · Inbox · Mehr  
 **Desktop (Top):** Home · Jobs · Marktplatz ▾ · Katalog · Innovation · Wissen · Messages · Profil  
 
-Sekundäre Bereiche (Marktplatz-Verticals, Katalog, Innovation, Wissen, Dashboard/Profil/Legal, **Mein Bereich / Favoriten**, **Wallet**) liegen unter **`/mehr`**. Alle bisherigen URLs bleiben erreichbar.
+Sekundäre Bereiche (Marktplatz-Verticals, Katalog, Innovation, Wissen, Dashboard/Profil/Legal, **Mein Bereich / Favoriten**, **Wallet**, **Ideen-Box**, **Integrationen**, **Empfehlen**) liegen unter **`/mehr`**. Alle bisherigen URLs bleiben erreichbar.
 
 ## Stack
 
@@ -109,9 +109,12 @@ scripts/
 - **Angebote vergleichen** (`/jobs/compare/:listingId`)
 - Booking-Flow inkl. **Rating-Prompt** nach `completed`
 - Messaging, Projekte, Verifizierungs-Badges
-- Legal-Routen (Platzhalter DE)
+- Legal-Routen mit echten Kontaktdaten (natürliche Person, kein Handelsregister)
 - **Favoriten** (`/mein`) — Jobs, Listings, Katalog-Einträge, localStorage
-- **Wallet** (`/wallet`) — Demo-Guthaben, PayPal / Karte / SEPA / BTC+USDC Stubs, Pay-Sheet bei Booking-Confirm. **Kein echtes Geld, keine Provider-APIs**
+- **Wallet** (`/wallet`) — Demo-Guthaben, FX (EUR/USD/GBP/CHF/USDT), IBAN- + Krypto-Withdraw-Stubs, Pay-Sheet. **Kein echtes Geld**
+- **Ideen-Box** (`/ideen`) — Feedback lokal, Analyzer-Tags, Inbox in Mein Bereich
+- **Integrationen** (`/integrationen`) — easyjob, Eventworx, Crewbrain, Rentman, u. a. (Mock-Connect)
+- **Empfehlen** (`/empfehlen`) — Referral-Code `?ref=`, Featured-Credits (Demo)
 
 ## Routen
 
@@ -125,9 +128,12 @@ scripts/
 | `/messages` | Chat |
 | `/dashboard` · `/projects/*` · `/profile` | Ops & Profil |
 | `/mein` | Mein Bereich · Favoriten |
-| `/wallet` | Demo-Wallet · Zahlungsmethoden (Mock) |
+| `/wallet` | Demo-Wallet · FX · Auszahlung (Mock) |
+| `/ideen` | Ideen-Box · Feedback |
+| `/integrationen` | ERP/Rental-Connect (Stub) |
+| `/empfehlen` | Referral-Programm |
 | `/mehr` | Hub: Marktplatz, Katalog, Innovation, Wissen, Account |
-| `/impressum` · `/datenschutz` · `/agb` | Legal stubs |
+| `/impressum` · `/datenschutz` · `/agb` | Legal (Operator-Daten) |
 
 ## Design
 
@@ -146,4 +152,4 @@ Echte Zahlungen (PayPal / Stripe / On-Chain) — Wallet ist Mock. Native Store-B
 
 ## Lizenz
 
-Privat / Projektrepo — Owner: networker-vt
+Privat / Projektrepo — © 2026 Mirco Küßner / LoadIn · Repo: networker-vt

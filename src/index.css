@@ -298,3 +298,12 @@
     transform: none;
   }
 }
+
+
+/* Safe Ideen-Box tweak — only when user asked for readability */
+html.tweak-contrast {
+  --color-muted: #c4c4c4;
+}
+html.tweak-contrast body {
+  color: #fafafa;
+}

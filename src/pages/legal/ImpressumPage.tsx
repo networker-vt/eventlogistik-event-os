@@ -1,54 +1,58 @@
+import { LEGAL, LEGAL_ADDRESS_LINE, copyrightLine } from '../../lib/legal'
 import { LegalLayout } from './LegalLayout'
 
 export function ImpressumPage() {
   return (
     <LegalLayout title="Impressum">
-      <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-        <strong>Platzhalter / TODO:</strong> Dies ist noch kein fertiges Impressum. Bitte vor dem
-        produktiven Go-Live mit echten Firmendaten ersetzen (TMG / DDV).
+      <p className="rounded-xl border border-cyan/30 bg-cyan/10 px-4 py-3 text-sm text-cyan">
+        Angaben einer <strong>natürlichen Person</strong> ({LEGAL.form}). Es besteht{' '}
+        <strong>kein Handelsregistereintrag</strong> und keine GmbH. Stand: {LEGAL.year}.
       </p>
 
-      <h2>Angaben gemäß § 5 TMG</h2>
+      <h2>Angaben gemäß § 5 DDG (ehem. TMG)</h2>
       <p>
-        <strong>TODO: Firmenname / Rechtsform</strong>
+        <strong>{LEGAL.operatorName}</strong>
         <br />
-        TODO: Straße Hausnummer
+        {LEGAL.brand} — Event-OS (privat betrieben)
         <br />
-        TODO: PLZ Ort
+        {LEGAL.street}
         <br />
-        Deutschland
+        {LEGAL.zip} {LEGAL.city}
+        <br />
+        {LEGAL.country}
       </p>
-
-      <h2>Vertreten durch</h2>
-      <p>TODO: Geschäftsführung / vertretungsberechtigte Person(en)</p>
 
       <h2>Kontakt</h2>
       <p>
-        Telefon: TODO
+        E-Mail:{' '}
+        <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>
         <br />
-        E-Mail: TODO@example.de
+        Anschrift: {LEGAL_ADDRESS_LINE}
       </p>
 
-      <h2>Registereintrag</h2>
+      <h2>Register & Umsatzsteuer</h2>
       <p>
-        Registergericht: TODO
-        <br />
-        Registernummer: TODO (z. B. HRB …)
-      </p>
-
-      <h2>Umsatzsteuer-ID</h2>
-      <p>
-        Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:
-        <br />
-        TODO: DE…
+        Kein Eintrag im Handelsregister (keine Kaufmannseigenschaft nach HGB / keine Kapitalgesellschaft).
+        Eine Umsatzsteuer-Identifikationsnummer wurde nicht mitgeteilt. Soweit umsatzsteuerpflichtige
+        Leistungen angeboten werden, gelten die gesetzlichen Vorschriften.
       </p>
 
       <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
-      <p>TODO: Name und Anschrift</p>
-
-      <p className="text-sm text-muted">
-        Keine Rechtsberatung. Diese Seite ersetzt kein anwaltlich geprüftes Impressum.
+      <p>
+        {LEGAL.operatorName}, {LEGAL_ADDRESS_LINE}
       </p>
+
+      <h2>EU-Streitschlichtung</h2>
+      <p>
+        Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:{' '}
+        <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noreferrer">
+          https://ec.europa.eu/consumers/odr
+        </a>
+        . Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer
+        Verbraucherschlichtungsstelle teilzunehmen.
+      </p>
+
+      <p className="text-sm text-muted">{copyrightLine()}</p>
     </LegalLayout>
   )
 }

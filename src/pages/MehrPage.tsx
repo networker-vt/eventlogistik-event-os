@@ -18,6 +18,9 @@ import {
   FolderKanban,
   Heart,
   Wallet,
+  Lightbulb,
+  Cable,
+  Gift,
 } from 'lucide-react'
 
 type HubLink = {
@@ -88,6 +91,9 @@ const sections: HubSection[] = [
     links: [
       { to: '/mein', label: 'Mein Bereich', hint: 'Favoriten', icon: Heart },
       { to: '/wallet', label: 'Wallet', hint: 'Zahlungen · Demo', icon: Wallet },
+      { to: '/ideen', label: 'Ideen-Box', hint: 'Feedback an den Operator', icon: Lightbulb },
+      { to: '/integrationen', label: 'Integrationen', hint: 'easyjob, Crewbrain, Rentman', icon: Cable },
+      { to: '/empfehlen', label: 'Empfehlen', hint: 'Referral-Credits', icon: Gift },
       { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { to: '/projects/new', label: 'Projekte', hint: 'Neues Event-Projekt', icon: FolderKanban },
       { to: '/jobs', label: 'Jobs', hint: 'Seek & Hire', icon: Briefcase },

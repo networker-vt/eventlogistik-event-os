@@ -1,55 +1,89 @@
+import { LEGAL, LEGAL_ADDRESS_LINE } from '../../lib/legal'
 import { LegalLayout } from './LegalLayout'
 
 export function DatenschutzPage() {
   return (
     <LegalLayout title="Datenschutzerklärung">
-      <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-        <strong>Platzhalter / TODO:</strong> Entwurf für Launch-Vorbereitung. Vor Go-Live durch
-        Datenschutzbeauftragte:n / Anwalt finalisieren (DSGVO / TTDSG). Keine finalen Rechtsansprüche.
+      <p className="rounded-xl border border-cyan/30 bg-cyan/10 px-4 py-3 text-sm text-cyan">
+        Startklar für die öffentliche Demo. Kein Tracking, keine Bezahldaten. Vor einem kommerziellen
+        Live-Betrieb mit echten Nutzerkonten sollten AV-Verträge (z. B. Supabase) und diese Erklärung
+        noch einmal fachlich geprüft werden.
       </p>
 
       <h2>1. Verantwortlicher</h2>
       <p>
-        TODO: Firmenname, Anschrift, E-Mail — siehe auch Impressum-Seite.
+        {LEGAL.operatorName} ({LEGAL.form})
+        <br />
+        {LEGAL.street}, {LEGAL.zip} {LEGAL.city}, {LEGAL.country}
+        <br />
+        E-Mail: <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>
       </p>
 
-      <h2>2. Hosting & Infrastruktur</h2>
+      <h2>2. Hosting</h2>
       <ul>
-        <li>Frontend: GitHub Pages (oder eigener Host) — TODO: Anbieter bestätigen</li>
-        <li>Backend / Auth / DB: Supabase (falls produktiv angebunden) — TODO: Region / AVV</li>
-        <li>Optional Analytics: TODO (z. B. Plausible / Matomo) — nur mit Consent</li>
+        <li>
+          Frontend: GitHub Pages (GitHub, Inc., USA). Beim Abruf fallen technisch notwendige
+          Server-Logs beim Host an (IP, User-Agent, Zeitpunkt).
+        </li>
+        <li>
+          Optional später: Supabase (EU-Projekt empfohlen) für Auth/DB — nur wenn in der Umgebung
+          konfiguriert. Ohne Keys bleibt alles lokal im Browser.
+        </li>
+        <li>Kein Analytics-Tool ist aktiv. Kein Consent-Banner nötig, solange kein Tracking dazukommt.</li>
       </ul>
 
-      <h2>3. Welche Daten wir verarbeiten (geplant)</h2>
+      <h2>3. Welche Daten wir verarbeiten</h2>
       <ul>
-        <li>Account-Daten: Name, E-Mail, Rolle, Stadt, Profilangaben</li>
-        <li>Marketplace: Inserate, Bookings, Nachrichten</li>
-        <li>Technische Logs: IP (gekürzt), Browser, Fehlerberichte — TODO</li>
-        <li>PWA: Service-Worker-Cache lokal auf dem Gerät</li>
+        <li>
+          <strong>Lokal (localStorage):</strong> Demo-Account, Inserate, Wallet-Stubs, Ideen-Box,
+          Referral-Code, Integrations-Status, Favoriten. Diese Daten verlassen das Gerät nicht, solange
+          kein Backend angebunden ist.
+        </li>
+        <li>
+          <strong>Ideen-Box:</strong> Kategorie, Freitext, optionale E-Mail — nur lokal. Die optionale
+          E-Mail dient Rückfragen und wird nicht an Dritte weitergegeben.
+        </li>
+        <li>
+          <strong>Account (geplant / optional Supabase):</strong> Name, E-Mail, Rolle, Stadt,
+          Profilangaben, Inserate, Nachrichten.
+        </li>
+        <li>PWA: Service-Worker cached die App-Shell auf dem Gerät.</li>
       </ul>
 
       <h2>4. Rechtsgrundlagen</h2>
       <p>
-        TODO: Art. 6 Abs. 1 lit. a (Einwilligung), lit. b (Vertrag), lit. f (berechtigtes Interesse)
-        — je Verarbeitungszweck zuordnen.
+        Art. 6 Abs. 1 lit. b DSGVO (Vertragsanbahnung/-erfüllung bei Registrierung), lit. f
+        (berechtigtes Interesse an sicherem Hosting und Missbrauchsabwehr), lit. a soweit eine
+        Einwilligung eingeholt wird (derzeit nicht für Tracking).
       </p>
 
       <h2>5. Speicherdauer</h2>
-      <p>TODO: Löschkonzept (Account-Löschung, gesetzliche Aufbewahrung).</p>
+      <p>
+        Lokale Demo-Daten bleiben, bis der Browser-Speicher geleert oder die Funktion „reset“ genutzt
+        wird. Hosting-Logs richtet der Anbieter. Bei einem späteren Live-Account: Löschung auf
+        Anfrage an {LEGAL.email}, gesetzliche Aufbewahrung bleibt vorbehalten.
+      </p>
 
       <h2>6. Betroffenenrechte</h2>
       <p>
-        Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch,
-        Beschwerde bei einer Aufsichtsbehörde — TODO: Kontaktweg.
+        Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch sowie
+        Beschwerde bei einer Aufsichtsbehörde (in NRW: LDI NRW). Kontakt: {LEGAL.email},{' '}
+        {LEGAL_ADDRESS_LINE}.
       </p>
 
-      <h2>7. Cookies / lokale Speicherung</h2>
+      <h2>7. Drittlandtransfer</h2>
       <p>
-        Die Demo speichert Auth- und Store-Daten in <code>localStorage</code>. Der Service Worker
-        cached App-Shell-Assets für Offline. TODO: Consent-Banner falls Tracking hinzukommt.
+        GitHub Pages kann eine Übermittlung in die USA bedeuten (Standardvertragsklauseln des
+        Anbieters). Keine eigenen Tracking-Cookies.
       </p>
 
-      <p className="text-sm text-muted">Stand: Platzhalter — bitte vor Launch aktualisieren.</p>
+      <h2>8. Zahlungen</h2>
+      <p>
+        Wallet, IBAN- und Krypto-Formulare sind Demonstrations-UI. Es werden keine Zahlungsdaten an
+        Stripe, PayPal, Banken oder Blockchains übermittelt.
+      </p>
+
+      <p className="text-sm text-muted">Stand: {LEGAL.year} · {LEGAL.operatorName}</p>
     </LegalLayout>
   )
 }

@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowDownLeft,
+  ArrowLeftRight,
   ArrowUpRight,
+  Landmark,
   Link2,
   Link2Off,
   Loader2,
@@ -10,13 +12,19 @@ import {
 } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
+import { Input, Select } from '../components/ui/Input'
 import { WalletDisclaimer } from '../components/wallet/WalletDisclaimer'
+import { useFx } from '../hooks/useFx'
 import { useWallet } from '../hooks/useWallet'
+import { convertFx, FX_CODES, formatFx, type FxCode } from '../lib/fx'
 import {
   WALLET_METHODS,
   connectMethod,
   disconnectMethod,
   mockAdjustBalance,
+  mockCryptoWithdraw,
+  mockPlatformCheckout,
+  mockPayoutIban,
   resetWallet,
   type WalletMethodId,
 } from '../lib/wallet'
@@ -25,11 +33,28 @@ import { cn } from '../lib/utils'
 
 export function WalletPage() {
   const { wallet } = useWallet()
+  const { fx } = useFx()
   const [busy, setBusy] = useState<WalletMethodId | null>(null)
   const [sheet, setSheet] = useState<null | 'topup' | 'payout'>(null)
   const [flash, setFlash] = useState<string | null>(null)
+  const [fxAmount, setFxAmount] = useState('250')
+  const [fxTo, setFxTo] = useState<FxCode>('USD')
+  const [iban, setIban] = useState('')
+  const [bic, setBic] = useState('')
+  const [holder, setHolder] = useState('')
+  const [payoutAmt, setPayoutAmt] = useState('100')
+  const [cryptoAddr, setCryptoAddr] = useState('')
+  const [cryptoAsset, setCryptoAsset] = useState<'btc' | 'usdc' | 'usdt'>('usdt')
+  const [cryptoAmt, setCryptoAmt] = useState('50')
 
-  const connectedCount = WALLET_METHODS.filter((m) => wallet.methods[m.id].connected).length
+  const connectedCount = WALLET_METHODS.filter((m) => wallet.methods[m.id]?.connected).length
+  const eur = Number(fxAmount) || 0
+  const converted = convertFx(eur, fxTo, fx.rates)
+
+  const note = (msg: string) => {
+    setFlash(msg)
+    window.setTimeout(() => setFlash(null), 3200)
+  }
 
   const runConnect = (id: WalletMethodId, next: boolean) => {
     setBusy(id)
@@ -37,22 +62,15 @@ export function WalletPage() {
       if (next) connectMethod(id)
       else disconnectMethod(id)
       setBusy(null)
-      setFlash(next ? 'Methode verbunden (Demo — kein Provider-Call).' : 'Methode getrennt.')
-      window.setTimeout(() => setFlash(null), 2800)
+      note(next ? 'Methode verbunden (Demo — kein Provider-Call).' : 'Methode getrennt.')
     }, 650)
   }
 
   const runCash = (type: 'topup' | 'payout') => {
-    const method =
-      WALLET_METHODS.find((m) => wallet.methods[m.id].connected)?.id ?? 'sepa'
+    const method = WALLET_METHODS.find((m) => wallet.methods[m.id]?.connected)?.id ?? 'sepa'
     mockAdjustBalance(type, type === 'topup' ? 250 : 100, method)
     setSheet(null)
-    setFlash(
-      type === 'topup'
-        ? 'Demo-Einzahlung +250 € — kein echtes Geld.'
-        : 'Demo-Auszahlung −100 € — kein echtes Geld.',
-    )
-    window.setTimeout(() => setFlash(null), 2800)
+    note(type === 'topup' ? 'Demo-Einzahlung +250 € — kein echtes Geld.' : 'Demo-Auszahlung −100 € — kein echtes Geld.')
   }
 
   return (
@@ -63,7 +81,7 @@ export function WalletPage() {
           <Wallet size={22} className="text-cyan" /> Wallet
         </h1>
         <p className="text-sm text-muted">
-          Finance-App-UX für LoadIn — ausschließlich lokal, Mock-Provider.
+          Plattform-Zahlung, FX und Auszahlung — Demo bis Stripe/PayPal/Banking-Partner + KYC.
         </p>
       </header>
 
@@ -79,8 +97,16 @@ export function WalletPage() {
         <div className="mt-1 text-4xl font-bold tabular-nums tracking-tight text-white">
           {formatPrice(wallet.balanceEur)}
         </div>
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-neutral-300">
+          {FX_CODES.filter((c) => c !== 'EUR').map((c) => (
+            <span key={c}>
+              {c} {formatFx(convertFx(wallet.balanceEur, c, fx.rates), c)}
+            </span>
+          ))}
+        </div>
         <p className="mt-2 text-xs text-neutral-300">
-          {connectedCount} Methode{connectedCount === 1 ? '' : 'n'} verbunden · Guthaben nur lokal
+          {connectedCount} Methode{connectedCount === 1 ? '' : 'n'} verbunden · Kurse {fx.source} ·
+          indikativ
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button size="sm" onClick={() => setSheet('topup')}>
@@ -117,12 +143,133 @@ export function WalletPage() {
         </div>
       )}
 
+      <section className="card-elevated space-y-3 rounded-2xl border border-border p-5">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">
+          <ArrowLeftRight size={18} className="text-cyan" /> FX-Rechner
+        </h2>
+        <p className="text-xs text-muted">
+          EUR → USD / GBP / CHF / USDT. Kurse indikativ
+          {fx.source === 'static' ? ' (statisch)' : ' (Frankfurter.app, USDT ≈ USD)'}. Kein Handel.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input
+            label="Betrag in EUR"
+            type="number"
+            min={0}
+            value={fxAmount}
+            onChange={(e) => setFxAmount(e.target.value)}
+          />
+          <Select label="Zielwährung" value={fxTo} onChange={(e) => setFxTo(e.target.value as FxCode)}>
+            {FX_CODES.filter((c) => c !== 'EUR').map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <p className="text-2xl font-bold tabular-nums text-cyan">{formatFx(converted, fxTo)}</p>
+        <div className="flex flex-wrap gap-1.5 text-[11px] text-muted">
+          {FX_CODES.map((c) => (
+            <span key={c} className="chip">
+              1 EUR = {c === 'EUR' ? '1' : fx.rates[c].toFixed(3)} {c}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      <section className="card-elevated space-y-3 rounded-2xl border border-border p-5">
+        <h2 className="text-lg font-semibold">Auf der Plattform zahlen</h2>
+        <p className="text-xs text-muted">
+          Mock-Checkout für Bookings & Featured. Bestätigung ändert nur das Demo-Guthaben.
+        </p>
+        <Button
+          size="sm"
+          onClick={() => {
+            mockPlatformCheckout({ amountEur: 49, label: 'Featured-Listing 7 Tage (Demo-Checkout)' })
+            note('Demo-Checkout −49 € — kein Stripe/PayPal.')
+          }}
+        >
+          Featured 7 Tage · 49 € (Demo)
+        </Button>
+        <Link to="/jobs" className="block text-sm text-cyan hover:underline">
+          Bookings über die Booking-Seite mit Pay-Sheet zahlen →
+        </Link>
+      </section>
+
+      <section className="card-elevated space-y-3 rounded-2xl border border-border p-5">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">
+          <Landmark size={18} className="text-cyan" /> Auszahlung aufs Konto
+        </h2>
+        <p className="text-xs text-muted">IBAN-Formular — Stub. Kein Banking-Partner, keine SEPA-Datei.</p>
+        <Input label="Kontoinhaber" value={holder} onChange={(e) => setHolder(e.target.value)} placeholder="Mirco Küßner" />
+        <Input label="IBAN" value={iban} onChange={(e) => setIban(e.target.value)} placeholder="DE89 ACCT-000034" />
+        <Input label="BIC (optional)" value={bic} onChange={(e) => setBic(e.target.value)} placeholder="COBADEFFXXX" />
+        <Input
+          label="Betrag €"
+          type="number"
+          min={1}
+          value={payoutAmt}
+          onChange={(e) => setPayoutAmt(e.target.value)}
+        />
+        <Button
+          size="sm"
+          disabled={!iban || !holder}
+          onClick={() => {
+            mockPayoutIban({ iban, bic, holder, amountEur: Number(payoutAmt) || 0 })
+            note('Demo-Auszahlung vorgemerkt — kein echter Überweisungsauftrag.')
+          }}
+        >
+          Demo-Auszahlung
+        </Button>
+      </section>
+
+      <section className="card-elevated space-y-3 rounded-2xl border border-border p-5">
+        <h2 className="text-lg font-semibold">Krypto-Auszahlung</h2>
+        <p className="text-xs text-muted">Adresse + Asset — kein On-Chain, keine Exchange-API.</p>
+        <Select
+          label="Asset"
+          value={cryptoAsset}
+          onChange={(e) => setCryptoAsset(e.target.value as 'btc' | 'usdc' | 'usdt')}
+        >
+          <option value="usdt">USDT</option>
+          <option value="usdc">USDC</option>
+          <option value="btc">BTC</option>
+        </Select>
+        <Input
+          label="Adresse / Invoice"
+          value={cryptoAddr}
+          onChange={(e) => setCryptoAddr(e.target.value)}
+          placeholder="bc1q… oder 0x… / T…"
+        />
+        <Input
+          label="Betrag € (Gegenwert)"
+          type="number"
+          min={1}
+          value={cryptoAmt}
+          onChange={(e) => setCryptoAmt(e.target.value)}
+        />
+        <Button
+          size="sm"
+          disabled={!cryptoAddr}
+          onClick={() => {
+            mockCryptoWithdraw({
+              asset: cryptoAsset,
+              address: cryptoAddr,
+              amountEur: Number(cryptoAmt) || 0,
+            })
+            note('Krypto-Withdraw nur lokal gebucht — keine Chain.')
+          }}
+        >
+          Demo-Withdraw
+        </Button>
+      </section>
+
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Zahlungsmethoden</h2>
         <div className="space-y-2">
           {WALLET_METHODS.map((m) => {
             const st = wallet.methods[m.id]
-            const on = st.connected
+            const on = Boolean(st?.connected)
             return (
               <article
                 key={m.id}
@@ -174,7 +321,8 @@ export function WalletPage() {
           <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface-2">
             {wallet.txs.slice(0, 20).map((tx) => {
               const meta = WALLET_METHODS.find((m) => m.id === tx.methodId)
-              const sign = tx.type === 'payout' || tx.type === 'pay' ? '−' : tx.type === 'topup' ? '+' : ''
+              const sign =
+                tx.type === 'payout' || tx.type === 'pay' || tx.type === 'withdraw_crypto' ? '−' : tx.type === 'topup' ? '+' : ''
               return (
                 <li key={tx.id} className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
@@ -206,7 +354,7 @@ export function WalletPage() {
           variant="ghost"
           onClick={() => {
             resetWallet()
-            setFlash('Wallet auf Demo-Start zurückgesetzt.')
+            note('Wallet auf Demo-Start zurückgesetzt.')
           }}
         >
           Wallet reset

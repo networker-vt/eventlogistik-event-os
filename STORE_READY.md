@@ -1,72 +1,89 @@
 # Store-Ready — LoadIn als installierbare App
 
-Kurzüberblick (Deutsch): Was **jetzt** bereit ist und wie ihr später den **Play Store** (und optional App Store) erreicht.
+Kurzüberblick (Deutsch): Was **jetzt** bereit ist, was **ihr** noch klicken müsst, und warum wir **nicht** einreichen können.
+
+Privacy-URL (Pflicht für Stores):  
+https://networker-vt.github.io/eventlogistik-event-os/datenschutz
+
+Impressum:  
+https://networker-vt.github.io/eventlogistik-event-os/impressum
 
 ## Jetzt bereit: PWA installieren
 
-Die Web-App ist eine echte Progressive Web App:
-
 - Service Worker (Workbox via `vite-plugin-pwa`)
-- Offline-Shell (App-Shell gecacht)
-- Web App Manifest (`name`, Icons, `start_url`/`scope` mit Base `/eventlogistik-event-os/`)
-- Install-Prompt (Android/Chrome) + iOS-Hinweis („Zum Home-Bildschirm“)
+- Offline-Shell
+- Manifest: Name **LoadIn**, Icons (192 / 512 / 1024), Wordmark, Splash (`public/icons/`)
+- Install-Prompt (Android/Chrome) + iOS „Zum Home-Bildschirm“
+- Apple-Touch-Icon + Startup-Images
 
-### Handy installieren
+### Handy
 
-**Android (Chrome):** Seite öffnen → Banner „LoadIn installieren“ oder Menü ⋮ → „App installieren“ / „Zum Startbildschirm“.
+**Android (Chrome):** Seite öffnen → Banner oder Menü ⋮ → App installieren.
 
-**iPhone/iPad (Safari):** Teilen-Symbol → **Zum Home-Bildschirm** → Hinzufügen.
+**iPhone/iPad (Safari):** Teilen → **Zum Home-Bildschirm**.
 
-**Desktop (Chrome/Edge):** Install-Icon in der Adressleiste oder Banner.
+**Desktop:** Install-Icon in der Adressleiste.
 
 Live: https://networker-vt.github.io/eventlogistik-event-os/
 
-Downloadbarer Build (ZIP): siehe GitHub Releases (`eventlogistik-event-os-web.zip`).
+ZIP: GitHub Releases (`eventlogistik-event-os-web.zip`).
 
-## Später: Google Play (TWA / Capacitor)
+## Native Stores — Blocker auf eurer Seite
 
-### Option A — Trusted Web Activity (TWA, Bubblewrap)
+Wir können **weder App Store noch Play Store** einreichen:
 
-1. Production-URL mit HTTPS (Pages oder Custom Domain).
-2. Digital Asset Links: `/.well-known/assetlinks.json` auf der Domain.
-3. Mit [Bubblewrap](https://github.com/GoogleChromeLabs/bubblewrap) ein Android-Projekt erzeugen, das die PWA im Chrome Custom Tab / TWA öffnet.
-4. Signing Key + Play Console Listing (Screenshots, Datenschutz-URL, Impressum).
+1. **Kein Apple Developer Program** des Operators (Enrollment + 99 USD/Jahr + App Store Connect)
+2. **Kein Google Play Console-Konto** (25 USD einmalig)
+3. Kein Signing-Keystore / keine Distribution-Zertifikate im Repo
+4. `android/` und `ios/` sind absichtlich nicht eingecheckt (Web-Build bleibt sauber)
 
-**Vorteil:** Eine Codebasis (Web). **Nachteil:** Abhängigkeit von Web-Features; begrenzte Native-APIs.
+Schritt-für-Schritt inkl. nächster Klicks: [`scripts/prepare-capacitor.md`](./scripts/prepare-capacitor.md)  
+Config (bricht den Web-Build nicht): [`capacitor.config.json`](./capacitor.config.json)
 
-### Option B — Capacitor (empfohlen für mehr Native)
+### Capacitor — Kurz
 
 ```bash
-npm install @capacitor/core @capacitor/cli
-npx cap init LoadIn com.eventlogistik.app --web-dir dist
-npm run build
+npx vite build --base=/
+npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android
 npx cap add android
+npx cap add ios    # nur macOS
 npx cap sync
 npx cap open android
+npx cap open ios
 ```
 
-- `vite` `base` für Store-Builds ggf. auf `/` umstellen **oder** Capacitor `server.hostname` / `appId` konfigurieren.
-- Für GitHub Pages bleibt `base: '/eventlogistik-event-os/'` — Store-Build separat (z. B. `vite build --base=/`).
-- Plugins nach Bedarf: Push, Camera, Filesystem, StatusBar.
+Pages-Hosting bleibt `base: /eventlogistik-event-os/`. Store-Webview braucht `base: /`.
 
-### Apple App Store
+### TWA (Alternative Android)
 
-Capacitor + Xcode (`npx cap add ios`) auf macOS. PWA allein reicht für App Store **nicht**.
+Bubblewrap + Digital Asset Links auf der Production-Domain. Weniger Native-APIs.
 
-## Checkliste vor Store-Einreichung
+## Screenshots-Checkliste
 
-- [ ] Impressum / Datenschutz / AGB mit echten Firmendaten
+- [ ] iPhone 6.7" (1290×2796): Home, Jobs, Wallet mit Demo-Hinweis
+- [ ] iPhone 6.5" / 5.5" (falls Zielgeräte)
+- [ ] iPad 13"
+- [ ] Android Phone + 7" + 10" Tablet
+- [ ] Feature-Grafik Play (1024×500)
+- [ ] PWA-Assets in `public/screenshots/` sind nur Platzhalter-Optik — Stores wollen echte UI-Shots
+
+## Checkliste vor Einreichung
+
+- [x] Impressum / Datenschutz / AGB mit echten Kontaktdaten (natürliche Person)
+- [ ] AGB Marktplatz anwaltlich prüfen (Vermittlung, Haftung, Entgelte)
 - [ ] Supabase live (Auth + RLS) statt Demo-Store
-- [ ] Privacy Policy URL öffentlich erreichbar
+- [x] Privacy Policy URL öffentlich
 - [ ] Content-Moderation & Melde-Flow
-- [ ] Store-Screenshots (Phone + 7" / 10" Tablet)
-- [ ] Altersfreigabe / Daten-Sicherheitsformular (Play)
+- [ ] Store-Screenshots (siehe oben)
+- [ ] Play: Datensicherheit + Zielgruppe
+- [ ] Apple: Privacy Nutrition Label + Alter
+- [ ] Apple Developer + Play Console **des Operators**
 
 ## Was noch nicht Store-fertig ist
 
-- Keine nativen Android/iOS-Projekte im Repo
+- Keine nativen Projekte im Repo
 - Keine Push-Notifications
-- Keine In-App-Käufe / Stripe
-- Rechtstexte sind **Platzhalter**
+- Keine echten Zahlungen (Wallet = Demo bis Stripe/PayPal/Banking-KYC)
+- Operator ist Privatperson — Store-Publisher-Identität muss zu Impressum passen
 
-PWA = heute installierbar & downloadbar. TWA/Capacitor = nächster Schritt zum Play Store.
+PWA = heute installierbar. Capacitor/TWA = nächster Schritt, **nach** Account-Anlage durch euch.
