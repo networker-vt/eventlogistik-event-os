@@ -58,3 +58,9 @@ export const BOOKING_STATUS_LABELS: Record<string, string> = {
   completed: 'Abgeschlossen',
   cancelled: 'Storniert',
 }
+
+export const PROJECT_STATUS_LABELS: Record<string, string> = {
+  draft: 'Entwurf',
+  active: 'Aktiv',
+  done: 'Abgeschlossen',
+}

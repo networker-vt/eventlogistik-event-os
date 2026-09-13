@@ -18,7 +18,7 @@ import type {
 } from '../types'
 import { uid } from './utils'
 
-const KEY = 'el_store_v1'
+const KEY = 'el_store_v2'
 
 interface StoreData {
   listings: Listing[]
@@ -106,6 +106,11 @@ export const store = {
     if (filters.priceMax != null) {
       items = items.filter(
         (l) => l.priceFrom == null || l.priceFrom <= filters.priceMax!,
+      )
+    }
+    if (filters.priceMin != null) {
+      items = items.filter(
+        (l) => (l.priceFrom ?? l.priceTo ?? 0) >= filters.priceMin!,
       )
     }
     if (filters.dateFrom) {

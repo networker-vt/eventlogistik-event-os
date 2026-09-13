@@ -1,12 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Calendar, FolderKanban, MessageSquare, Plus } from 'lucide-react'
+import { Briefcase, Calendar, FolderKanban, MessageSquare, Plus } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
-import { BOOKING_STATUS_LABELS, VERTICAL_META } from '../data/constants'
+import {
+  BOOKING_STATUS_LABELS,
+  PROJECT_STATUS_LABELS,
+  VERTICAL_META,
+} from '../data/constants'
 import { useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
-import { formatDate } from '../lib/utils'
+import { formatDate, formatPrice } from '../lib/utils'
 
 export function DashboardPage() {
   const { user, loginDemo } = useAuth()
@@ -17,7 +21,9 @@ export function DashboardPage() {
     return (
       <div className="mx-auto max-w-lg rounded-2xl border border-border bg-surface-2 p-8 text-center">
         <h1 className="text-xl font-bold">Dashboard</h1>
-        <p className="mt-2 text-sm text-muted">Melde dich an, um Bookings, Chats und Projekte zu sehen.</p>
+        <p className="mt-2 text-sm text-muted">
+          Melde dich an, um Bookings, Bewerbungen, Chats und Projekte zu sehen.
+        </p>
         <div className="mt-5 flex justify-center gap-2">
           <Button onClick={loginDemo}>Demo starten</Button>
           <Button variant="secondary" onClick={() => navigate('/auth')}>
@@ -31,6 +37,9 @@ export function DashboardPage() {
   const bookings = store.listBookingsForUser(user.id)
   const projects = store.listProjects(user.id)
   const threads = store.listThreads(user.id)
+  const jobApps = bookings.filter((b) => b.vertical === 'job')
+  const incoming = jobApps.filter((b) => b.providerId === user.id)
+  const outgoing = jobApps.filter((b) => b.requesterId === user.id)
 
   return (
     <div className="space-y-6">
@@ -43,15 +52,20 @@ export function DashboardPage() {
           <Button size="sm" onClick={() => navigate('/projects/new')}>
             <Plus size={16} /> Projekt
           </Button>
-          <Button size="sm" variant="secondary" onClick={() => navigate('/listings/new')}>
-            Inserat
+          <Button size="sm" variant="secondary" onClick={() => navigate('/listings/new?vertical=job')}>
+            Job posten
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: 'Aktive Bookings', value: bookings.filter((b) => !['cancelled', 'completed'].includes(b.status)).length, icon: Calendar },
+          {
+            label: 'Aktive Bookings',
+            value: bookings.filter((b) => !['cancelled', 'completed'].includes(b.status)).length,
+            icon: Calendar,
+          },
+          { label: 'Job-Bewerbungen', value: jobApps.length, icon: Briefcase },
           { label: 'Projekte', value: projects.length, icon: FolderKanban },
           { label: 'Chats', value: threads.length, icon: MessageSquare },
         ].map((s) => (
@@ -62,6 +76,59 @@ export function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {(incoming.length > 0 || outgoing.length > 0) && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">Jobs — Pipeline</h2>
+            <Link to="/jobs" className="text-sm text-cyan">
+              Jobs öffnen
+            </Link>
+          </div>
+          {incoming.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wider text-muted">Eingehende Bewerbungen</p>
+              {incoming.map((b) => (
+                <Link
+                  key={b.id}
+                  to={`/bookings/${b.id}`}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-teal/30 bg-teal/5 px-4 py-3"
+                >
+                  <div>
+                    <div className="font-medium">{b.requesterName}</div>
+                    <div className="text-xs text-muted">
+                      {b.listingTitle}
+                      {b.offerAmount != null ? ` · ${formatPrice(b.offerAmount)}` : ''}
+                    </div>
+                  </div>
+                  <Badge tone="teal">{BOOKING_STATUS_LABELS[b.status]}</Badge>
+                </Link>
+              ))}
+            </div>
+          )}
+          {outgoing.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wider text-muted">Meine Bewerbungen</p>
+              {outgoing.map((b) => (
+                <Link
+                  key={b.id}
+                  to={`/bookings/${b.id}`}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-cyan/30 bg-cyan/5 px-4 py-3"
+                >
+                  <div>
+                    <div className="font-medium">{b.listingTitle}</div>
+                    <div className="text-xs text-muted">
+                      Status: {BOOKING_STATUS_LABELS[b.status]}
+                      {b.offerAmount != null ? ` · ${formatPrice(b.offerAmount)}` : ''}
+                    </div>
+                  </div>
+                  <Badge tone="cyan">{BOOKING_STATUS_LABELS[b.status]}</Badge>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
@@ -79,7 +146,9 @@ export function DashboardPage() {
             >
               <div className="flex items-start justify-between gap-2">
                 <h3 className="font-medium">{p.title}</h3>
-                <Badge tone={p.status === 'active' ? 'cyan' : 'default'}>{p.status}</Badge>
+                <Badge tone={p.status === 'active' ? 'cyan' : 'default'}>
+                  {PROJECT_STATUS_LABELS[p.status] ?? p.status}
+                </Badge>
               </div>
               <p className="mt-1 text-sm text-muted">
                 {p.city} · {formatDate(p.dateFrom)} – {formatDate(p.dateTo)}
@@ -90,7 +159,12 @@ export function DashboardPage() {
             </Link>
           ))}
           {projects.length === 0 && (
-            <p className="text-sm text-muted">Noch keine Projekte — lege dein erstes Event an.</p>
+            <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted">
+              Noch keine Projekte — lege dein erstes Event an und hänge Crew/Material an.
+              <Button className="mt-3" size="sm" onClick={() => navigate('/projects/new')}>
+                Projekt starten
+              </Button>
+            </div>
           )}
         </div>
       </section>
@@ -126,7 +200,13 @@ export function DashboardPage() {
             </Link>
           ))}
           {bookings.length === 0 && (
-            <p className="text-sm text-muted">Keine Bookings — stelle eine Anfrage über ein Inserat.</p>
+            <p className="text-sm text-muted">
+              Keine Bookings —{' '}
+              <Link to="/jobs" className="text-cyan">
+                Jobs entdecken
+              </Link>{' '}
+              oder Anfrage stellen.
+            </p>
           )}
         </div>
       </section>

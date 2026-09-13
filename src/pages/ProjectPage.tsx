@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Input, Select, Textarea } from '../components/ui/Input'
-import { BOOKING_STATUS_LABELS, CITIES, VERTICAL_META } from '../data/constants'
+import { BOOKING_STATUS_LABELS, CITIES, PROJECT_STATUS_LABELS, VERTICAL_META } from '../data/constants'
 import { useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
@@ -86,7 +86,7 @@ export function ProjectDetailPage() {
     <div className="mx-auto max-w-3xl space-y-5">
       <div className="rounded-2xl border border-border bg-surface-2 p-5">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={project.status === 'active' ? 'cyan' : 'default'}>{project.status}</Badge>
+          <Badge tone={project.status === 'active' ? 'cyan' : 'default'}>{PROJECT_STATUS_LABELS[project.status] ?? project.status}</Badge>
           <Badge>{project.city}</Badge>
         </div>
         <h1 className="mt-3 text-2xl font-bold">{project.title}</h1>

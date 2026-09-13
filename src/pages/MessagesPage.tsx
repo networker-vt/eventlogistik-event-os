@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Textarea } from '../components/ui/Input'
+import { Empty } from '../components/ui/Empty'
 import { useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
@@ -15,12 +17,15 @@ export function MessagesPage() {
   const [body, setBody] = useState('')
 
   const threads = user ? store.listThreads(user.id) : []
-  const active = threadId ? store.getThread(threadId) : threads[0]
+  const active = threadId ? store.getThread(threadId) : undefined
   const messages = active ? store.listMessages(active.id) : []
+  const showList = !threadId
+  const showThread = Boolean(threadId)
 
   useEffect(() => {
     if (!user) return
-    if (!threadId && threads[0]) {
+    // Desktop: auto-open first thread when landing on /messages
+    if (!threadId && threads[0] && window.matchMedia('(min-width: 768px)').matches) {
       navigate(`/messages/${threads[0].id}`, { replace: true })
     }
   }, [user, threadId, threads, navigate])
@@ -48,35 +53,53 @@ export function MessagesPage() {
 
   return (
     <div className="grid gap-4 md:grid-cols-[280px_1fr]">
-      <aside className="rounded-2xl border border-border bg-surface-2">
+      <aside
+        className={`rounded-2xl border border-border bg-surface-2 ${showThread ? 'hidden md:block' : 'block'}`}
+      >
         <div className="border-b border-border px-4 py-3 font-semibold">Nachrichten</div>
-        <div className="max-h-[60vh] overflow-y-auto">
+        <div className="max-h-[70vh] overflow-y-auto">
           {threads.map((t) => (
             <Link
               key={t.id}
               to={`/messages/${t.id}`}
-              className={`block border-b border-border/60 px-4 py-3 hover:bg-white/5 ${active?.id === t.id ? 'bg-cyan/10' : ''}`}
+              className={`block min-h-14 border-b border-border/60 px-4 py-3 hover:bg-white/5 ${active?.id === t.id ? 'bg-cyan/10' : ''}`}
             >
               <div className="truncate text-sm font-medium">
                 {t.participantNames.filter((n) => n !== user.name).join(', ') || 'Chat'}
               </div>
-              <div className="truncate text-xs text-muted">{t.lastMessage}</div>
+              <div className="truncate text-xs text-muted">{t.listingTitle}</div>
+              <div className="truncate text-xs text-neutral-500">{t.lastMessage}</div>
             </Link>
           ))}
           {threads.length === 0 && (
-            <p className="p-4 text-sm text-muted">
-              Noch keine Threads. Stelle eine Anfrage auf einem Inserat.
-            </p>
+            <Empty
+              title="Noch keine Chats"
+              hint="Stelle eine Anfrage oder bewirb dich auf einen Job."
+              actionLabel="Jobs öffnen"
+              onAction={() => navigate('/jobs')}
+            />
           )}
         </div>
       </aside>
 
-      <section className="flex min-h-[420px] flex-col rounded-2xl border border-border bg-surface-2">
+      <section
+        className={`flex min-h-[60vh] flex-col rounded-2xl border border-border bg-surface-2 md:min-h-[420px] ${showList && !showThread ? 'hidden md:flex' : 'flex'}`}
+      >
         {active ? (
           <>
-            <div className="border-b border-border px-4 py-3">
-              <div className="font-medium">{active.listingTitle ?? 'Konversation'}</div>
-              <div className="text-xs text-muted">{active.participantNames.join(' · ')}</div>
+            <div className="flex items-center gap-2 border-b border-border px-3 py-3">
+              <button
+                type="button"
+                className="tap-target flex items-center justify-center rounded-lg text-muted md:hidden"
+                onClick={() => navigate('/messages')}
+                aria-label="Zurück"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <div className="min-w-0">
+                <div className="truncate font-medium">{active.listingTitle ?? 'Konversation'}</div>
+                <div className="truncate text-xs text-muted">{active.participantNames.join(' · ')}</div>
+              </div>
             </div>
             <div className="flex-1 space-y-3 overflow-y-auto p-4">
               {messages.map((m) => {
@@ -96,14 +119,14 @@ export function MessagesPage() {
                 )
               })}
             </div>
-            <form onSubmit={send} className="border-t border-border p-3">
+            <form onSubmit={send} className="border-t border-border p-3 safe-pb">
               <Textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="Nachricht schreiben…"
                 className="min-h-16"
               />
-              <Button type="submit" className="mt-2" disabled={!body.trim()}>
+              <Button type="submit" className="mt-2 w-full sm:w-auto" disabled={!body.trim()}>
                 Senden
               </Button>
             </form>

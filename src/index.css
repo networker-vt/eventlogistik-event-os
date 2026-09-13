@@ -15,20 +15,37 @@
   * {
     box-sizing: border-box;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   html, body, #root {
     min-height: 100%;
+    min-height: 100dvh;
   }
   body {
     margin: 0;
     background: var(--color-surface);
     color: #f5f5f5;
     font-family: var(--font-sans);
+    overflow-x: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   ::selection {
     background: color-mix(in oklab, var(--color-cyan) 40%, transparent);
   }
   input, select, textarea, button {
     font: inherit;
+  }
+  /* Prevent iOS zoom on focus (needs ≥16px) */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    input, select, textarea {
+      font-size: inherit;
+    }
   }
 }
 
@@ -50,7 +67,30 @@
     transform: translateY(-1px);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
   }
+  .safe-pt {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
   .safe-pb {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .safe-px {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .sticky-filters {
+    position: sticky;
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    z-index: 15;
   }
 }

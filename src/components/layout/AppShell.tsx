@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Briefcase,
   Building2,
@@ -7,18 +7,19 @@ import {
   LayoutDashboard,
   MessageSquare,
   Package,
-  PlusCircle,
+  Plus,
   Truck,
   UserRound,
   Bike,
-  Search,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../lib/auth'
+import { PwaInstallBanner } from './PwaInstallBanner'
 
 const nav = [
   { to: '/', label: 'Entdecken', icon: Home },
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/jobs', label: 'Jobs', icon: Briefcase },
+  { to: '/dashboard', label: 'Board', icon: LayoutDashboard },
   { to: '/messages', label: 'Chat', icon: MessageSquare },
   { to: '/profile', label: 'Profil', icon: UserRound },
 ]
@@ -30,15 +31,20 @@ const modules = [
   { to: '/transporter', label: 'Transporter', icon: Truck },
   { to: '/kuriere', label: 'Kuriere', icon: Bike },
   { to: '/hotels', label: 'Hotels', icon: Hotel },
-  { to: '/jobs', label: 'Jobs', icon: Briefcase },
+  { to: '/jobs', label: 'Jobs & Gigs', icon: Briefcase },
 ]
 
 export function AppShell() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const hideFab =
+    location.pathname.startsWith('/listings/new') ||
+    location.pathname.startsWith('/messages/') ||
+    location.pathname.startsWith('/auth')
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-6xl flex-col md:flex-row">
+    <div className="mx-auto flex min-h-dvh max-w-6xl flex-col overflow-x-hidden md:flex-row">
       <aside className="hidden w-64 shrink-0 border-r border-border bg-surface-2/80 p-4 md:flex md:flex-col">
         <button
           type="button"
@@ -61,7 +67,7 @@ export function AppShell() {
               end={item.to === '/'}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-neutral-300 hover:bg-white/5',
+                  'flex min-h-11 items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-neutral-300 hover:bg-white/5',
                   isActive && 'bg-cyan/10 text-cyan',
                 )
               }
@@ -80,7 +86,7 @@ export function AppShell() {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-400 hover:bg-white/5 hover:text-white',
+                  'flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-400 hover:bg-white/5 hover:text-white',
                   isActive && 'bg-teal/10 text-teal',
                 )
               }
@@ -94,16 +100,16 @@ export function AppShell() {
         <div className="mt-auto space-y-2 pt-6">
           <button
             type="button"
-            onClick={() => navigate('/listings/new')}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan px-3 py-2.5 text-sm font-semibold text-black"
+            onClick={() => navigate('/listings/new?vertical=job')}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-cyan px-3 py-2.5 text-sm font-semibold text-black"
           >
-            <PlusCircle size={16} /> Inserat erstellen
+            <Plus size={16} /> Job / Inserat
           </button>
           {!user && (
             <button
               type="button"
               onClick={() => navigate('/auth')}
-              className="w-full rounded-xl border border-border px-3 py-2 text-sm text-neutral-300 hover:border-cyan/40"
+              className="min-h-11 w-full rounded-xl border border-border px-3 py-2 text-sm text-neutral-300 hover:border-cyan/40"
             >
               Anmelden
             </button>
@@ -111,22 +117,25 @@ export function AppShell() {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-surface/90 px-4 py-3 backdrop-blur md:px-6">
-          <div className="flex items-center gap-2 md:hidden">
+      <div className="flex min-w-0 flex-1 flex-col pb-[4.75rem] md:pb-0">
+        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-surface/90 px-4 py-3 backdrop-blur safe-pt md:px-6">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="flex min-h-11 items-center gap-2 md:hidden"
+          >
             <span className="text-cyan">⚡</span>
             <span className="font-semibold">EventLogistik</span>
-          </div>
-          <div className="hidden items-center gap-2 text-sm text-muted md:flex">
-            <Search size={16} />
-            <span>Marketplace · Matching · Ops Lite</span>
+          </button>
+          <div className="hidden text-sm text-muted md:block">
+            Marketplace · Jobs · Matching · Ops
           </div>
           <div className="flex items-center gap-2">
             {user ? (
               <button
                 type="button"
                 onClick={() => navigate('/profile')}
-                className="rounded-full border border-border bg-surface-3 px-3 py-1.5 text-sm"
+                className="tap-target rounded-full border border-border bg-surface-3 px-3 py-2 text-sm"
               >
                 {user.name.split(' ')[0]}
               </button>
@@ -134,7 +143,7 @@ export function AppShell() {
               <button
                 type="button"
                 onClick={() => navigate('/auth')}
-                className="rounded-full bg-cyan/15 px-3 py-1.5 text-sm text-cyan"
+                className="tap-target rounded-full bg-cyan/15 px-3 py-2 text-sm text-cyan"
               >
                 Login
               </button>
@@ -147,7 +156,20 @@ export function AppShell() {
         </main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-surface/95 safe-pb backdrop-blur md:hidden">
+      {!hideFab && (
+        <button
+          type="button"
+          aria-label="Inserat erstellen"
+          onClick={() => navigate('/listings/new')}
+          className="fixed bottom-[5.25rem] right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-cyan text-black shadow-lg glow-cyan md:hidden"
+        >
+          <Plus size={26} strokeWidth={2.5} />
+        </button>
+      )}
+
+      <PwaInstallBanner />
+
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface/95 safe-pb backdrop-blur md:hidden">
         {nav.map((item) => (
           <NavLink
             key={item.to}
@@ -155,12 +177,12 @@ export function AppShell() {
             end={item.to === '/'}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center gap-1 py-2 text-[11px] text-neutral-500',
+                'flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 px-1 text-[10px] text-neutral-500 touch-manipulation',
                 isActive && 'text-cyan',
               )
             }
           >
-            <item.icon size={20} />
+            <item.icon size={22} />
             {item.label}
           </NavLink>
         ))}

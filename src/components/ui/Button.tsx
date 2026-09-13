@@ -21,14 +21,14 @@ export function Button({
     danger: 'bg-rose-600/90 text-white hover:bg-rose-600',
   }
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm rounded-lg',
-    md: 'px-4 py-2.5 text-sm rounded-xl',
-    lg: 'px-5 py-3 text-base rounded-xl',
+    sm: 'min-h-10 px-3 py-2 text-sm rounded-lg',
+    md: 'min-h-11 px-4 py-2.5 text-sm rounded-xl',
+    lg: 'min-h-12 px-5 py-3 text-base rounded-xl',
   }
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 transition active:scale-[0.98] disabled:pointer-events-none',
+        'inline-flex items-center justify-center gap-2 transition active:scale-[0.98] disabled:pointer-events-none touch-manipulation',
         variants[variant],
         sizes[size],
         className,

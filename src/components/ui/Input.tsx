@@ -10,7 +10,7 @@ export function Input({
       {label && <span className="text-sm text-muted">{label}</span>}
       <input
         className={cn(
-          'w-full rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-white placeholder:text-neutral-600 outline-none focus:border-cyan/50',
+          'w-full min-h-11 rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-base md:text-sm text-white placeholder:text-neutral-600 outline-none focus:border-cyan/50',
           className,
         )}
         {...props}
@@ -30,7 +30,7 @@ export function Select({
       {label && <span className="text-sm text-muted">{label}</span>}
       <select
         className={cn(
-          'w-full rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-white outline-none focus:border-cyan/50',
+          'w-full min-h-11 rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-base md:text-sm text-white outline-none focus:border-cyan/50',
           className,
         )}
         {...props}
@@ -51,7 +51,7 @@ export function Textarea({
       {label && <span className="text-sm text-muted">{label}</span>}
       <textarea
         className={cn(
-          'w-full rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-white placeholder:text-neutral-600 outline-none focus:border-cyan/50 min-h-24',
+          'w-full rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-base md:text-sm text-white placeholder:text-neutral-600 outline-none focus:border-cyan/50 min-h-24',
           className,
         )}
         {...props}

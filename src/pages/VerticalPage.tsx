@@ -31,11 +31,14 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
           {meta.label} inserieren
         </Button>
       </div>
-      <FilterBar
-        value={filters}
-        onChange={(f) => setFilters({ ...f, vertical })}
-        showVertical={false}
-      />
+      <div className="sticky-filters -mx-4 bg-surface/95 px-4 py-2 backdrop-blur md:mx-0 md:bg-transparent md:px-0 md:py-0">
+        <FilterBar
+          value={filters}
+          onChange={(f) => setFilters({ ...f, vertical })}
+          showVertical={false}
+          sticky
+        />
+      </div>
       {listings.length === 0 ? (
         <Empty
           title={`Keine ${meta.labelPlural} in diesem Filter`}

@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { DEMO_USER_ID, seedProfiles } from '../data/seed'
+import { store } from './store'
 import type { AuthUser, Profile, Role } from '../types'
 import { uid } from './utils'
 
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (stored) {
       setUser(stored)
       const p =
+        store.getProfile(stored.id) ??
         seedProfiles.find((x) => x.id === stored.id) ??
         ({
           id: stored.id,
@@ -129,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         reviewCount: 0,
         createdAt: new Date().toISOString(),
       }
+      store.upsertProfile(p)
       persist({ id, email, name, role }, p)
       return p
     },

@@ -6,6 +6,7 @@ import { BookingPage } from './pages/BookingPage'
 import { CreateListingPage } from './pages/CreateListingPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { HomePage } from './pages/HomePage'
+import { JobsPage } from './pages/JobsPage'
 import { ListingDetailPage } from './pages/ListingDetailPage'
 import { MessagesPage } from './pages/MessagesPage'
 import { ProfilePage, PublicProfilePage } from './pages/ProfilePage'
@@ -30,7 +31,7 @@ export default function App() {
             <Route path="transporter" element={<V vertical="transporter" />} />
             <Route path="kuriere" element={<V vertical="courier" />} />
             <Route path="hotels" element={<V vertical="hotel" />} />
-            <Route path="jobs" element={<V vertical="job" />} />
+            <Route path="jobs" element={<JobsPage />} />
             <Route path="listings/new" element={<CreateListingPage />} />
             <Route path="listings/:id" element={<ListingDetailPage />} />
             <Route path="auth" element={<AuthPage />} />

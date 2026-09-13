@@ -2,11 +2,10 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
-import { Select, Textarea } from '../components/ui/Input'
+import { Input, Select, Textarea } from '../components/ui/Input'
 import { CITIES, CRAFTS, ROLE_LABELS } from '../data/constants'
 import { useAuth } from '../lib/auth'
-import { store } from '../lib/store'
-import { resetStore } from '../lib/store'
+import { store, resetStore } from '../lib/store'
 import { verificationLabel } from '../lib/utils'
 import type { Role } from '../types'
 
@@ -16,6 +15,12 @@ export function ProfilePage() {
   const [bio, setBio] = useState(profile?.bio ?? '')
   const [city, setCity] = useState(profile?.city ?? 'Berlin')
   const [craft, setCraft] = useState<string>(profile?.crafts[0] ?? CRAFTS[0])
+  const [travelRadiusKm, setTravelRadiusKm] = useState(
+    profile?.travelRadiusKm?.toString() ?? '200',
+  )
+  const [certs, setCerts] = useState((profile?.certifications ?? []).join(', '))
+  const [available, setAvailable] = useState(profile?.available ?? true)
+  const [insured, setInsured] = useState(profile?.insured ?? false)
   const [saved, setSaved] = useState(false)
 
   if (!user || !profile) {
@@ -40,6 +45,13 @@ export function ProfilePage() {
       bio,
       city,
       crafts: [craft],
+      travelRadiusKm: travelRadiusKm ? Number(travelRadiusKm) : undefined,
+      certifications: certs
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean),
+      available,
+      insured,
     }
     updateProfile(next)
     store.upsertProfile(next)
@@ -62,6 +74,11 @@ export function ProfilePage() {
           <Badge>
             ⭐ {profile.rating.toFixed(1)} · {profile.reviewCount} Reviews
           </Badge>
+          {available && <Badge tone="green">Verfügbar</Badge>}
+          {insured && <Badge tone="teal">Versichert</Badge>}
+          {profile.travelRadiusKm != null && (
+            <Badge>Radius {profile.travelRadiusKm} km</Badge>
+          )}
         </div>
       </div>
 
@@ -82,6 +99,39 @@ export function ProfilePage() {
             </option>
           ))}
         </Select>
+        <Input
+          label="Reise-Radius (km)"
+          type="number"
+          min="0"
+          value={travelRadiusKm}
+          onChange={(e) => setTravelRadiusKm(e.target.value)}
+        />
+        <Input
+          label="Zertifikate (Komma)"
+          value={certs}
+          onChange={(e) => setCerts(e.target.value)}
+          placeholder="IPAF, PSAgA, GrandMA3…"
+        />
+        <div className="flex flex-wrap gap-4 text-sm">
+          <label className="inline-flex min-h-11 items-center gap-2">
+            <input
+              type="checkbox"
+              checked={available}
+              onChange={(e) => setAvailable(e.target.checked)}
+              className="h-4 w-4 accent-cyan"
+            />
+            Verfügbar für Gigs
+          </label>
+          <label className="inline-flex min-h-11 items-center gap-2">
+            <input
+              type="checkbox"
+              checked={insured}
+              onChange={(e) => setInsured(e.target.checked)}
+              className="h-4 w-4 accent-cyan"
+            />
+            Versicherung vorhanden
+          </label>
+        </div>
         <Select
           label="Rolle"
           value={profile.role}
@@ -111,7 +161,7 @@ export function ProfilePage() {
           variant="ghost"
           onClick={() => {
             resetStore()
-            alert('Seed-Daten zurückgesetzt.')
+            alert('Seed-Daten zurückgesetzt. Bitte Seite neu laden für frische Demo-Daten.')
           }}
         >
           Demo-Daten reset
@@ -139,15 +189,26 @@ export function PublicProfilePage() {
 
   return (
     <div className="mx-auto max-w-xl rounded-2xl border border-border bg-surface-2 p-6">
-      <Badge tone="cyan">{ROLE_LABELS[profile.role]}</Badge>
+      <div className="flex flex-wrap gap-2">
+        <Badge tone="cyan">{ROLE_LABELS[profile.role]}</Badge>
+        <Badge tone="teal">{verificationLabel(profile.verified)}</Badge>
+        {profile.available && <Badge tone="green">Verfügbar</Badge>}
+        {profile.insured && <Badge>Versichert</Badge>}
+      </div>
       <h1 className="mt-3 text-2xl font-bold">{profile.name}</h1>
       <p className="text-sm text-muted">
-        {profile.city} · {verificationLabel(profile.verified)}
+        {profile.city}
+        {profile.travelRadiusKm != null ? ` · Radius ${profile.travelRadiusKm} km` : ''}
       </p>
       <p className="mt-4 text-neutral-300">{profile.bio}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         {profile.crafts.map((c) => (
           <Badge key={c}>{c}</Badge>
+        ))}
+        {(profile.certifications ?? []).map((c) => (
+          <Badge key={c} tone="teal">
+            {c}
+          </Badge>
         ))}
       </div>
       <p className="mt-4 text-amber-300">

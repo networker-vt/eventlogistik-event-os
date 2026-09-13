@@ -1,19 +1,29 @@
 import { CITIES, CRAFTS } from '../../data/constants'
 import type { ListingFilters, ListingKind, Vertical } from '../../types'
 import { Input, Select } from '../ui/Input'
+import { cn } from '../../lib/utils'
 
 export function FilterBar({
   value,
   onChange,
   showVertical = true,
+  showRate = false,
+  sticky = false,
 }: {
   value: ListingFilters
   onChange: (next: ListingFilters) => void
   showVertical?: boolean
+  showRate?: boolean
+  sticky?: boolean
 }) {
   return (
-    <div className="grid gap-3 rounded-2xl border border-border bg-surface-2 p-3 sm:grid-cols-2 lg:grid-cols-6">
-      <div className="lg:col-span-2">
+    <div
+      className={cn(
+        'grid gap-2 rounded-2xl border border-border bg-surface-2 p-3 sm:grid-cols-2 lg:grid-cols-6',
+        sticky && 'shadow-lg shadow-black/20',
+      )}
+    >
+      <div className={showRate ? 'lg:col-span-2' : 'lg:col-span-2'}>
         <Input
           placeholder="Suche Titel, Tag, Anbieter…"
           value={value.q ?? ''}
@@ -73,7 +83,42 @@ export function FilterBar({
           type="date"
           value={value.dateFrom ?? ''}
           onChange={(e) => onChange({ ...value, dateFrom: e.target.value || undefined })}
+          aria-label="Datum ab"
         />
+      )}
+      {showRate && (
+        <>
+          <Select
+            value={value.priceMin?.toString() ?? ''}
+            onChange={(e) =>
+              onChange({
+                ...value,
+                priceMin: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
+          >
+            <option value="">Tagessatz ab</option>
+            <option value="250">ab 250 €</option>
+            <option value="350">ab 350 €</option>
+            <option value="450">ab 450 €</option>
+            <option value="550">ab 550 €</option>
+          </Select>
+          <Select
+            value={value.priceMax?.toString() ?? ''}
+            onChange={(e) =>
+              onChange({
+                ...value,
+                priceMax: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
+          >
+            <option value="">Tagessatz bis</option>
+            <option value="300">bis 300 €</option>
+            <option value="400">bis 400 €</option>
+            <option value="500">bis 500 €</option>
+            <option value="700">bis 700 €</option>
+          </Select>
+        </>
       )}
     </div>
   )

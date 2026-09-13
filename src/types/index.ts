@@ -42,6 +42,13 @@ export interface Profile {
   reviewCount: number
   phone?: string
   companyName?: string
+  /** Verfügbarkeit Freelancer / Crew */
+  available?: boolean
+  /** Reise-Radius in km (Jobsuche) */
+  travelRadiusKm?: number
+  /** Zertifikate / Versicherungen */
+  certifications?: string[]
+  insured?: boolean
   createdAt: string
 }
 
@@ -69,6 +76,12 @@ export interface Listing {
   featured?: boolean
   createdAt: string
   status: 'active' | 'filled' | 'archived'
+  /** Job/Gig Felder */
+  venue?: string
+  callTime?: string
+  requirements?: string[]
+  /** Warum dieses Angebot gerankt / empfohlen wird */
+  matchReason?: string
 }
 
 export interface Message {
@@ -138,7 +151,10 @@ export interface ListingFilters {
   vertical?: Vertical | 'all'
   kind?: ListingKind | 'all'
   priceMax?: number
+  priceMin?: number
   dateFrom?: string
+  /** Mock-Radius: filtert Stadt + Nachbarstädte (vereinfacht) */
+  radiusKm?: number
 }
 
 export interface AuthUser {
