@@ -57,7 +57,7 @@ export function MessagesPage() {
         className={`rounded-2xl border border-border bg-surface-2 ${showThread ? 'hidden md:block' : 'block'}`}
       >
         <div className="border-b border-border px-4 py-3 font-semibold">Nachrichten</div>
-        <div className="max-h-[70vh] overflow-y-auto">
+        <div className="max-h-[70vh] overflow-y-auto pb-scroll-chrome">
           {threads.map((t) => (
             <Link
               key={t.id}
@@ -101,7 +101,7 @@ export function MessagesPage() {
                 <div className="truncate text-xs text-muted">{active.participantNames.join(' · ')}</div>
               </div>
             </div>
-            <div className="flex-1 space-y-3 overflow-y-auto p-4">
+            <div className="flex-1 space-y-3 overflow-y-auto p-4 pb-scroll-chrome">
               {messages.map((m) => {
                 const mine = m.senderId === user.id
                 return (

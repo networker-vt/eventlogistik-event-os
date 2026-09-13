@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 export function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <article className="legal-prose mx-auto max-w-2xl space-y-4 pb-8">
+    <article className="legal-prose mx-auto max-w-2xl space-y-4 pb-8 pb-scroll-chrome">
       <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
       <div className="space-y-4 text-sm leading-relaxed text-neutral-300 [&_h2]:mt-6 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-white [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5 [&_a]:text-cyan [&_code]:rounded [&_code]:bg-white/10 [&_code]:px-1">
         {children}

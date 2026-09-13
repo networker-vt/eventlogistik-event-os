@@ -63,7 +63,7 @@ export function PwaInstallBanner() {
   if (hidden || (!deferred && !showIos)) return null
 
   return (
-    <div className="fixed inset-x-0 bottom-[4.75rem] z-40 mx-auto max-w-lg px-3 md:bottom-4">
+    <div className="bottom-above-nav fixed inset-x-0 z-40 mx-auto max-w-lg px-3 md:bottom-4">
       <div className="flex items-start gap-3 rounded-2xl border border-cyan/30 bg-surface-2/95 p-3 shadow-xl backdrop-blur safe-px">
         <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan/15 text-cyan">
           <Download size={18} />

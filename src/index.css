@@ -49,6 +49,20 @@
   }
 }
 
+:root {
+  /* Mobile fixed chrome: bottom nav + FAB clearance (md+ unused) */
+  --el-nav-h: 3.25rem;
+  --el-nav-pad: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  --el-fab-size: 3.5rem;
+  --el-fab-gap: 0.75rem;
+  /* Nav stack height (matches safe-pb on bottom nav) */
+  --el-nav-stack: calc(var(--el-nav-h) + var(--el-nav-pad));
+  /* FAB sits above nav */
+  --el-fab-bottom: calc(var(--el-nav-stack) + var(--el-fab-gap));
+  /* Main content must clear nav + FAB + small breathing room */
+  --el-bottom-chrome: calc(var(--el-fab-bottom) + var(--el-fab-size) + 0.5rem);
+}
+
 @layer utilities {
   .glow-cyan {
     box-shadow: 0 0 24px color-mix(in oklab, var(--color-cyan) 25%, transparent);
@@ -92,5 +106,29 @@
     position: sticky;
     top: calc(3.25rem + env(safe-area-inset-top, 0px));
     z-index: 15;
+  }
+  /* Page column clearance under fixed mobile nav + FAB */
+  .pb-app-chrome {
+    padding-bottom: var(--el-bottom-chrome);
+  }
+  @media (min-width: 768px) {
+    .pb-app-chrome {
+      padding-bottom: 0;
+    }
+  }
+  /* Nested scroll areas (lists/chats) — keep last rows above chrome */
+  .pb-scroll-chrome {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 768px) {
+    .pb-scroll-chrome {
+      padding-bottom: 1rem;
+    }
+  }
+  .bottom-fab {
+    bottom: var(--el-fab-bottom);
+  }
+  .bottom-above-nav {
+    bottom: calc(var(--el-nav-stack) + 0.5rem);
   }
 }

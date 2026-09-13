@@ -42,7 +42,7 @@ export function DashboardPage() {
   const outgoing = jobApps.filter((b) => b.requesterId === user.id)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-scroll-chrome">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>

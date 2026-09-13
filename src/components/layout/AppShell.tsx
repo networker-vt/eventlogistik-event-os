@@ -122,7 +122,7 @@ export function AppShell() {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col pb-[4.75rem] md:pb-0">
+      <div className="flex min-w-0 flex-1 flex-col pb-app-chrome">
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-surface/90 px-4 py-3 backdrop-blur safe-pt md:px-6">
           <button
             type="button"
@@ -156,7 +156,7 @@ export function AppShell() {
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-4 md:px-6 md:py-6">
+        <main className="flex-1 px-4 py-4 md:px-6 md:py-6 max-md:pb-2">
           <Outlet />
           <footer className="mt-10 flex flex-wrap gap-x-4 gap-y-2 border-t border-border pt-4 text-xs text-muted md:hidden">
             <Link to="/impressum" className="hover:text-cyan">Impressum</Link>
@@ -171,7 +171,7 @@ export function AppShell() {
           type="button"
           aria-label="Inserat erstellen"
           onClick={() => navigate('/listings/new')}
-          className="fixed bottom-[5.25rem] right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-cyan text-black shadow-lg glow-cyan md:hidden"
+          className="bottom-fab fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-cyan text-black shadow-lg glow-cyan md:hidden"
         >
           <Plus size={26} strokeWidth={2.5} />
         </button>

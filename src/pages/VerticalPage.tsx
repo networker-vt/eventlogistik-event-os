@@ -18,7 +18,7 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
   const navigate = useNavigate()
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-scroll-chrome">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm text-cyan">{meta.emoji} {meta.labelPlural}</p>

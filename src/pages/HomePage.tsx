@@ -40,7 +40,7 @@ export function HomePage() {
   )
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-scroll-chrome">
       <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface-2 via-surface to-surface-3 p-5 md:p-10">
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-16 left-10 h-40 w-40 rounded-full bg-teal/10 blur-3xl" />

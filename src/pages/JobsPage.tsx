@@ -59,7 +59,7 @@ export function JobsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-scroll-chrome">
       <div className="rounded-3xl border border-border bg-surface-2 p-5">
         <p className="text-sm text-cyan">💼 Jobs & Gigs</p>
         <h1 className="mt-1 text-2xl font-bold">
