@@ -59,8 +59,8 @@
   --el-nav-stack: calc(var(--el-nav-h) + var(--el-nav-pad));
   /* FAB sits above nav */
   --el-fab-bottom: calc(var(--el-nav-stack) + var(--el-fab-gap));
-  /* Main content must clear nav + FAB + small breathing room */
-  --el-bottom-chrome: calc(var(--el-fab-bottom) + var(--el-fab-size) + 0.5rem);
+  /* Main content clears bottom nav + raised center FAB */
+  --el-bottom-chrome: calc(var(--el-nav-stack) + 2.75rem);
 }
 
 @layer utilities {

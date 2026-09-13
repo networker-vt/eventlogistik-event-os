@@ -67,6 +67,13 @@ LoadIn führt einen **öffentlichen Business-Katalog** (`src/data/catalog/`):
 
 Routes: `/katalog/firmen`, `/katalog/locations`, `/katalog/transporteure`, `/katalog/plattformen`, `/katalog/fahrzeuggroessen`, `/innovation`, `/wissen/medien`, `/wissen/fortbildung`.
 
+## Navigation (IA)
+
+**Mobile (Bottom, max 5):** Home · Jobs · + (Erstellen) · Inbox · Mehr  
+**Desktop (Top):** Home · Jobs · Marktplatz ▾ · Katalog · Innovation · Wissen · Messages · Profil  
+
+Sekundäre Bereiche (Marktplatz-Verticals, Katalog, Innovation, Wissen, Dashboard/Profil/Legal) liegen unter **`/mehr`**. Alle bisherigen URLs bleiben erreichbar.
+
 ## Stack
 
 - React 19 + TypeScript + Vite 8

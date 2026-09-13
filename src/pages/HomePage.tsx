@@ -11,12 +11,12 @@ import {
   Zap,
   Library,
   GraduationCap,
+  Package,
 } from 'lucide-react'
 import { FilterBar } from '../components/listings/FilterBar'
 import { ListingCard } from '../components/listings/ListingCard'
 import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
-import { VERTICAL_META } from '../data/constants'
 import { useListings } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
@@ -28,6 +28,15 @@ import { FORTBILDUNG_COUNT, MEDIEN_COUNT } from '../data/wissen'
 function isSeekerRole(role?: Role) {
   return role === 'freelancer' || role === 'courier' || role === 'transporter'
 }
+
+const QUICK_CHIPS = [
+  { label: 'Jobs', to: '/jobs?side=seek' },
+  { label: 'Crew suchen', to: '/jobs?side=hire' },
+  { label: 'Freelancer', to: '/freelancer' },
+  { label: 'Material', to: '/material' },
+  { label: 'Katalog', to: '/katalog/firmen' },
+  { label: 'Mehr', to: '/mehr' },
+]
 
 export function HomePage() {
   const { user, loginDemo, profile } = useAuth()
@@ -137,7 +146,20 @@ export function HomePage() {
           </Button>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {/* Quick chips */}
+        <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {QUICK_CHIPS.map((chip) => (
+            <Link
+              key={chip.to}
+              to={chip.to}
+              className="shrink-0 rounded-full border border-border bg-black/30 px-3 py-1.5 text-xs font-medium text-neutral-300 hover:border-cyan/40 hover:text-cyan"
+            >
+              {chip.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
             { label: 'Angebote live', value: stats.offers },
             { label: 'Gesuche live', value: stats.requests },
@@ -176,70 +198,74 @@ export function HomePage() {
         </section>
       )}
 
-
-      <section className="grid gap-3 sm:grid-cols-3">
-        <Link
-          to="/katalog/firmen"
-          className="card-hover rounded-2xl border border-teal/35 bg-teal/10 p-4"
-        >
-          <div className="mb-2 flex items-center gap-2 text-teal">
-            <Library size={18} />
-            <span className="text-xs font-semibold uppercase tracking-wider">Katalog</span>
-          </div>
-          <div className="font-semibold text-white">Öffentliche Firmendaten</div>
-          <p className="mt-1 text-xs text-neutral-300">
-            {CATALOG_COMPANY_COUNT}+ VT-Firmen · {CATALOG_VENUE_COUNT} Locations · Transporteure
-          </p>
-        </Link>
-        <Link
-          to="/innovation"
-          className="card-hover rounded-2xl border border-cyan/35 bg-cyan/10 p-4"
-        >
-          <div className="mb-2 flex items-center gap-2 text-cyan">
-            <Sparkles size={18} />
-            <span className="text-xs font-semibold uppercase tracking-wider">Innovation</span>
-          </div>
-          <div className="font-semibold text-white">KI · XR · LED · Audio</div>
-          <p className="mt-1 text-xs text-neutral-300">
-            {INNOVATION_COUNT} kuratierte News-Karten aus der Fachpresse
-          </p>
-        </Link>
-        <Link
-          to="/wissen/fortbildung"
-          className="card-hover rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4"
-        >
-          <div className="mb-2 flex items-center gap-2 text-amber-300">
-            <GraduationCap size={18} />
-            <span className="text-xs font-semibold uppercase tracking-wider">Wissen</span>
-          </div>
-          <div className="font-semibold text-white">Medien & Fortbildung</div>
-          <p className="mt-1 text-xs text-neutral-300">
-            {MEDIEN_COUNT} Branchenmedien · {FORTBILDUNG_COUNT} Lehrgangs-Hinweise
-          </p>
-        </Link>
-      </section>
-
+      {/* Section cards — not 12 competing CTAs */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Module</h2>
-          <span className="text-xs text-muted">Angebot + Gesuch</span>
+          <h2 className="text-lg font-semibold">Bereiche</h2>
+          <Link to="/mehr" className="text-xs font-medium text-cyan hover:underline underline-offset-2">
+            Alles unter Mehr →
+          </Link>
         </div>
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-none sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-4">
-          {Object.entries(VERTICAL_META).map(([key, meta]) => (
-            <Link
-              key={key}
-              to={meta.path}
-              className="card-hover flex min-w-[9.5rem] shrink-0 items-center gap-3 rounded-2xl border border-border bg-surface-2 p-4 sm:min-w-0"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-3 text-xl">
-                {meta.emoji}
-              </span>
-              <div>
-                <div className="font-medium">{meta.labelPlural}</div>
-                <div className="text-xs text-cyan/80">Entdecken →</div>
-              </div>
-            </Link>
-          ))}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <Link
+            to="/jobs"
+            className="card-hover rounded-2xl border border-cyan/40 bg-cyan/10 p-4 lg:col-span-1"
+          >
+            <div className="mb-2 flex items-center gap-2 text-cyan">
+              <Briefcase size={18} />
+              <span className="text-xs font-semibold uppercase tracking-wider">Jobs</span>
+            </div>
+            <div className="font-semibold text-white">Seek & Hire</div>
+            <p className="mt-1 text-xs text-neutral-300">Core Money Loop — Gigs finden oder Crew besetzen.</p>
+          </Link>
+          <Link
+            to="/mehr#marktplatz"
+            className="card-hover rounded-2xl border border-teal/35 bg-teal/10 p-4"
+          >
+            <div className="mb-2 flex items-center gap-2 text-teal">
+              <Package size={18} />
+              <span className="text-xs font-semibold uppercase tracking-wider">Marktplatz</span>
+            </div>
+            <div className="font-semibold text-white">6 Verticals</div>
+            <p className="mt-1 text-xs text-neutral-300">Freelancer, Firmen, Material, Transport, Kuriere, Hotels.</p>
+          </Link>
+          <Link
+            to="/katalog/firmen"
+            className="card-hover rounded-2xl border border-teal/25 bg-surface-2 p-4"
+          >
+            <div className="mb-2 flex items-center gap-2 text-teal">
+              <Library size={18} />
+              <span className="text-xs font-semibold uppercase tracking-wider">Katalog</span>
+            </div>
+            <div className="font-semibold text-white">Branchendaten</div>
+            <p className="mt-1 text-xs text-neutral-300">
+              {CATALOG_COMPANY_COUNT}+ Firmen · {CATALOG_VENUE_COUNT} Locations
+            </p>
+          </Link>
+          <Link
+            to="/innovation"
+            className="card-hover rounded-2xl border border-violet-500/35 bg-violet-500/10 p-4"
+          >
+            <div className="mb-2 flex items-center gap-2 text-violet-300">
+              <Sparkles size={18} />
+              <span className="text-xs font-semibold uppercase tracking-wider">Innovation</span>
+            </div>
+            <div className="font-semibold text-white">KI · XR · LED</div>
+            <p className="mt-1 text-xs text-neutral-300">{INNOVATION_COUNT} kuratierte News-Karten</p>
+          </Link>
+          <Link
+            to="/wissen/fortbildung"
+            className="card-hover rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4"
+          >
+            <div className="mb-2 flex items-center gap-2 text-amber-300">
+              <GraduationCap size={18} />
+              <span className="text-xs font-semibold uppercase tracking-wider">Wissen</span>
+            </div>
+            <div className="font-semibold text-white">Medien & Lehrgänge</div>
+            <p className="mt-1 text-xs text-neutral-300">
+              {MEDIEN_COUNT} Medien · {FORTBILDUNG_COUNT} Fortbildungen
+            </p>
+          </Link>
         </div>
       </section>
 
@@ -291,10 +317,7 @@ export function HomePage() {
             text: 'Anfrage → Angebot → Buchung inkl. Messaging und Event-Projekten in einem Flow.',
           },
         ].map((f) => (
-          <div
-            key={f.title}
-            className="card-elevated rounded-2xl border border-border p-5"
-          >
+          <div key={f.title} className="card-elevated rounded-2xl border border-border p-5">
             <f.icon className="mb-3 text-cyan" size={22} />
             <h3 className="font-semibold">{f.title}</h3>
             <p className="mt-1 text-sm text-muted">{f.text}</p>

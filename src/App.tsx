@@ -28,6 +28,7 @@ import { FahrzeuggroessenPage } from './pages/katalog/FahrzeuggroessenPage'
 import { InnovationPage } from './pages/innovation/InnovationPage'
 import { MedienPage } from './pages/wissen/MedienPage'
 import { FortbildungPage } from './pages/wissen/FortbildungPage'
+import { MehrPage } from './pages/MehrPage'
 
 function V({ vertical }: { vertical: Vertical }) {
   return <VerticalPage vertical={vertical} />
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="listings/:id" element={<ListingDetailPage />} />
             <Route path="auth" element={<AuthPage />} />
             <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="mehr" element={<MehrPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:threadId" element={<MessagesPage />} />
             <Route path="bookings/:id" element={<BookingPage />} />
