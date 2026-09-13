@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { MapPin, ShieldCheck, Sparkles, Star } from 'lucide-react'
+import { FavoriteButton } from '../favorites/FavoriteButton'
 import type { Listing } from '../../types'
 import { Badge } from '../ui/Badge'
 import { VERTICAL_META } from '../../data/constants'
@@ -28,13 +29,14 @@ export function ListingCard({
   return (
     <Link
       to={`/listings/${listing.id}`}
-      className="card-hover card-elevated group block rounded-2xl border border-border p-4"
+      className="card-hover card-elevated group relative block rounded-2xl border border-border p-4"
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border/80 bg-gradient-to-br from-surface-3 to-black/40 text-2xl shadow-inner">
           {listing.imageEmoji}
         </div>
-        <div className="flex flex-wrap justify-end gap-1">
+        <div className="flex flex-wrap items-start justify-end gap-1">
+          <FavoriteButton listingId={listing.id} />
           <Badge tone={listing.kind === 'offer' ? 'cyan' : 'amber'}>
             {listing.kind === 'offer' ? 'Angebot' : 'Gesuch'}
           </Badge>

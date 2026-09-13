@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { ExternalLink, MapPin } from 'lucide-react'
+import { FavoriteButton } from '../../components/favorites/FavoriteButton'
 import { Badge } from '../../components/ui/Badge'
 import { Input } from '../../components/ui/Input'
 import { catalogVenues } from '../../data/catalog'
@@ -43,7 +44,10 @@ export function LocationsPage() {
           <article key={v.id} className="card-elevated rounded-2xl border border-border p-4 space-y-2">
             <div className="flex justify-between gap-2">
               <h2 className="text-sm font-semibold">{v.name}</h2>
-              <Badge tone="cyan">{v.type}</Badge>
+              <div className="flex items-center gap-1">
+                <FavoriteButton catalog={{ kind: 'venue', id: v.id }} />
+                <Badge tone="cyan">{v.type}</Badge>
+              </div>
             </div>
             <p className="flex gap-1.5 text-xs text-neutral-300">
               <MapPin size={14} className="mt-0.5 text-cyan" />

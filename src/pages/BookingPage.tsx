@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RatingPrompt } from '../components/bookings/RatingPrompt'
+import { PaySheet } from '../components/wallet/PaySheet'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Input, Select } from '../components/ui/Input'
@@ -21,6 +22,7 @@ export function BookingPage() {
   const navigate = useNavigate()
   const [offerAmount, setOfferAmount] = useState(booking?.offerAmount?.toString() ?? '')
   const [projectId, setProjectId] = useState(booking?.projectId ?? '')
+  const [payOpen, setPayOpen] = useState(false)
 
   if (!booking) {
     return (
@@ -115,7 +117,7 @@ export function BookingPage() {
                 <Button onClick={() => advance('accepted')}>Angebot annehmen</Button>
               )}
               {booking.status === 'accepted' && (
-                <Button onClick={() => advance('booked')}>Als gebucht markieren</Button>
+                <Button onClick={() => setPayOpen(true)}>Zahlung & als gebucht markieren</Button>
               )}
               {booking.status === 'booked' && (
                 <Button onClick={() => advance('completed')}>Abschließen</Button>
@@ -152,6 +154,25 @@ export function BookingPage() {
           </Link>
         </div>
       </div>
+
+      <PaySheet
+        open={payOpen}
+        onClose={() => setPayOpen(false)}
+        amountEur={booking.offerAmount ?? 0}
+        title={booking.listingTitle}
+        bookingId={booking.id}
+        onSuccess={() => {
+          advance('booked')
+          setPayOpen(false)
+        }}
+      />
+      {booking.status === 'accepted' && (
+        <p className="text-center text-xs text-muted">
+          <button type="button" className="text-cyan hover:underline" onClick={() => advance('booked')}>
+            Ohne Demo-Zahlung als gebucht markieren
+          </button>
+        </p>
+      )}
     </div>
   )
 }

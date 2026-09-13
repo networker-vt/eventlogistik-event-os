@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Briefcase, Calendar, FolderKanban, MessageSquare, Plus } from 'lucide-react'
+import { Briefcase, Calendar, FolderKanban, Heart, MessageSquare, Plus, Wallet } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import {
@@ -54,6 +54,12 @@ export function DashboardPage() {
           </Button>
           <Button size="sm" variant="secondary" onClick={() => navigate('/listings/new?vertical=job')}>
             Job posten
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => navigate('/mein')}>
+            <Heart size={16} /> Favoriten
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => navigate('/wallet')}>
+            <Wallet size={16} /> Wallet
           </Button>
         </div>
       </div>

@@ -72,7 +72,7 @@ Routes: `/katalog/firmen`, `/katalog/locations`, `/katalog/transporteure`, `/kat
 **Mobile (Bottom, max 5):** Home · Jobs · + (Erstellen) · Inbox · Mehr  
 **Desktop (Top):** Home · Jobs · Marktplatz ▾ · Katalog · Innovation · Wissen · Messages · Profil  
 
-Sekundäre Bereiche (Marktplatz-Verticals, Katalog, Innovation, Wissen, Dashboard/Profil/Legal) liegen unter **`/mehr`**. Alle bisherigen URLs bleiben erreichbar.
+Sekundäre Bereiche (Marktplatz-Verticals, Katalog, Innovation, Wissen, Dashboard/Profil/Legal, **Mein Bereich / Favoriten**, **Wallet**) liegen unter **`/mehr`**. Alle bisherigen URLs bleiben erreichbar.
 
 ## Stack
 
@@ -110,6 +110,8 @@ scripts/
 - Booking-Flow inkl. **Rating-Prompt** nach `completed`
 - Messaging, Projekte, Verifizierungs-Badges
 - Legal-Routen (Platzhalter DE)
+- **Favoriten** (`/mein`) — Jobs, Listings, Katalog-Einträge, localStorage
+- **Wallet** (`/wallet`) — Demo-Guthaben, PayPal / Karte / SEPA / BTC+USDC Stubs, Pay-Sheet bei Booking-Confirm. **Kein echtes Geld, keine Provider-APIs**
 
 ## Routen
 
@@ -122,12 +124,15 @@ scripts/
 | `/bookings/:id` | Pipeline + Rating |
 | `/messages` | Chat |
 | `/dashboard` · `/projects/*` · `/profile` | Ops & Profil |
+| `/mein` | Mein Bereich · Favoriten |
+| `/wallet` | Demo-Wallet · Zahlungsmethoden (Mock) |
+| `/mehr` | Hub: Marktplatz, Katalog, Innovation, Wissen, Account |
 | `/impressum` · `/datenschutz` · `/agb` | Legal stubs |
 
 ## Design
 
 - Hintergrund `#0a0a0a`, Accent `#00F0FF` / Teal `#14b8a6`
-- Mobile Bottom-Nav + Desktop Sidebar
+- Mobile Bottom-Nav (5 Tabs) + Desktop Top-Nav
 - Deutsche UI-Texte
 
 ## Docs
@@ -137,7 +142,7 @@ scripts/
 
 ## Out of Scope (aktuell)
 
-Stripe / Payments, native Store-Binaries, schweres ERP
+Echte Zahlungen (PayPal / Stripe / On-Chain) — Wallet ist Mock. Native Store-Binaries, schweres ERP
 
 ## Lizenz
 

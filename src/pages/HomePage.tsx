@@ -35,6 +35,8 @@ const QUICK_CHIPS = [
   { label: 'Freelancer', to: '/freelancer' },
   { label: 'Material', to: '/material' },
   { label: 'Katalog', to: '/katalog/firmen' },
+  { label: 'Favoriten', to: '/mein' },
+  { label: 'Wallet', to: '/wallet' },
   { label: 'Mehr', to: '/mehr' },
 ]
 

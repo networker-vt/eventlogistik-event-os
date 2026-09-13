@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { ExternalLink, Mail, MapPin, Phone } from 'lucide-react'
+import { FavoriteButton } from '../../components/favorites/FavoriteButton'
 import { Badge } from '../../components/ui/Badge'
 import { Input } from '../../components/ui/Input'
 import { catalogCompanies } from '../../data/catalog'
@@ -56,7 +57,10 @@ export function FirmenPage() {
           >
             <div className="flex flex-wrap items-start justify-between gap-2">
               <h2 className="text-sm font-semibold leading-snug text-white">{c.name}</h2>
-              <Badge tone="teal">Katalog</Badge>
+              <div className="flex items-center gap-1">
+                <FavoriteButton catalog={{ kind: 'company', id: c.id }} />
+                <Badge tone="teal">Katalog</Badge>
+              </div>
             </div>
             <p className="flex items-start gap-1.5 text-xs text-neutral-300">
               <MapPin size={14} className="mt-0.5 shrink-0 text-teal" />

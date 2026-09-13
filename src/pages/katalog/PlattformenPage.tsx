@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react'
+import { FavoriteButton } from '../../components/favorites/FavoriteButton'
 import { Badge } from '../../components/ui/Badge'
 import { catalogPlatforms } from '../../data/catalog'
 
@@ -10,16 +11,31 @@ export function PlattformenPage() {
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {catalogPlatforms.map((p) => (
-          <a
+          <article
             key={p.id}
-            href={p.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="card-elevated block space-y-2 rounded-2xl border border-border p-4 transition hover:border-teal/40"
+            className="card-elevated relative space-y-2 rounded-2xl border border-border p-4 transition hover:border-teal/40"
           >
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-white">{p.name}</h2>
-              <ExternalLink size={14} className="text-teal" />
+            <div className="flex items-start justify-between gap-2">
+              <a
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-0 text-sm font-semibold text-white hover:text-teal"
+              >
+                {p.name}
+              </a>
+              <div className="flex items-center gap-1">
+                <FavoriteButton catalog={{ kind: 'platform', id: p.id }} />
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${p.name} öffnen`}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-teal hover:bg-white/5"
+                >
+                  <ExternalLink size={14} />
+                </a>
+              </div>
             </div>
             <p className="text-xs leading-relaxed text-neutral-300">{p.blurbDe}</p>
             <div className="flex flex-wrap gap-1.5">
@@ -27,7 +43,7 @@ export function PlattformenPage() {
                 <Badge key={t}>{t}</Badge>
               ))}
             </div>
-          </a>
+          </article>
         ))}
       </div>
     </div>

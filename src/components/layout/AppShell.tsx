@@ -233,6 +233,12 @@ export function AppShell() {
             <Link to="/mehr" className="hover:text-cyan md:hidden">
               Mehr
             </Link>
+            <Link to="/mein" className="hover:text-cyan">
+              Favoriten
+            </Link>
+            <Link to="/wallet" className="hover:text-cyan">
+              Wallet
+            </Link>
           </footer>
         </main>
       </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Heart, Wallet } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Input, Select, Textarea } from '../components/ui/Input'
@@ -80,6 +81,29 @@ export function ProfilePage() {
             <Badge>Radius {profile.travelRadiusKm} km</Badge>
           )}
         </div>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Link
+          to="/mein"
+          className="card-hover flex items-center gap-3 rounded-2xl border border-border bg-surface-2 px-4 py-3"
+        >
+          <Heart size={18} className="text-rose-300" />
+          <span>
+            <span className="block text-sm font-semibold">Favoriten</span>
+            <span className="block text-xs text-muted">Jobs, Listings, Katalog</span>
+          </span>
+        </Link>
+        <Link
+          to="/wallet"
+          className="card-hover flex items-center gap-3 rounded-2xl border border-border bg-surface-2 px-4 py-3"
+        >
+          <Wallet size={18} className="text-cyan" />
+          <span>
+            <span className="block text-sm font-semibold">Wallet</span>
+            <span className="block text-xs text-muted">Zahlungen · Demo, kein echtes Geld</span>
+          </span>
+        </Link>
       </div>
 
       <form onSubmit={save} className="space-y-3 rounded-2xl border border-border bg-surface-2 p-5">

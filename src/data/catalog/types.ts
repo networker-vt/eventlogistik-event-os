@@ -2,6 +2,8 @@
 
 export type DataClass = 'public_business' | 'editorial' | 'demo_fictional'
 
+export type CatalogKind = 'company' | 'venue' | 'transporter' | 'platform' | 'vehicle'
+
 export interface CatalogCompany {
   id: string
   name: string

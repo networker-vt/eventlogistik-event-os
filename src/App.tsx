@@ -29,6 +29,8 @@ import { InnovationPage } from './pages/innovation/InnovationPage'
 import { MedienPage } from './pages/wissen/MedienPage'
 import { FortbildungPage } from './pages/wissen/FortbildungPage'
 import { MehrPage } from './pages/MehrPage'
+import { MeinPage } from './pages/MeinPage'
+import { WalletPage } from './pages/WalletPage'
 
 function V({ vertical }: { vertical: Vertical }) {
   return <VerticalPage vertical={vertical} />
@@ -69,6 +71,8 @@ export default function App() {
             <Route path="auth" element={<AuthPage />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="mehr" element={<MehrPage />} />
+            <Route path="mein" element={<MeinPage />} />
+            <Route path="wallet" element={<WalletPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:threadId" element={<MessagesPage />} />
             <Route path="bookings/:id" element={<BookingPage />} />

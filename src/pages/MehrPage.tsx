@@ -16,6 +16,8 @@ import {
   Truck,
   UserRound,
   FolderKanban,
+  Heart,
+  Wallet,
 } from 'lucide-react'
 
 type HubLink = {
@@ -84,6 +86,8 @@ const sections: HubSection[] = [
     subtitle: 'Dashboard, Projekte, Profil, Legal',
     accent: 'border-border bg-surface-2/60',
     links: [
+      { to: '/mein', label: 'Mein Bereich', hint: 'Favoriten', icon: Heart },
+      { to: '/wallet', label: 'Wallet', hint: 'Zahlungen · Demo', icon: Wallet },
       { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { to: '/projects/new', label: 'Projekte', hint: 'Neues Event-Projekt', icon: FolderKanban },
       { to: '/jobs', label: 'Jobs', hint: 'Seek & Hire', icon: Briefcase },

@@ -88,3 +88,9 @@ Oder manuell: `npm run build` → `cp dist/index.html dist/404.html` → force-p
 - Backup-Strategie Supabase
 - Content: erste echten Jobs/Angebote (keine leere Marketplace-Optik)
 - Roadmap: Payments, Push, Capacitor/TWA (siehe `STORE_READY.md`)
+
+## Zahlungen (bewusst Mock)
+
+- Wallet unter `/wallet` ist **Demo-UX**. Keine PayPal-/Stripe-/Krypto-API-Calls.
+- Ohne Provider-Keys (und ohne bewussten Live-Schalter) darf kein echtes Geld bewegt werden.
+- Disclaimer in DE ist Pflicht in Wallet + Pay-Sheet.

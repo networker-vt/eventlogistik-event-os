@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { MapPin, Scale, ShieldCheck, Sparkles, Star } from 'lucide-react'
 import { JobConditions } from '../components/listings/JobConditions'
 import { MarketRateHint } from '../components/listings/MarketRateHint'
+import { FavoriteButton } from '../components/favorites/FavoriteButton'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Select, Textarea } from '../components/ui/Input'
@@ -107,8 +108,11 @@ export function ListingDetailPage() {
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-surface-3 text-3xl">
             {listing.imageEmoji}
           </div>
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold md:text-2xl">{listing.title}</h1>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <h1 className="text-xl font-bold md:text-2xl">{listing.title}</h1>
+              <FavoriteButton listingId={listing.id} />
+            </div>
             <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
               <span className="inline-flex items-center gap-1">
                 <MapPin size={14} /> {listing.city}

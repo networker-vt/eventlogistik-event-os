@@ -1,3 +1,4 @@
+import { FavoriteButton } from '../../components/favorites/FavoriteButton'
 import { Badge } from '../../components/ui/Badge'
 import { vehicleSizes } from '../../data/catalog'
 import { Link } from 'react-router-dom'
@@ -17,7 +18,10 @@ export function FahrzeuggroessenPage() {
           <article key={v.id} className="card-elevated space-y-2 rounded-2xl border border-border p-4">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold">{v.label}</h2>
-              <Badge tone="cyan">{v.shortLabel}</Badge>
+              <div className="flex items-center gap-1">
+                <FavoriteButton catalog={{ kind: 'vehicle', id: v.id }} />
+                <Badge tone="cyan">{v.shortLabel}</Badge>
+              </div>
             </div>
             <dl className="grid grid-cols-2 gap-2 text-xs text-neutral-300">
               {v.volumeM3Hint && (

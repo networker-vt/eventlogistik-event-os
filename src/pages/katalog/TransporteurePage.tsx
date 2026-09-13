@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { ExternalLink, Mail, MapPin, Phone, Truck } from 'lucide-react'
+import { FavoriteButton } from '../../components/favorites/FavoriteButton'
 import { Badge } from '../../components/ui/Badge'
 import { Input } from '../../components/ui/Input'
 import { catalogTransporters, getVehicleSize } from '../../data/catalog'
@@ -45,7 +46,10 @@ export function TransporteurePage() {
               <h2 className="flex items-center gap-2 text-sm font-semibold">
                 <Truck size={16} className="text-teal" /> {t.name}
               </h2>
-              <Badge tone="teal">Katalog</Badge>
+              <div className="flex items-center gap-1">
+                <FavoriteButton catalog={{ kind: 'transporter', id: t.id }} />
+                <Badge tone="teal">Katalog</Badge>
+              </div>
             </div>
             <p className="flex gap-1.5 text-xs text-neutral-300">
               <MapPin size={14} className="mt-0.5" />
