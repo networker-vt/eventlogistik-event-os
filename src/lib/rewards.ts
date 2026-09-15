@@ -1,8 +1,8 @@
 /**
- * Orbit Credits rewards — fair, once-per-action, demo ledger.
- * Welcome / referral / contributions / search / completed jobs.
+ * Orbit Credits rewards — fair, once-per-action, from the pre-allocated rewards pool.
+ * Welcome / early-tester grants debit their own pools inside the 21M cap.
  */
-import { earnCredits, getCredits } from './credits'
+import { earnCredits, getCredits, grantWelcomeAllocation } from './credits'
 import { getPrefs } from './prefs'
 
 const KEY = 'orbit_rewards_flags_v1'
@@ -13,6 +13,7 @@ export interface RewardFlags {
   signup: boolean
   prefs: boolean
   profileComplete: boolean
+  successfulMatch: boolean
   ideas: number
   reviews: number
   searchDays: string[]
@@ -25,6 +26,7 @@ function defaultFlags(): RewardFlags {
     signup: false,
     prefs: false,
     profileComplete: false,
+    successfulMatch: false,
     ideas: 0,
     reviews: 0,
     searchDays: [],
@@ -71,16 +73,23 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10)
 }
 
-/** Call once on app boot. Grants welcome bonus on first open. */
+function alreadyWelcomed(): boolean {
+  return getCredits().txs.some((t) => t.type === 'welcome' || /early tester|willkommen/i.test(t.label))
+}
+
+/** Call once on app boot. Grants early-tester or later welcome from the 21M reserve. */
 export function initRewards() {
   const flags = structuredClone(get())
-  if (flags.welcome) return flags
-  const already = getCredits().txs.some((t) => /willkommen|welcome/i.test(t.label))
-  if (!already) {
-    earnCredits(50, 'Willkommensbonus — erster Besuch (Demo)')
+  if (flags.welcome || alreadyWelcomed()) {
+    flags.welcome = true
+    commit(flags)
+    return flags
   }
-  flags.welcome = true
-  commit(flags)
+  const granted = grantWelcomeAllocation()
+  if (granted) {
+    flags.welcome = true
+    commit(flags)
+  }
   return flags
 }
 
@@ -88,11 +97,9 @@ export function grantWelcomeOnSignup() {
   const flags = structuredClone(get())
   if (flags.signup) return
   flags.signup = true
-  if (!flags.welcome) {
-    earnCredits(50, 'Willkommensbonus — Registrierung (Demo)')
-    flags.welcome = true
-  } else {
-    earnCredits(15, 'Signup-Bonus (Demo)')
+  if (!flags.welcome && !alreadyWelcomed()) {
+    const granted = grantWelcomeAllocation()
+    if (granted) flags.welcome = true
   }
   commit(flags)
 }
@@ -101,7 +108,7 @@ export function maybeGrantPrefsComplete() {
   const flags = structuredClone(get())
   if (flags.prefs) return
   if (!getPrefs().completed) return
-  earnCredits(20, 'Prefs vollständig (Demo)')
+  if (!earnCredits(20, 'Prefs vollständig (Demo) — Rewards-Pool')) return
   flags.prefs = true
   commit(flags)
 }
@@ -119,7 +126,7 @@ export function maybeGrantProfileComplete() {
       (hub.docs?.length ?? 0) >= 1 &&
       prefs.seeker.radiusKm > 0
     if (!ok) return
-    earnCredits(30, 'Profil weitgehend vollständig (Demo)')
+    if (!earnCredits(30, 'Profil weitgehend vollständig (Demo) — Rewards-Pool')) return
     flags.profileComplete = true
     commit(flags)
   } catch {
@@ -127,20 +134,34 @@ export function maybeGrantProfileComplete() {
   }
 }
 
+export function grantSuccessfulMatch() {
+  const flags = structuredClone(get())
+  if (flags.successfulMatch) return null
+  const next = earnCredits(15, 'Erfolgreiches Match (Demo) — Rewards-Pool')
+  if (!next) return null
+  flags.successfulMatch = true
+  commit(flags)
+  return next
+}
+
 export function grantIdeaReward() {
   const flags = structuredClone(get())
   if (flags.ideas >= 3) return null
+  const next = earnCredits(8, `Feedback / Ideen-Box (${flags.ideas + 1}/3, Demo) — Rewards-Pool`)
+  if (!next) return null
   flags.ideas += 1
   commit(flags)
-  return earnCredits(8, `Feedback / Ideen-Box (${flags.ideas}/3, Demo)`)
+  return next
 }
 
 export function grantReviewReward() {
   const flags = structuredClone(get())
   if (flags.reviews >= 5) return null
+  const next = earnCredits(10, `Erfahrungs-Review (${flags.reviews + 1}/5, Demo) — Rewards-Pool`)
+  if (!next) return null
   flags.reviews += 1
   commit(flags)
-  return earnCredits(10, `Erfahrungs-Review (${flags.reviews}/5, Demo)`)
+  return next
 }
 
 /** Small daily bonus for actually searching / swiping — capped, not spammy. */
@@ -149,36 +170,31 @@ export function grantSearchActivity() {
   const day = todayKey()
   if (flags.searchDays.includes(day)) return null
   if (flags.searchDays.length >= 7) return null
+  const next = earnCredits(5, 'Aktive Suche / Match (Tagesbonus, Demo) — Rewards-Pool')
+  if (!next) return null
   flags.searchDays = [...flags.searchDays, day].slice(-14)
   commit(flags)
-  return earnCredits(5, 'Aktive Suche / Match (Tagesbonus, Demo)')
+  return next
 }
 
 export function grantJobCompleted(bookingId: string) {
   const flags = structuredClone(get())
   if (flags.completedJobs.includes(bookingId)) return null
   if (flags.completedJobs.length >= 5) return null
+  const next = earnCredits(25, 'Job abgeschlossen (Demo) — Rewards-Pool')
+  if (!next) return null
   flags.completedJobs.push(bookingId)
   commit(flags)
-  return earnCredits(25, 'Job abgeschlossen (Demo)')
+  return next
 }
 
 export const REWARD_RULES_DE = [
-  'Willkommen: 50 Credits beim ersten Öffnen — einmalig, kein Opt-in-Spam.',
-  'Prefs + Profil (Skills, Radius, mind. 1 Nachweis): einmalige Boni, keine Wiederholung.',
-  'Empfehlen: der Teil-Link ist der eigentliche Bonus — Credits für echte Signups, nicht fürs Leerspammen.',
-  'Ideen-Box und Reviews: kleine Credits, gedeckelt (3 / 5), nur für sinnvollen Beitrag.',
-  'Suche/Match: 5 Credits pro Tag, max. 7 Tage — belohnt Nutzen, nicht Endlos-Swipe.',
-  'Job abschließen: 25 Credits, max. 5 — fair gegenüber der Gegenseite.',
-  'Alles Demo-Ledger in Orbit Credits. Kein Auszahlungsanspruch bis Payments + KYC live sind.',
-]
-
-export const REWARD_RULES_EN = [
-  'Welcome: 50 credits on first open — once, no opt-in spam.',
-  'Prefs + profile (skills, radius, at least one document): one-time bonuses.',
-  'Referral: the share link is the reward — credits for real signups, not empty spam.',
-  'Ideas box and reviews: small credits, capped (3 / 5), for useful contributions.',
-  'Search/Match: 5 credits per day, max 7 days — rewards use, not infinite swiping.',
-  'Finish a job: 25 credits, max 5 — fair to both sides.',
-  'All of this is a demo ledger in Orbit Credits. No payout until payments + KYC are live.',
+  'Early Testers (Signup 1–50): 1.500 Credits aus dem Early-Pool. Danach 25 Welcome — beides aus der 21M-Reserve, kein Extra-Mint.',
+  'Prefs + Profil (Skills, Radius, mind. 1 Nachweis): einmalige Boni aus dem Rewards-Pool.',
+  'Erstes erfolgreiches Match: 15 Credits, einmalig.',
+  'Empfehlen: 40 Credits pro Demo-Signup aus dem Rewards-Pool — nicht fürs Leerspammen.',
+  'Ideen-Box und Reviews: kleine Credits, gedeckelt (3 / 5).',
+  'Suche/Match: 5 Credits pro Tag, max. 7 Tage.',
+  'Job abschließen: 25 Credits, max. 5.',
+  'Ist der Rewards-Pool leer, schlagen Grants fehl. Packs leer → nur noch P2P. Alles Demo-Ledger; echte 21M-Enforcement braucht später Server/Chain.',
 ]

@@ -13,19 +13,8 @@ export const CATALOG_KIND_LABEL: Record<CatalogKind, string> = {
   vehicle: 'Fahrzeuggröße',
 }
 
-export function catalogSectionPath(kind: CatalogKind): string {
-  switch (kind) {
-    case 'company':
-      return '/katalog/firmen'
-    case 'venue':
-      return '/katalog/locations'
-    case 'transporter':
-      return '/katalog/transporteure'
-    case 'platform':
-      return '/katalog/plattformen'
-    case 'vehicle':
-      return '/katalog/fahrzeuggroessen'
-  }
+export function catalogSectionPath(_kind: CatalogKind): string {
+  return '/marktplatz'
 }
 
 export interface CatalogLookup {

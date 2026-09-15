@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { MapPin, Scale, ShieldCheck, Sparkles, Star } from 'lucide-react'
+import { Gift, MapPin, Scale, ShieldCheck, Sparkles, Star } from 'lucide-react'
 import { JobConditions } from '../components/listings/JobConditions'
 import { MarketRateHint } from '../components/listings/MarketRateHint'
 import { FavoriteButton } from '../components/favorites/FavoriteButton'
@@ -20,8 +20,11 @@ import { CalendarExport } from '../components/calendar/CalendarExport'
 import { trackBehavior } from '../lib/behavior'
 import { listingSpeech } from '../lib/tts'
 import { listForListing } from '../lib/experience'
+import { giftWalletHref } from '../lib/gift'
+import { useI18n } from '../lib/i18n'
 
 export function ListingDetailPage() {
+  const { t } = useI18n()
   const { id } = useParams()
   const version = useStoreVersion()
   const listing = store.getListing(id!)
@@ -142,6 +145,18 @@ export function ListingDetailPage() {
                   })}
                 />
                 <FavoriteButton listingId={listing.id} />
+                <Link
+                  to={giftWalletHref({
+                    kind: 'listing',
+                    id: listing.id,
+                    label: listing.title,
+                    hint: listing.ownerName,
+                  })}
+                  className="tap-target inline-flex h-11 items-center gap-1 rounded-full border border-violet-400/40 px-3 text-xs text-violet-100"
+                  aria-label={t('gift.nudge')}
+                >
+                  <Gift size={14} /> {t('gift.nudge')}
+                </Link>
               </div>
             </div>
             <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
@@ -303,7 +318,7 @@ export function ListingDetailPage() {
           </p>
           <div className="flex flex-wrap gap-2">
             {isJob && (
-              <Button onClick={() => navigate('/jobs?side=hire')}>Hire-Board</Button>
+              <Button onClick={() => navigate('/match')}>Match</Button>
             )}
             {isJob && apps.length >= 2 && (
               <Button variant="secondary" onClick={() => navigate(`/jobs/compare/${listing.id}`)}>
@@ -334,8 +349,8 @@ export function ListingDetailPage() {
             <Button variant="secondary" onClick={() => navigate(`/bookings/${done.bookingId}`)}>
               Status öffnen
             </Button>
-            <Button variant="ghost" onClick={() => navigate(isJob ? '/jobs?side=seek' : '/dashboard')}>
-              {isJob ? 'Meine Jobs' : 'Dashboard'}
+            <Button variant="ghost" onClick={() => navigate(isJob ? '/match' : '/dashboard')}>
+              {isJob ? 'Match' : 'Dashboard'}
             </Button>
           </div>
         </div>

@@ -32,9 +32,10 @@ export function TravelCard({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
           <p className="truncate text-sm font-semibold text-white">{offer.title}</p>
+          <Badge tone="amber">{resolved === 'de' ? 'Demo' : 'Demo'}</Badge>
           {cheapest && (
             <Badge className="border-[var(--theme-accent)]/40 bg-[var(--theme-accent)]/15 text-[10px]">
-              {resolved === 'de' ? 'günstigste Option' : 'cheapest'}
+              {resolved === 'de' ? 'günstigste Option (Demo)' : 'cheapest (demo)'}
             </Badge>
           )}
         </div>

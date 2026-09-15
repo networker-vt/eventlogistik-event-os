@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Briefcase,
   GraduationCap,
@@ -21,6 +21,7 @@ import { StarRating } from '../components/ui/StarRating'
 import { LanguageSwitcher } from '../components/i18n/LanguageSwitcher'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { RoleSwitcher } from '../components/role/RoleSwitcher'
+import { ChannelLinks } from '../components/mein/ChannelLinks'
 import { CATALOG_KIND_LABEL, catalogSectionPath, resolveCatalogEntry } from '../data/catalog/lookup'
 import { useFavorites } from '../hooks/useFavorites'
 import { store } from '../lib/store'
@@ -57,6 +58,7 @@ export function MeinPage() {
   const { items } = useFavorites()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { hash } = useLocation()
   const [cal, setCal] = useState<LocalCalItem[]>(() => listLocalCalendar())
   const [hub, setHub] = useState(getHub)
   const [prefs, setPrefs] = useState(getPrefs)
@@ -82,6 +84,13 @@ export function MeinPage() {
       u3()
     }
   }, [])
+
+  useEffect(() => {
+    if (!hash) return
+    const id = decodeURIComponent(hash.replace(/^#/, ''))
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [hash])
 
   const listingFavs = items.filter((f) => f.type === 'listing')
   const catalogFavs = items.filter((f) => f.type === 'catalog')
@@ -165,6 +174,8 @@ export function MeinPage() {
       </header>
 
       <RoleSwitcher />
+
+      <ChannelLinks />
 
       <section className="rounded-2xl border border-border bg-surface-2 p-4" id="sprache">
         <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold">
@@ -488,8 +499,8 @@ export function MeinPage() {
             emoji="💼"
             title="Noch keine Job-Favoriten"
             hint="Herz auf einer Jobkarte tippen."
-            actionLabel="Deine Welt"
-            onAction={() => navigate('/')}
+            actionLabel={t('home.ctaMatch')}
+            onAction={() => navigate('/match')}
           />
         ) : (
           <div className="stagger-in grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

@@ -33,8 +33,8 @@ export function CompareOffersPage() {
     return (
       <div className="p-8 text-center text-muted">
         Inserat nicht gefunden.{' '}
-        <Button className="mt-3" onClick={() => navigate('/jobs?side=hire')}>
-          Zurück zu Jobs
+        <Button className="mt-3" onClick={() => navigate('/match')}>
+          Zurück zu Match
         </Button>
       </div>
     )
@@ -62,10 +62,10 @@ export function CompareOffersPage() {
     <div className="mx-auto max-w-5xl space-y-5">
       <button
         type="button"
-        onClick={() => navigate('/jobs?side=hire')}
+        onClick={() => navigate('/match')}
         className="flex min-h-11 items-center gap-2 text-sm text-muted hover:text-white"
       >
-        <ArrowLeft size={16} /> Jobs / Crew
+        <ArrowLeft size={16} /> Match
       </button>
 
       <div className="rounded-2xl border border-border bg-surface-2 p-5">

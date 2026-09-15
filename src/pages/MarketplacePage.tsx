@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ListingCard } from '../components/listings/ListingCard'
 import { Button } from '../components/ui/Button'
+import { Empty } from '../components/ui/Empty'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { useListings } from '../hooks/useStore'
 import { useI18n } from '../lib/i18n'
@@ -97,7 +98,12 @@ export function MarketplacePage() {
       ) : null}
 
       {items.length === 0 ? (
-        <p className="text-sm text-muted">{t('market.empty')}</p>
+        <Empty
+          title={t('market.empty')}
+          hint={t('market.needPrefs')}
+          actionLabel={prefs.completed ? t('nav.create') : t('home.ctaPrefs')}
+          onAction={() => navigate(prefs.completed ? '/listings/new' : '/prefs')}
+        />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {items.slice(0, 24).map((l) => (

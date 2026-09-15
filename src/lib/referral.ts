@@ -16,7 +16,7 @@ function defaultState(): ReferralState {
     code: makeCode(),
     capturedRef: null,
     referredBy: null,
-    featuredCredits: 40,
+    featuredCredits: 0,
     signups: [],
   }
 }
@@ -85,7 +85,6 @@ export function consumePendingReferral(userId?: string) {
   const next = structuredClone(get())
   if (!next.capturedRef || next.referredBy) return next
   next.referredBy = next.capturedRef
-  next.featuredCredits += 15
   next.signups.unshift({
     at: new Date().toISOString(),
     ref: next.capturedRef,
@@ -98,7 +97,6 @@ export function consumePendingReferral(userId?: string) {
 /** Demo: simulate a successful friend signup via own code. */
 export function simulateReferralSignup() {
   const next = structuredClone(get())
-  next.featuredCredits += 40
   next.signups.unshift({
     at: new Date().toISOString(),
     ref: next.code,
@@ -119,8 +117,8 @@ export const REFERRAL_RULES_DE = [
   'Jeder Account erhält einen persönlichen Code (lokal auf diesem Gerät).',
   'Link teilen: ?ref=CODE — der Code wird beim ersten Besuch gespeichert.',
   'Bei Registrierung oder Demo-Login wird der Code dem neuen Account zugeordnet.',
-  'Belohnung (Demo): 40 Credits pro geworbenem Signup, 15 Welcome-Credits für den Geworbenen — bewusst teilenswert, nicht spammy.',
-  'Credits gelten nur für Featured-Listings in der Demo — kein Auszahlungsanspruch.',
+  'Belohnung (Demo): 40 Orbit Credits pro geworbenem Signup — aus dem Rewards-Pool innerhalb der 21M, nicht neu gemintet.',
+  'Credits sind Orbit Credits (Boosts) — kein Auszahlungsanspruch.',
   'Eigenen Code auf dem eigenen Gerät zu nutzen, bringt keine Extra-Credits.',
   'Programm ist ein Produkt-Stub bis echte Accounts, Anti-Fraud und Auszahlung existieren.',
 ]

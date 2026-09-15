@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button'
 import { Input, Select } from '../components/ui/Input'
 import { CITIES, ROLE_LABELS } from '../data/constants'
 import { useAuth } from '../lib/auth'
+import { EARLY_TESTER_GRANT, getSignupIdentity } from '../lib/credits'
 import type { Role } from '../types'
 
 const ROLES = Object.keys(ROLE_LABELS).filter((r) => r !== 'admin') as Role[]
@@ -46,6 +47,16 @@ export function AuthPage() {
         <p className="mt-1 text-sm text-muted">
           Rollenbasierte Registrierung — Mock-Auth lokal, Supabase-ready.
         </p>
+        {getSignupIdentity()?.earlyTester ? (
+          <p className="mt-2 text-sm text-amber-200">
+            Early Tester #{getSignupIdentity()?.ordinal} — {EARLY_TESTER_GRANT.toLocaleString('de-DE')}{' '}
+            Credits aus der 21M-Reserve (Demo).
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-muted">
+            Welcome 25 Credits aus der 21M-Reserve (Signup #{getSignupIdentity()?.ordinal ?? '…'}).
+          </p>
+        )}
       </div>
 
       <div className="flex rounded-xl border border-border bg-surface-2 p-1">

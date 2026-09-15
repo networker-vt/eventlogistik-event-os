@@ -87,8 +87,8 @@ export function DashboardPage() {
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Jobs — Pipeline</h2>
-            <Link to="/jobs" className="text-sm text-cyan">
-              Jobs öffnen
+            <Link to="/match" className="text-sm text-cyan">
+              Match öffnen
             </Link>
           </div>
           {incoming.length > 0 && (
@@ -208,8 +208,8 @@ export function DashboardPage() {
           {bookings.length === 0 && (
             <p className="text-sm text-muted">
               Keine Bookings —{' '}
-              <Link to="/jobs" className="text-cyan">
-                Jobs entdecken
+              <Link to="/match" className="text-cyan">
+                Matches entdecken
               </Link>{' '}
               oder Anfrage stellen.
             </p>

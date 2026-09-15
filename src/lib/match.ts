@@ -380,6 +380,7 @@ export function recordSwipe(input: {
       threadSeeded: true,
     }
     next.mutuals.unshift(mutual)
+    void import('./rewards').then((m) => m.grantSuccessfulMatch()).catch(() => undefined)
   }
   commit(next)
   return { state: next, mutual }
