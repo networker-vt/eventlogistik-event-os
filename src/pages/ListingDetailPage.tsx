@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { MapPin, Scale, ShieldCheck, Sparkles, Star } from 'lucide-react'
+import { Gift, MapPin, Scale, ShieldCheck, Sparkles, Star } from 'lucide-react'
 import { JobConditions } from '../components/listings/JobConditions'
 import { MarketRateHint } from '../components/listings/MarketRateHint'
 import { FavoriteButton } from '../components/favorites/FavoriteButton'
@@ -20,6 +20,7 @@ import { CalendarExport } from '../components/calendar/CalendarExport'
 import { trackBehavior } from '../lib/behavior'
 import { listingSpeech } from '../lib/tts'
 import { listForListing } from '../lib/experience'
+import { giftWalletHref } from '../lib/gift'
 
 export function ListingDetailPage() {
   const { id } = useParams()
@@ -142,6 +143,18 @@ export function ListingDetailPage() {
                   })}
                 />
                 <FavoriteButton listingId={listing.id} />
+                <Link
+                  to={giftWalletHref({
+                    kind: 'listing',
+                    id: listing.id,
+                    label: listing.title,
+                    hint: listing.ownerName,
+                  })}
+                  className="tap-target inline-flex h-11 items-center gap-1 rounded-full border border-violet-400/40 px-3 text-xs text-violet-100"
+                  aria-label="Sponsern"
+                >
+                  <Gift size={14} /> Sponsern
+                </Link>
               </div>
             </div>
             <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">

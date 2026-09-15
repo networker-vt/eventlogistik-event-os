@@ -12,7 +12,15 @@ Bitcoin-style Credits (21M cap), calmer Home, Orbit Look, Event/DE archive off M
 
 ## Home — one glance
 
-Greeting + warm chips + **one** Assist field + **Orbit rät jetzt** + one swipeable **Für dich** rail (Top Deals, Match-Vorschläge, News, Look). No competing section stack. Secondary features stay in Assist results or Mehr (≤2 taps).
+Greeting + warm chips + **one** Assist field + **Find dein heutiges Match** (or prefs-first) + one swipeable **Für dich** rail (Top Deals, Matches, News, Look). Chip taps pre-fill Assist. Secondary features stay in Assist results or Mehr.
+
+## Gift / Sponsoring
+
+Wallet **Verschenken / Sponsorn**: Empfänger (Listing / Firma / Profil) → Betrag → optionale Nachricht. Peer-Transfer, 1 Credit Burn, kein neues Mint. Quick **Sponsern** on Für-dich, listing, profile, Firma. Demo until real payments.
+
+## Channel linking
+
+Mein: Amazon / Netflix / YouTube / Spotify / Instagram toggles. **No OAuth, no scraping.** Connected flags only bias demo ranking (shopping, entertainment, music, look).
 
 ## Orbit Look / Style
 

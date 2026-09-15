@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom'
+import { Gift } from 'lucide-react'
 import { useI18n } from '../../lib/i18n'
 import type { FuerDichItem } from '../../lib/fuerDich'
+import { giftWalletHref } from '../../lib/gift'
 import { cn } from '../../lib/utils'
 
 export function FuerDichCard({ item }: { item: FuerDichItem }) {
   const { t } = useI18n()
-  const inner = (
+  const body = (
     <>
       <div className="flex items-start justify-between gap-2">
         <span className="text-lg" aria-hidden>
@@ -38,18 +40,29 @@ export function FuerDichCard({ item }: { item: FuerDichItem }) {
   )
 
   const cls =
-    'flex w-[13.5rem] shrink-0 snap-start flex-col rounded-2xl border border-border/80 bg-surface-2/50 px-3 py-3 hover:border-[var(--theme-accent)]/40'
+    'flex w-[13.5rem] shrink-0 snap-start flex-col rounded-2xl border border-border/80 bg-surface-2/50 hover:border-[var(--theme-accent)]/40'
 
   if (item.href) {
     return (
-      <a href={item.href} target="_blank" rel="noreferrer" className={cls}>
-        {inner}
+      <a href={item.href} target="_blank" rel="noreferrer" className={`${cls} px-3 py-3`}>
+        {body}
       </a>
     )
   }
+
   return (
-    <Link to={item.to || '/'} className={cls}>
-      {inner}
-    </Link>
+    <article className={cls}>
+      <Link to={item.to || '/'} className="flex flex-1 flex-col px-3 pt-3 pb-2">
+        {body}
+      </Link>
+      {item.gift && (
+        <Link
+          to={giftWalletHref(item.gift)}
+          className="mx-3 mb-3 inline-flex min-h-8 items-center gap-1 text-[11px] text-violet-200 hover:underline"
+        >
+          <Gift size={12} /> {t('gift.nudge')}
+        </Link>
+      )}
+    </article>
   )
 }

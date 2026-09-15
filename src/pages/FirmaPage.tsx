@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Building2, FileText, MapPin, Plus, Trash2 } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Building2, FileText, Gift, MapPin, Plus, Trash2 } from 'lucide-react'
 import { ListingCard } from '../components/listings/ListingCard'
 import { RoleSwitcher } from '../components/role/RoleSwitcher'
 import { Badge } from '../components/ui/Badge'
@@ -78,6 +78,12 @@ export function FirmaPage() {
         </p>
         <h1 className="text-2xl font-bold tracking-tight">{t('firma.title')}</h1>
         <p className="text-sm text-muted">{t('firma.lead')}</p>
+        <Link
+          to="/wallet#gift"
+          className="inline-flex min-h-10 items-center gap-1.5 text-sm text-violet-200 hover:underline"
+        >
+          <Gift size={16} /> {t('gift.nudgeFirma')}
+        </Link>
       </header>
 
       <RoleSwitcher />

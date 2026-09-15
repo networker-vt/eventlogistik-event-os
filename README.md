@@ -39,6 +39,8 @@ Bottom nav: **Start · Match · Chat · Wallet · Mehr**
 - **No real GDS / airline / hotel / rail / car booking.** Travel is mock search + checkout stub. Partner APIs later.
 - Orbit Credits: **21M hard cap**, demo client ledger until Stripe/PayPal/Banking + KYC. Pack checkout does not charge anyone. See [CREDITS.md](./CREDITS.md).
 - **Orbit Look** is filters + labels + seed shops — not live virtual try-on ML.
+- **Channel linking** (Amazon, Netflix, YouTube, Spotify, Instagram) is a localStorage toggle. No OAuth, no scraping. It only nudges demo ranking.
+- **Gift / Sponsoring** moves demo Credits on this device; nobody is paid in fiat.
 - **Social is localStorage-only** — not a full social network.
 - Photo “vision” and in-app video calls are **stubs**. Real calling needs a provider (Daily / Twilio / LiveKit) later.
 - Matching and mutual chat/booking seeds run locally (localStorage) unless Supabase is configured.

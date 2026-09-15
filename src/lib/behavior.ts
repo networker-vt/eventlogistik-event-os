@@ -3,6 +3,7 @@ import { deriveMarketType, isMarketplaceLane } from './market'
 import { filterMarketplaceByPrefs, filterListingsByPrefs, getPrefs, isCompanySide, type OrbitPrefs } from './prefs'
 import { grantSearchActivity } from './rewards'
 import { listTravelOffers, type TravelOffer } from './travel'
+import { channelBoostForText } from './channels'
 
 const KEY = 'orbit_behavior_v1'
 const EVT = 'orbit-behavior-changed'
@@ -215,7 +216,7 @@ function queryHits(text: string, queries: string[]) {
 
 function dealReason(
   locale: 'de' | 'en',
-  code: 'prefs' | 'assist' | 'swipe' | 'role' | 'featured' | 'travel' | 'city',
+  code: 'prefs' | 'assist' | 'swipe' | 'role' | 'featured' | 'travel' | 'city' | 'channel',
   detail?: string,
 ): string {
   const de = locale === 'de'
@@ -238,6 +239,10 @@ function dealReason(
       return de ? 'Günstige Reise — aus Prefs & Suchen' : 'Travel deal from prefs & searches'
     case 'city':
       return de ? `In ${detail}` : `In ${detail}`
+    case 'channel':
+      return de
+        ? `Zu verbundenem Kanal ${detail} (Demo-Stub, kein Scraping)`
+        : `From linked channel ${detail} (demo stub, no scraping)`
   }
 }
 
@@ -329,6 +334,12 @@ export function rankTopDeals(
       if (score < 20) reason = dealReason(locale, 'featured')
     }
 
+    const ch = channelBoostForText(hay(l))
+    if (ch.score) {
+      score += ch.score
+      reason = dealReason(locale, 'channel', ch.label)
+    }
+
     const eventish = Boolean(industry && industry.toLowerCase().startsWith('event'))
     if (eventish && !eventInterest) score -= 50
 
@@ -351,6 +362,11 @@ export function rankTopDeals(
         reason = dealReason(locale, 'assist', hit.length > 42 ? `${hit.slice(0, 40)}…` : hit)
       }
       if (o.tags.some((t) => /günstig/i.test(t))) score += 6
+      const ch = channelBoostForText(text)
+      if (ch.score) {
+        score += ch.score
+        reason = dealReason(locale, 'channel', ch.label)
+      }
       if (cities.some((c) => o.to.toLowerCase() === c.toLowerCase())) {
         score += 12
         reason = dealReason(locale, 'city', o.to)

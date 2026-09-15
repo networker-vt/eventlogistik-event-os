@@ -4,6 +4,7 @@ import { rankTopDeals } from './behavior'
 import { newsTitle, rankHomeNews, rankMatchSuggestions } from './homeSuggestions'
 import { store } from './store'
 import type { OrbitPrefs } from './prefs'
+import { type GiftTarget } from './gift'
 
 export type FuerDichLane = 'deal' | 'match' | 'news' | 'look'
 
@@ -17,6 +18,7 @@ export interface FuerDichItem {
   to?: string
   href?: string
   percent?: number
+  gift?: GiftTarget
 }
 
 /** One mixed rail — deals, match picks, news, Look — so Home stays a single glance. */
@@ -70,6 +72,13 @@ export function rankFuerDich(
         reason: d.reason,
         emoji: d.listing.imageEmoji || '💼',
         to: `/listings/${d.listing.id}`,
+        gift: {
+          kind: 'listing',
+          id: d.listing.id,
+          label: d.listing.title,
+          hint: d.listing.ownerName,
+          to: `/listings/${d.listing.id}`,
+        },
       })
     }
   }
@@ -84,6 +93,16 @@ export function rankFuerDich(
       emoji: s.emoji,
       to: s.to,
       percent: s.percent,
+      gift: s.to.startsWith('/listings/')
+        ? { kind: 'listing', id: s.id, label: s.title, to: s.to }
+        : s.to.startsWith('/profiles/')
+          ? {
+              kind: s.kind === 'company' ? 'company' : 'profile',
+              id: s.id.replace(/^p-/, ''),
+              label: s.title,
+              to: s.to,
+            }
+          : undefined,
     })
   }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowDownLeft,
   ArrowLeftRight,
@@ -16,6 +16,7 @@ import { Empty } from '../components/ui/Empty'
 import { LaneBadge } from '../components/credits/LaneBadge'
 import { SupplyMeter } from '../components/credits/SupplyMeter'
 import { Input, Select } from '../components/ui/Input'
+import { GiftSheet } from '../components/wallet/GiftSheet'
 import { WalletDisclaimer } from '../components/wallet/WalletDisclaimer'
 import { useFx } from '../hooks/useFx'
 import { useWallet } from '../hooks/useWallet'
@@ -40,7 +41,6 @@ import {
   getCredits,
   getProtocol,
   getSignupIdentity,
-  giftCredits,
   isPackMarketP2P,
   purchaseCreditPack,
   simulatePacksSoldOut,
@@ -71,6 +71,7 @@ export function WalletPage() {
   const { t, resolved } = useI18n()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const { wallet } = useWallet()
   const { fx } = useFx()
   const [busy, setBusy] = useState<WalletMethodId | null>(null)
@@ -89,7 +90,6 @@ export function WalletPage() {
   const [creditAmt, setCreditAmt] = useState('50')
   const [tickets, setTickets] = useState(listTickets)
   const [packPick, setPackPick] = useState<CreditPackId | null>(null)
-  const [giftAmt, setGiftAmt] = useState('20')
   const [protocol, setProtocol] = useState(getProtocol)
   const identity = getSignupIdentity()
   const p2pOnly = isPackMarketP2P()
@@ -418,26 +418,6 @@ export function WalletPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-end gap-2 border-t border-violet-500/20 pt-3">
-          <Input
-            label={t('credits.giftAmt')}
-            type="number"
-            value={giftAmt}
-            onChange={(e) => setGiftAmt(e.target.value)}
-          />
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              const n = Number(giftAmt) || 0
-              const ok = giftCredits(n)
-              note(ok ? t('credits.giftOk') : t('credits.notEnough'))
-            }}
-          >
-            {t('credits.gift')}
-          </Button>
-        </div>
-
         <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
@@ -517,6 +497,12 @@ export function WalletPage() {
           </ul>
         </div>
       </section>
+
+      <GiftSheet
+        presetKind={params.get('gift')?.split(':')[0]}
+        presetId={params.get('gift')?.split(':').slice(1).join(':')}
+        presetLabel={params.get('label')}
+      />
 
       {sheet && (
         <div className="rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4">

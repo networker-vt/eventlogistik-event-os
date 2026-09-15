@@ -21,6 +21,7 @@ import { StarRating } from '../components/ui/StarRating'
 import { LanguageSwitcher } from '../components/i18n/LanguageSwitcher'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { RoleSwitcher } from '../components/role/RoleSwitcher'
+import { ChannelLinks } from '../components/mein/ChannelLinks'
 import { CATALOG_KIND_LABEL, catalogSectionPath, resolveCatalogEntry } from '../data/catalog/lookup'
 import { useFavorites } from '../hooks/useFavorites'
 import { store } from '../lib/store'
@@ -165,6 +166,8 @@ export function MeinPage() {
       </header>
 
       <RoleSwitcher />
+
+      <ChannelLinks />
 
       <section className="rounded-2xl border border-border bg-surface-2 p-4" id="sprache">
         <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold">

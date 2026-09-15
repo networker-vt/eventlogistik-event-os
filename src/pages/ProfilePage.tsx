@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Heart, Wallet } from 'lucide-react'
+import { Heart, Gift, Wallet } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Input, Select, Textarea } from '../components/ui/Input'
 import { CITIES, CRAFTS, ROLE_LABELS } from '../data/constants'
 import { useAuth } from '../lib/auth'
 import { store, resetStore } from '../lib/store'
+import { giftWalletHref } from '../lib/gift'
 import { verificationLabel } from '../lib/utils'
 import type { Role } from '../types'
 
@@ -238,6 +239,17 @@ export function PublicProfilePage() {
       <p className="mt-4 text-amber-300">
         ⭐ {profile.rating.toFixed(1)} ({profile.reviewCount} Bewertungen)
       </p>
+      <Link
+        to={giftWalletHref({
+          kind: profile.companyName ? 'company' : 'profile',
+          id: profile.id,
+          label: profile.companyName || profile.name,
+          hint: profile.city,
+        })}
+        className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-violet-400/40 px-3 py-2 text-sm text-violet-100"
+      >
+        <Gift size={16} /> Sponsern / Credits schenken (Demo)
+      </Link>
     </div>
   )
 }

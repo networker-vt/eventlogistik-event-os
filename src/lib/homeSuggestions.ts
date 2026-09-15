@@ -6,6 +6,7 @@ import { deriveMarketType } from './market'
 import { scoreB2bMatch, scoreCandidateMatch, scoreJobMatch } from './match'
 import { getPrefs, isCompanySide, type OrbitPrefs } from './prefs'
 import { listTravelOffers } from './travel'
+import { channelBoostForText } from './channels'
 
 export type SuggestionKind = 'travel' | 'listing' | 'event' | 'person' | 'company'
 
@@ -92,7 +93,8 @@ export function rankMatchSuggestions(
     const text = `${o.title} ${o.to} ${o.from || ''} ${o.tags.join(' ')}`
     const hit = queryHit(text)
     const cityBoost = (p.seeker.cities || []).some((c) => c.toLowerCase() === o.to.toLowerCase()) ? 12 : 0
-    const percent = clampPct(58 + (hit ? 22 : 0) + cityBoost + (o.tags.some((t) => /günstig/i.test(t)) ? 8 : 0))
+    const ch = channelBoostForText(text)
+    const percent = clampPct(58 + (hit ? 22 : 0) + cityBoost + ch.score + (o.tags.some((t) => /günstig/i.test(t)) ? 8 : 0))
     buckets.travel.push({
       id: o.id,
       kind: 'travel',
@@ -118,6 +120,7 @@ export function rankMatchSuggestions(
     const companyLane = lane === 'b2b' || lane === 'partnership' || l.vertical === 'company'
     const scored = companyLane || event ? scoreB2bMatch(l, p, company) : scoreJobMatch(l, p)
     const hit = queryHit(`${l.title} ${l.city} ${l.industry || ''}`)
+    const ch = channelBoostForText(`${l.title} ${l.industry || ''} ${(l.tags || []).join(' ')}`)
     const kind: SuggestionKind = event ? 'event' : companyLane ? 'company' : 'listing'
     const fallback =
       kind === 'event'
@@ -137,8 +140,12 @@ export function rankMatchSuggestions(
       title: l.title,
       subtitle: [l.city, l.ownerName].filter(Boolean).join(' · '),
       emoji: l.imageEmoji || (kind === 'event' ? '🎟️' : '💼'),
-      percent: clampPct(scored.percent),
-      reason: reasonFrom(locale, scored.reasons, fallback, hit),
+      percent: clampPct(scored.percent + ch.score),
+      reason: ch.label
+        ? locale === 'de'
+          ? `Zu verbundenem Kanal ${ch.label} (Demo-Stub, kein Scraping)`
+          : `From linked channel ${ch.label} (demo stub, no scraping)`
+        : reasonFrom(locale, scored.reasons, fallback, hit),
       to: `/listings/${l.id}`,
     })
   }
@@ -155,6 +162,7 @@ export function rankMatchSuggestions(
     if (!isPerson && !isCo) continue
     const scored = isPerson ? scoreCandidateMatch(prof, p, company) : scoreCandidateMatch(prof, p, company)
     const hit = queryHit(`${prof.name} ${prof.bio} ${prof.city} ${(prof.crafts || []).join(' ')}`)
+    const ch = channelBoostForText(`${prof.name} ${prof.bio} ${(prof.crafts || []).join(' ')} ${prof.companyName || ''}`)
     const kind: SuggestionKind = isCo ? 'company' : 'person'
     buckets[kind].push({
       id: `p-${prof.id}`,
@@ -162,7 +170,7 @@ export function rankMatchSuggestions(
       title: isCo ? prof.companyName || prof.name : prof.name,
       subtitle: [prof.city, isCo ? de ? 'Firma' : 'Company' : de ? 'Person' : 'Person'].join(' · '),
       emoji: isCo ? '🏢' : '👋',
-      percent: clampPct(scored.percent + (selfName && isCo ? -4 : 0)),
+      percent: clampPct(scored.percent + (selfName && isCo ? -4 : 0) + ch.score),
       reason: reasonFrom(
         locale,
         scored.reasons,
@@ -216,6 +224,8 @@ export function rankHomeNews(prefs?: OrbitPrefs, locale: 'de' | 'en' = 'de', lim
     if (item.cat === 'sport' && /sport|event/.test(industries + q)) score += 12
     if (item.cat === 'politik') score += 4
     if (item.tags.some((t) => industries.includes(t.toLowerCase()) || q.includes(t.toLowerCase()))) score += 16
+    const ch = channelBoostForText(`${item.titleDe} ${item.tags.join(' ')}`)
+    if (ch.score) score += ch.score
     if (q && queryHit(`${item.titleDe} ${item.titleEn} ${item.tags.join(' ')}`)) score += 20
     return { item, score }
   })

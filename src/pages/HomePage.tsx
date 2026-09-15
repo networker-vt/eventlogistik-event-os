@@ -22,6 +22,7 @@ import {
 import { getCompany, subscribeCompany } from '../lib/company'
 import { isCompanySide, getPrefs, savePrefs, subscribePrefs } from '../lib/prefs'
 import { subscribeBehavior } from '../lib/behavior'
+import { subscribeChannels } from '../lib/channels'
 import { rankFuerDich } from '../lib/fuerDich'
 import { formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
 import { useI18n } from '../lib/i18n'
@@ -54,12 +55,14 @@ export function HomePage() {
     const u3 = subscribeCredits(() => setCredits(getCredits()))
     const u4 = subscribeCompany(() => setCompany(getCompany()))
     const u5 = subscribeAssist(() => setPlan(getLastPlan()))
+    const u6 = subscribeChannels(() => setBehaviorTick((n) => n + 1))
     return () => {
       u1()
       u2()
       u3()
       u4()
       u5()
+      u6()
     }
   }, [])
 

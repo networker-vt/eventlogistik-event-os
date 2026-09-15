@@ -76,6 +76,22 @@ While the **packs pool** has remainder, packs debit that pool:
 | Look nearby shop featured | 20 |
 | Gift / sponsoring | peer transfer, **1 burned** |
 
+### Gift / Sponsoring (Demo)
+
+Wallet → **Verschenken / Sponsorn**: pick a listing, company or profile → amount → optional message → confirm.
+
+- Debits **your** demo balance (no new mint, 1 Credit fee burned).
+- Quick **Sponsern** on Für-dich cards, listing detail, public profiles, Firma.
+- **No real payout** to the recipient until payments + KYC exist. The local ledger still moves Credits honestly on this device.
+
+## Channel linking (Demo)
+
+Mein → **Kanäle verbinden**: Amazon, Netflix, YouTube, Spotify, Instagram.
+
+- Toggle only. **No OAuth, no scraping, no real account access.**
+- When “connected”, Home Für-dich / Top Deals / News get a **light on-device tag bias** (shopping, entertainment, music, look).
+- Copy never claims Orbit read those accounts.
+
 ## Scarcity UX
 
 Wallet shows `X / 21M im Umlauf`, remaining reserve, burned, P2P-float, and a **Wert-Index** stub:
