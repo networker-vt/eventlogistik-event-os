@@ -2,7 +2,7 @@
 
 **Dein Orbit für Arbeit — Matching statt Spam.**
 
-Global all-industry job matching OS (v2.1.0). Prefs first, then Tinder-style Match Finder with explainable Match %. Event/VT remains one sector module under **Mehr**, not the home screen.
+Global all-industry job matching OS (v2.1.4). Prefs first, then Tinder-style Match Finder with explainable Match %. Event/VT remains one sector module under **Mehr**, not the home screen.
 
 - **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
 - **Repo:** https://github.com/networker-vt/eventlogistik-event-os

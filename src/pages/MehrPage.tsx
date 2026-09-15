@@ -61,7 +61,6 @@ export function MehrPage() {
         { to: '/erfahrungen', label: t('reviews.title'), hint: 'Sterne + Kurztext', icon: Star },
         { to: '/listings/new?vertical=job', label: t('nav.create'), hint: 'Job posten', icon: Plus },
         { to: '/quellen', label: 'Quellen', hint: 'LinkedIn, StepStone… Stubs', icon: Cable },
-        { to: '/jobs', label: 'Jobs Liste', hint: 'Klassische Liste', icon: Briefcase },
       ],
     },
     {
@@ -83,6 +82,7 @@ export function MehrPage() {
       archived: true,
       extraIds: ['wissen'],
       links: [
+        { to: '/jobs', label: 'Jobs Liste', hint: 'Klassische Liste — Archiv', icon: Briefcase },
         { to: '/katalog/firmen', label: 'Katalog Firmen (Archiv)', hint: 'Nicht primär — Archiv', icon: Library },
         { to: '/katalog/locations', label: 'Locations', icon: Library },
         { to: '/freelancer', label: 'Freelancer VT', icon: Briefcase },
