@@ -20,7 +20,7 @@ import {
   type AssistPlan,
 } from '../lib/assist'
 import { getCompany, subscribeCompany } from '../lib/company'
-import { isCompanySide, getPrefs, subscribePrefs } from '../lib/prefs'
+import { isCompanySide, getPrefs, savePrefs, subscribePrefs } from '../lib/prefs'
 import { subscribeBehavior } from '../lib/behavior'
 import { rankFuerDich } from '../lib/fuerDich'
 import { formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
@@ -70,6 +70,13 @@ export function HomePage() {
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
   const greeting = first ? `${t('home.hello')}, ${first}.` : `${t('home.hello')}.`
+  const matchTo = prefs.completed ? '/match' : '/prefs'
+  const matchLabel = prefs.completed ? t('home.ctaMatch') : t('home.ctaPrefs')
+  const stems: Record<WarmChip, string> = {
+    seek: t('home.stemSeek'),
+    offer: t('home.stemOffer'),
+    think: t('home.stemThink'),
+  }
   const placeholder =
     warm === 'offer'
       ? t('home.phOffer')
@@ -79,27 +86,25 @@ export function HomePage() {
           ? t('assist.phCompany')
           : t('home.phSeek')
 
-  const advice = (() => {
-    if (!prefs.completed) {
-      return { to: '/prefs', label: t('home.ctaPrefs'), sub: t('home.advicePrefs') }
-    }
-    if (plan?.steps[0]?.actionTo) {
-      return {
-        to: plan.steps[0].actionTo,
-        label: t('home.ctaAdvice'),
-        sub: plan.steps[0].title,
-      }
-    }
-    const firstItem = fuerDich.find((x) => x.to)
-    if (firstItem?.to) {
-      return { to: firstItem.to, label: t('home.ctaAdvice'), sub: firstItem.title }
-    }
-    return { to: '/match', label: t('home.ctaMatch'), sub: t('home.swipePrompt') }
-  })()
-
   const pickWarm = (id: WarmChip) => {
     setWarm(id)
-    window.requestAnimationFrame(() => askRef.current?.focus())
+    if (id === 'seek' && prefs.side !== 'seeker') savePrefs({ side: 'seeker' })
+    if (id === 'offer' && prefs.side !== 'employer') savePrefs({ side: 'employer' })
+    if (id === 'think' && prefs.side !== 'both') savePrefs({ side: 'both' })
+    setAsk((prev) => {
+      const trimmed = prev.trim()
+      const wasStem = (Object.values(stems) as string[]).some(
+        (s) => !trimmed || trimmed === s.trim() || prev === s,
+      )
+      return wasStem ? stems[id] : prev
+    })
+    window.requestAnimationFrame(() => {
+      const el = askRef.current
+      if (!el) return
+      el.focus()
+      const len = el.value.length
+      el.setSelectionRange(len, len)
+    })
   }
 
   const submitAsk = async (text: string) => {
@@ -141,26 +146,26 @@ export function HomePage() {
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted">Orbit</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-[2rem]">{greeting}</h1>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted">{t('home.value')}</p>
         </div>
 
-        <nav aria-label={t('home.how')} className="flex flex-wrap gap-2">
+        <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-2">
           {warmChips.map((chip) => (
             <button
               key={chip.id}
               type="button"
               onClick={() => pickWarm(chip.id)}
               className={cn(
-                'rounded-full border px-3 py-1.5 text-xs',
+                'rounded-full border px-3.5 py-2 text-sm',
                 warm === chip.id
                   ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-white'
-                  : 'border-border text-muted hover:text-white',
+                  : 'border-border text-neutral-300 hover:text-white',
               )}
             >
               {chip.label}
             </button>
           ))}
         </nav>
+        <p className="max-w-sm text-sm leading-relaxed text-muted">{t('home.value')}</p>
 
         <form
           className="space-y-2"
@@ -267,17 +272,17 @@ export function HomePage() {
         </section>
       )}
 
-      {!plan && (
-        <section className="rounded-2xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/8 p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
-            {t('home.adviceKicker')}
-          </p>
-          <h2 className="mt-1 text-lg font-semibold text-white">{advice.sub}</h2>
-          <Button className="mt-3 w-full" size="lg" onClick={() => navigate(advice.to)}>
-            {advice.label} <ArrowRight size={18} />
-          </Button>
-        </section>
-      )}
+      <section className="rounded-2xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/8 p-4">
+        <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
+          {t('home.swipeKicker')}
+        </p>
+        <h2 className="mt-1 text-lg font-semibold text-white">
+          {prefs.completed ? t('home.swipePrompt') : t('home.ctaPrefs')}
+        </h2>
+        <Button className="mt-3 w-full" size="lg" onClick={() => navigate(matchTo)}>
+          {matchLabel} <ArrowRight size={18} />
+        </Button>
+      </section>
 
       <section className="space-y-2" aria-labelledby="fuer-dich">
         <div>
@@ -291,8 +296,8 @@ export function HomePage() {
             emoji="✨"
             title={t('home.dealsEmpty')}
             hint={t('home.dealsEmptyHint')}
-            actionLabel={advice.label}
-            onAction={() => navigate(advice.to)}
+            actionLabel={matchLabel}
+            onAction={() => navigate(matchTo)}
             className="py-6"
           />
         ) : (
