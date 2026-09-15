@@ -153,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (patch: Partial<Profile>) => {
       if (!profile || !user) return
       const next = { ...profile, ...patch }
+      store.upsertProfile(next)
       setProfile(next)
       persist(
         { ...user, name: next.name, email: next.email, role: next.role },

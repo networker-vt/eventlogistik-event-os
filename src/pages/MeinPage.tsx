@@ -20,6 +20,7 @@ import { Input } from '../components/ui/Input'
 import { StarRating } from '../components/ui/StarRating'
 import { LanguageSwitcher } from '../components/i18n/LanguageSwitcher'
 import { SpeakButton } from '../components/a11y/SpeakButton'
+import { RoleSwitcher } from '../components/role/RoleSwitcher'
 import { CATALOG_KIND_LABEL, catalogSectionPath, resolveCatalogEntry } from '../data/catalog/lookup'
 import { useFavorites } from '../hooks/useFavorites'
 import { store } from '../lib/store'
@@ -149,6 +150,12 @@ export function MeinPage() {
             <LayoutDashboard size={16} /> Dashboard
           </Link>
           <Link
+            to="/firma"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-neutral-300"
+          >
+            {t('firma.nav')}
+          </Link>
+          <Link
             to="/profile"
             className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-neutral-300"
           >
@@ -156,6 +163,8 @@ export function MeinPage() {
           </Link>
         </div>
       </header>
+
+      <RoleSwitcher />
 
       <section className="rounded-2xl border border-border bg-surface-2 p-4" id="sprache">
         <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold">
@@ -398,12 +407,42 @@ export function MeinPage() {
 
       <section className="space-y-3 rounded-2xl border border-border bg-surface-2 p-4">
         <h2 className="text-lg font-semibold">{t('mein.calendar')}</h2>
-        <p className="text-xs text-muted">Interviews, Starts — nur auf diesem Gerät.</p>
-        {cal.length === 0 ? (
+        <p className="text-xs text-muted">{t('mein.remindersHint')}</p>
+        {cal.filter((c) => c.kind === 'reminder' || c.kind === 'plan').length > 0 && (
+          <ul className="space-y-2">
+            {cal
+              .filter((c) => c.kind === 'reminder' || c.kind === 'plan')
+              .map((c) => (
+                <li
+                  key={c.id}
+                  className="flex items-start justify-between gap-2 rounded-xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/5 px-3 py-2 text-sm"
+                >
+                  <div>
+                    <div className="font-medium text-white">{c.title}</div>
+                    <div className="text-xs text-muted">
+                      {formatDate(c.startIso.slice(0, 10))}
+                      {c.location ? ` · ${c.location}` : ''}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-xs text-rose-300 hover:underline"
+                    onClick={() => setCal(removeLocalCalendarItem(c.id))}
+                  >
+                    {t('assist.clear')}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        )}
+        {cal.filter((c) => c.kind !== 'reminder' && c.kind !== 'plan').length === 0 &&
+        cal.filter((c) => c.kind === 'reminder' || c.kind === 'plan').length === 0 ? (
           <p className="text-sm text-muted">Noch keine Einträge.</p>
         ) : (
           <ul className="space-y-2">
-            {cal.map((c) => (
+            {cal
+              .filter((c) => c.kind !== 'reminder' && c.kind !== 'plan')
+              .map((c) => (
               <li
                 key={c.id}
                 className="flex items-start justify-between gap-2 rounded-xl border border-border/60 bg-black/20 px-3 py-2 text-sm"

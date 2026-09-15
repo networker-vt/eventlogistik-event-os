@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   BookOpen,
   Briefcase,
+  Building2,
   Cable,
   Camera,
   ChevronDown,
@@ -15,6 +16,7 @@ import {
   Scale,
   Sparkles,
   Star,
+  Store,
   Video,
   Wallet,
 } from 'lucide-react'
@@ -56,12 +58,13 @@ export function MehrPage() {
       subtitle: 'Match-Tools ohne Katalog-Spam',
       accent: 'border-[var(--theme-accent)]/35 bg-[var(--theme-accent)]/5',
       links: [
+        { to: '/firma', label: t('firma.nav'), hint: t('firma.hint'), icon: Building2 },
+        { to: '/marktplatz', label: t('market.nav'), hint: t('market.hint'), icon: Store },
+        { to: '/listings/new', label: t('nav.create'), hint: t('create.lead'), icon: Plus },
         { to: '/foto', label: t('photo.title'), hint: 'Kamera · Demo-Vision', icon: Camera },
         { to: '/interview', label: t('interview.title'), hint: 'Chat · Slot · Video-Stub', icon: Video },
         { to: '/erfahrungen', label: t('reviews.title'), hint: 'Sterne + Kurztext', icon: Star },
-        { to: '/listings/new?vertical=job', label: t('nav.create'), hint: 'Job posten', icon: Plus },
         { to: '/quellen', label: 'Quellen', hint: 'LinkedIn, StepStone… Stubs', icon: Cable },
-        { to: '/jobs', label: 'Jobs Liste', hint: 'Klassische Liste', icon: Briefcase },
       ],
     },
     {
@@ -91,6 +94,7 @@ export function MehrPage() {
         { to: '/innovation', label: 'Innovation', hint: 'KI · XR · LED', icon: Sparkles },
         { to: '/wissen/medien', label: 'Medien', hint: 'Nicht primär — Archiv', icon: BookOpen },
         { to: '/wissen/fortbildung', label: 'Fortbildung', hint: 'Nicht primär — Archiv', icon: GraduationCap },
+        { to: '/jobs', label: 'Jobs Liste', hint: 'Nicht primär — Archiv', icon: Briefcase },
       ],
     },
     {

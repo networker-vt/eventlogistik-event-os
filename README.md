@@ -2,34 +2,33 @@
 
 **Dein Orbit für Arbeit — Matching statt Spam.**
 
-Global all-industry job matching OS (v2.1.0). Prefs first, then Tinder-style Match Finder with explainable Match %. Event/VT remains one sector module under **Mehr**, not the home screen.
+Global all-industry job matching OS (v2.2.0). Dual-sided marketplace (seekers **and** companies) plus Orbit Assist: a calm concierge that turns a free-text need into a short plan and a few matches. Event/VT remains one sector module under **Mehr**, not the home screen.
 
 - **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
 - **Repo:** https://github.com/networker-vt/eventlogistik-event-os
 - **License:** MIT — forks welcome if they improve Orbit (see [CONTRIBUTING.md](./CONTRIBUTING.md))
-- **A11y notes:** [A11Y.md](./A11Y.md) · **2.1 draft:** [RELEASE_NOTES_2.1.md](./RELEASE_NOTES_2.1.md)
+- **A11y notes:** [A11Y.md](./A11Y.md) · **2.2 draft:** [RELEASE_NOTES_2.2.md](./RELEASE_NOTES_2.2.md)
 
 > Vite `base` **MUST** stay `/eventlogistik-event-os/` for GitHub Pages.
 
-## Core routes (v2.1)
+## Core routes (v2.2)
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Start — greeting, one CTA (Match or Prefs), 4-card Deine Welt |
-| `/match` | Match Finder — swipe; 1-tap Interesse shares profile pack |
-| `/mein` | Personal hub — radius, prefs, skill stars, docs, language, favorites |
+| `/` | Start — greeting, Orbit Assist ask field, one secondary CTA, Deine Welt ≤4 if no plan |
+| `/match` | Match Finder — jobs/services **or** candidates + B2B/partners |
+| `/firma` | Company hub — profile, offers CRUD, hiring, partnerships |
+| `/marktplatz` | Unified marketplace (prefs-first) |
+| `/mein` | Personal hub — role, radius, prefs, skills, docs, reminders |
 | `/messages` | Inbox |
-| `/mehr` | Quellen, Foto-Jobs, Interview, Erfahrungen, Event/VT archive, Legal |
-| `/prefs` | Preference wizard (also editable in Mein) |
-| `/foto` | Photograph a storefront — mock vision + nearby jobs |
-| `/interview` | Chat interview, schedule slot, video stub |
-| `/erfahrungen` | Reviews: app, companies, jobs, agency↔client |
-| `/quellen` | Aggregator stubs (no unofficial scrapes) |
-| `/jobs` | Classic job list |
+| `/mehr` | Quellen, Foto-Jobs, Interview, Erfahrungen, Firma/Marktplatz links, Event/VT archive, Legal |
+| `/prefs` | Preference wizard (Seeker / Firma / Beides) |
+| `/listings/new` | Simple create sheet |
+| `/jobs` | Classic job list (archived under Mehr) |
 | `/wallet` | Wallet + **Orbit Credits** (demo ledger) |
 | `/impressum` | Mirco Küßner |
 
-Bottom nav: **Home · Match · Mein · Inbox · Mehr**
+Bottom nav: **Start · Match · Mein · Chat · Mehr**
 
 ## Honest limits
 
@@ -37,6 +36,7 @@ Bottom nav: **Home · Match · Mein · Inbox · Mehr**
 - Orbit Credits and Wallet fiat/crypto are **demo** until Stripe/PayPal/Banking + KYC are live. Rewards (welcome, referral, reviews, search, completed jobs) are a local ledger with caps so they stay fair, not spammy.
 - Photo “vision” and in-app video calls are **stubs**. Real calling needs a provider (Daily / Twilio / LiveKit) later.
 - Matching and mutual chat/booking seeds run locally (localStorage) unless Supabase is configured.
+- **Orbit Assist** plans locally (heuristics). Optional `VITE_LLM_API_KEY` may add tips; otherwise honest Demo-Recherche. No live payments.
 
 ## Quick start
 

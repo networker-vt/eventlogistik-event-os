@@ -20,9 +20,10 @@ export function AgbPage() {
 
       <h2>§ 2 Leistungsbeschreibung</h2>
       <p>
-        {LEGAL.brand} stellt eine Demo-PWA für Job-Matching bereit: zuerst Präferenzen
-        (preference-first), dann der Match Finder für passende Jobs und Minijobs. Die aktuelle
-        öffentliche Version ist eine funktionsfähige Demo mit lokalem Speicher. Verbindliche
+        {LEGAL.brand} stellt eine Demo-PWA für duales Matching bereit: Suchende und Firmen
+        (B2B, Dienstleistungen, Partnerschaften, Jobs). Preference-first, Match Finder,
+        optional Orbit Assist (lokaler Planer / Demo-Recherche). Die aktuelle öffentliche
+        Version ist eine funktionsfähige Demo mit lokalem Speicher. Verbindliche
         Verfügbarkeit, SLA oder Live-Zahlungen sind nicht geschuldet.
       </p>
 

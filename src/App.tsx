@@ -42,6 +42,8 @@ import { QuellenPage } from './pages/QuellenPage'
 import { PhotoJobsPage } from './pages/PhotoJobsPage'
 import { InterviewPage } from './pages/InterviewPage'
 import { ErfahrungenPage } from './pages/ErfahrungenPage'
+import { FirmaPage } from './pages/FirmaPage'
+import { MarketplacePage } from './pages/MarketplacePage'
 import { captureRefFromSearch } from './lib/referral'
 import { hydrateSafeTweaks } from './lib/ideas'
 
@@ -84,6 +86,8 @@ function AppReady() {
             <Route path="jobs" element={<JobsPage />} />
             <Route path="prefs" element={<PrefsPage />} />
             <Route path="match" element={<MatchPage />} />
+            <Route path="firma" element={<FirmaPage />} />
+            <Route path="marktplatz" element={<MarketplacePage />} />
             <Route path="quellen" element={<QuellenPage />} />
             <Route path="jobs/compare/:listingId" element={<CompareOffersPage />} />
             <Route path="listings/new" element={<CreateListingPage />} />
