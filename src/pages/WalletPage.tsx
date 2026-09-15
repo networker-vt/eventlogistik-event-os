@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowDownLeft,
   ArrowLeftRight,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
+import { Empty } from '../components/ui/Empty'
 import { Input, Select } from '../components/ui/Input'
 import { WalletDisclaimer } from '../components/wallet/WalletDisclaimer'
 import { useFx } from '../hooks/useFx'
@@ -41,10 +42,17 @@ import {
   resetWallet,
   type WalletMethodId,
 } from '../lib/wallet'
+import { useAuth } from '../lib/auth'
+import { useI18n } from '../lib/i18n'
+import { listTickets, subscribeTickets } from '../lib/tickets'
+import { store } from '../lib/store'
 import { formatDateTime, formatPrice } from '../lib/utils'
 import { cn } from '../lib/utils'
 
 export function WalletPage() {
+  const { t } = useI18n()
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const { wallet } = useWallet()
   const { fx } = useFx()
   const [busy, setBusy] = useState<WalletMethodId | null>(null)
@@ -61,8 +69,10 @@ export function WalletPage() {
   const [cryptoAmt, setCryptoAmt] = useState('50')
   const [credits, setCredits] = useState(getCredits)
   const [creditAmt, setCreditAmt] = useState('50')
+  const [tickets, setTickets] = useState(listTickets)
 
   useEffect(() => subscribeCredits(() => setCredits(getCredits())), [])
+  useEffect(() => subscribeTickets(() => setTickets(listTickets())), [])
 
   const connectedCount = WALLET_METHODS.filter((m) => wallet.methods[m.id]?.connected).length
   const eur = Number(fxAmount) || 0
@@ -98,7 +108,7 @@ export function WalletPage() {
           <Wallet size={22} className="text-cyan" /> Wallet
         </h1>
         <p className="text-sm text-muted">
-          Plattform-Zahlung, FX und Auszahlung — Demo bis Stripe/PayPal/Banking-Partner + KYC.
+          Credits, Zahlungsmethoden, Buchungen und Tickets — ein Ort für alles. Demo, kein echtes Geld.
         </p>
       </header>
 
@@ -141,6 +151,60 @@ export function WalletPage() {
         </div>
       </section>
 
+      <section className="space-y-3 rounded-2xl border border-border bg-surface-2 p-5">
+        <div>
+          <h2 className="text-lg font-semibold">{t('wallet.tickets')}</h2>
+          <p className="text-xs text-muted">{t('wallet.ticketsHint')}</p>
+        </div>
+        {tickets.length === 0 ? (
+          <Empty
+            emoji="🎫"
+            title={t('wallet.ticketsEmpty')}
+            hint={t('wallet.ticketsEmptyHint')}
+            actionLabel={t('travel.toAssist')}
+            onAction={() => navigate('/')}
+            className="py-8"
+          />
+        ) : (
+          <ul className="space-y-2">
+            {tickets.map((tk) => (
+              <li key={tk.id}>
+                <Link
+                  to={`/tickets/${tk.id}`}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border/80 px-3 py-2 hover:border-[var(--theme-accent)]/40"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-white">{tk.title}</p>
+                    <p className="truncate text-xs text-muted">
+                      {tk.ref} · {tk.status} · {formatDateTime(tk.whenIso)}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm tabular-nums">{formatPrice(tk.priceEur)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        {user && (
+          <div className="border-t border-border/60 pt-3">
+            <h3 className="mb-2 text-sm font-semibold">{t('wallet.bookings')}</h3>
+            {store.listBookingsForUser(user.id).length === 0 ? (
+              <p className="text-xs text-muted">{t('wallet.bookingsEmpty')}</p>
+            ) : (
+              <ul className="space-y-1">
+                {store.listBookingsForUser(user.id).slice(0, 6).map((b) => (
+                  <li key={b.id}>
+                    <Link to={`/bookings/${b.id}`} className="text-sm text-[var(--theme-accent)] hover:underline">
+                      {b.listingTitle} · {b.status}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </section>
+
 
       <section className="rounded-2xl border border-violet-500/35 bg-violet-500/10 p-5 space-y-3">
         <h2 className="text-lg font-semibold text-violet-200">Orbit Credits</h2>
@@ -162,7 +226,9 @@ export function WalletPage() {
           >
             Referral verdienen
           </Button>
-          {Object.entries(CREDITS_COSTS).map(([kind, meta]) => (
+          {Object.entries(CREDITS_COSTS)
+            .filter(([kind]) => kind !== 'booking')
+            .map(([kind, meta]) => (
             <Button
               key={kind}
               size="sm"

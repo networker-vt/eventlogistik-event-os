@@ -5,23 +5,39 @@ import { deriveMarketType, listingHaystack, overlapCount } from './market'
 import { scoreB2bMatch, scoreJobMatch } from './match'
 import { getPrefs, isCompanySide } from './prefs'
 import { store } from './store'
+import {
+  searchTravelForNeed,
+  type TravelKind,
+  type TravelOffer,
+} from './travel'
 import { uid } from './utils'
 
 const KEY = 'orbit_assist_v1'
 const EVT = 'orbit-assist-changed'
 
-export type AssistKind = 'everyday' | 'event' | 'staffing' | 'b2b' | 'job' | 'service' | 'partnership'
+export type AssistKind =
+  | 'everyday'
+  | 'event'
+  | 'staffing'
+  | 'b2b'
+  | 'job'
+  | 'service'
+  | 'partnership'
+  | 'travel'
 
 export interface ParsedIntent {
   text: string
   kind: AssistKind
   items: string[]
   city?: string
+  fromCity?: string
   dateIso?: string
   dateLabel?: string
   peopleCount?: number
   companyNeed: boolean
   marketTypes: MarketType[]
+  travelKinds: TravelKind[]
+  cheapest: boolean
 }
 
 export interface PlanStep {
@@ -48,6 +64,7 @@ export interface AssistPlan {
   tips: AssistTip[]
   disclaimer: string
   matchIds: string[]
+  travelIds: string[]
   source: 'heuristic' | 'llm'
 }
 
@@ -91,7 +108,12 @@ export function subscribeAssist(cb: () => void) {
 }
 
 export function getLastPlan(): AssistPlan | null {
-  return get().lastPlan ? structuredClone(get().lastPlan) : null
+  const plan = get().lastPlan ? structuredClone(get().lastPlan) : null
+  if (!plan) return null
+  plan.travelIds = plan.travelIds || []
+  plan.intent.travelKinds = plan.intent.travelKinds || []
+  plan.intent.cheapest = Boolean(plan.intent.cheapest)
+  return plan
 }
 
 export function savePlan(plan: AssistPlan) {
@@ -186,6 +208,31 @@ function parseDate(text: string): { iso?: string; label?: string } {
     const stamp = t.toISOString().slice(0, 10)
     return { iso: stamp, label: 'heute' }
   }
+  const days: Record<string, number> = {
+    sonntag: 0,
+    sunday: 0,
+    montag: 1,
+    monday: 1,
+    dienstag: 2,
+    tuesday: 2,
+    mittwoch: 3,
+    wednesday: 3,
+    donnerstag: 4,
+    thursday: 4,
+    freitag: 5,
+    friday: 5,
+    samstag: 6,
+    saturday: 6,
+  }
+  for (const [name, dow] of Object.entries(days)) {
+    if (text.includes(name)) {
+      const now = new Date()
+      const add = (dow - now.getDay() + 7) % 7
+      const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + add)
+      const stamp = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+      return { iso: stamp, label: name }
+    }
+  }
   return {}
 }
 
@@ -198,6 +245,37 @@ function parseCity(text: string): string | undefined {
     if (c !== 'Remote' && lower.includes(c.toLowerCase())) return c
   }
   return undefined
+}
+
+function titleCaseCity(raw: string): string {
+  const key = raw.toLowerCase()
+  return CITY_ALIASES[key] || parseCity(raw) || raw[0]?.toUpperCase() + raw.slice(1)
+}
+
+function parseFromTo(text: string, fallbackCity?: string): { to?: string; from?: string } {
+  const nach = text.match(/\b(?:nach|to)\s+([A-Za-zÄÖÜäöüß\-]+)/i)
+  const von = text.match(/\b(?:von|from|ab)\s+([A-Za-zÄÖÜäöüß\-]+)/i)
+  return {
+    to: nach ? titleCaseCity(nach[1]) : fallbackCity,
+    from: von ? titleCaseCity(von[1]) : undefined,
+  }
+}
+
+const TRAVEL_FLIGHT = ['flug', 'flüge', 'fluege', 'flight', 'airline', 'fliegen', 'flieger']
+const TRAVEL_HOTEL = ['hotel', 'hostel', 'übernacht', 'uebernacht', 'unterkunft', 'overnight']
+const TRAVEL_RAIL = ['bahn', 'ice', 'zug', 'rail', 'train']
+const TRAVEL_CAR = ['mietwagen', 'rental', 'mietauto', 'leihwagen', 'hire car']
+const TRAVEL_PKG = ['urlaub', 'package', 'pauschal', 'weekend']
+const TRAVEL_ANY = ['reise', 'travel', 'trip', 'fliegen', ...TRAVEL_FLIGHT, ...TRAVEL_HOTEL, ...TRAVEL_RAIL, ...TRAVEL_CAR, ...TRAVEL_PKG]
+
+function detectTravelKinds(lower: string): TravelKind[] {
+  const kinds: TravelKind[] = []
+  if (TRAVEL_FLIGHT.some((w) => lower.includes(w))) kinds.push('flight')
+  if (TRAVEL_HOTEL.some((w) => lower.includes(w))) kinds.push('hotel')
+  if (TRAVEL_RAIL.some((w) => lower.includes(w))) kinds.push('rail')
+  if (TRAVEL_CAR.some((w) => lower.includes(w))) kinds.push('car')
+  if (TRAVEL_PKG.some((w) => lower.includes(w))) kinds.push('package')
+  return kinds
 }
 
 function parsePeople(text: string): number | undefined {
@@ -223,12 +301,17 @@ export function parseIntent(raw: string): ParsedIntent {
   const text = raw.trim()
   const lower = text.toLowerCase()
   const { iso, label } = parseDate(lower)
-  const city = parseCity(lower)
+  const cityGuess = parseCity(lower)
+  const { to, from } = parseFromTo(lower, cityGuess)
+  const city = to || cityGuess
   const peopleCount = parsePeople(lower)
   const items = extractItems(text)
   const companyNeed = COMPANY_CUE.some((c) => lower.includes(c)) || isCompanySide(getPrefs().side)
+  const travelKinds = detectTravelKinds(lower)
+  const cheapest = /billigst|günstigst|guenstigst|cheapest|lowest/i.test(lower)
   let kind: AssistKind = 'everyday'
-  if (EVENT_WORDS.some((w) => lower.includes(w))) kind = 'event'
+  if (travelKinds.length || TRAVEL_ANY.some((w) => lower.includes(w))) kind = 'travel'
+  else if (EVENT_WORDS.some((w) => lower.includes(w))) kind = 'event'
   else if (B2B_WORDS.some((w) => lower.includes(w)) && (STAFF_WORDS.some((w) => lower.includes(w)) || peopleCount))
     kind = 'staffing'
   else if (B2B_WORDS.some((w) => lower.includes(w))) kind = 'b2b'
@@ -239,7 +322,9 @@ export function parseIntent(raw: string): ParsedIntent {
   else if (EVERYDAY.some((w) => lower.includes(w))) kind = 'everyday'
 
   const marketTypes: MarketType[] =
-    kind === 'everyday'
+    kind === 'travel'
+      ? ['service', 'asset']
+      : kind === 'everyday'
       ? ['asset', 'service', 'minijob']
       : kind === 'event'
         ? ['service', 'job', 'b2b', 'asset', 'partnership']
@@ -258,11 +343,14 @@ export function parseIntent(raw: string): ParsedIntent {
     kind,
     items: items.length ? items : [text.slice(0, 80)],
     city,
+    fromCity: from,
     dateIso: iso,
     dateLabel: label,
     peopleCount,
     companyNeed,
     marketTypes,
+    travelKinds,
+    cheapest,
   }
 }
 
@@ -278,7 +366,7 @@ function step(title: string, hint: string, extra?: Partial<PlanStep>): PlanStep 
   }
 }
 
-export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<AssistPlan, 'id' | 'createdAt' | 'matchIds' | 'source'> {
+export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<AssistPlan, 'id' | 'createdAt' | 'matchIds' | 'travelIds' | 'source'> {
   const de = locale === 'de'
   const where = intent.city || (de ? 'dein Ort' : 'your city')
   const when = intent.dateLabel || (de ? 'der Termin' : 'the date')
@@ -287,7 +375,51 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
   const steps: PlanStep[] = []
   let summary = ''
 
-  if (intent.kind === 'everyday') {
+  if (intent.kind === 'travel') {
+    const dest = intent.city || (de ? 'dein Ziel' : 'your destination')
+    const when = intent.dateLabel || (de ? 'dein Datum' : 'your date')
+    const kinds = intent.travelKinds.length
+      ? intent.travelKinds.join(' + ')
+      : de
+        ? 'Reise'
+        : 'travel'
+    summary = de
+      ? `${intent.cheapest ? 'Günstigste Optionen' : 'Optionen'} nach ${dest}${intent.dateLabel ? ` (${when})` : ''} — ${kinds}.`
+      : `${intent.cheapest ? 'Cheapest options' : 'Options'} to ${dest}${intent.dateLabel ? ` (${when})` : ''} — ${kinds}.`
+    const qs = new URLSearchParams()
+    if (intent.travelKinds[0]) qs.set('kind', intent.travelKinds[0])
+    if (intent.city) qs.set('to', intent.city)
+    if (intent.fromCity) qs.set('from', intent.fromCity)
+    if (intent.dateIso) qs.set('date', intent.dateIso)
+    if (intent.cheapest) qs.set('sort', 'price')
+    steps.push(
+      step(
+        de ? 'Optionen rangieren' : 'Rank options',
+        de
+          ? 'Mock-Preise, sortiert nach günstigster Option. Kein GDS.'
+          : 'Mock prices, cheapest first. No GDS.',
+        { actionTo: `/reise?${qs.toString()}`, actionLabel: de ? 'Reise-Marktplatz' : 'Travel marketplace', remindable: false },
+      ),
+      step(
+        de ? 'Buchen in der App (Stub)' : 'Book in-app (stub)',
+        de
+          ? 'Fiat-Demo oder Orbit Credits — kein echtes Geld, keine Airline-Ticket.'
+          : 'Fiat demo or Orbit Credits — no real money, no airline ticket.',
+        { actionTo: `/reise?${qs.toString()}`, actionLabel: de ? 'Zur Buchung' : 'To booking' },
+      ),
+      step(
+        de ? 'Ticket in die Wallet' : 'Ticket into Wallet',
+        de ? 'Bestätigung + QR-Stub landen unter Wallet.' : 'Confirmation + QR stub land in Wallet.',
+        { actionTo: '/wallet', actionLabel: 'Wallet' },
+      ),
+    )
+    tips.push({
+      title: de ? 'Orbit berät (Reise)' : 'Orbit advises (travel)',
+      body: de
+        ? 'Live-Buchung braucht später Partner-APIs. Heute: Demo-Suche, Checkout-Stub, Ticket in der Wallet.'
+        : 'Live booking needs partner APIs later. Today: demo search, checkout stub, ticket in Wallet.',
+    })
+  } else if (intent.kind === 'everyday') {
     summary = de
       ? `Kurzer Plan für heute: ${intent.items.slice(0, 3).join(', ')}.`
       : `A short plan for today: ${intent.items.slice(0, 3).join(', ')}.`
@@ -541,12 +673,23 @@ export async function buildAssistPlan(text: string, locale: 'de' | 'en'): Promis
       source = 'llm'
     }
   }
-  const matches = matchListingsForIntent(intent, 4)
+  const matches = intent.kind === 'travel' ? [] : matchListingsForIntent(intent, 4)
+  const travel =
+    intent.kind === 'travel'
+      ? searchTravelForNeed({
+          kinds: intent.travelKinds,
+          to: intent.city,
+          from: intent.fromCity,
+          dateIso: intent.dateIso,
+          q: intent.text,
+        }).slice(0, 4)
+      : []
   const plan: AssistPlan = {
     id: uid('plan'),
     createdAt: new Date().toISOString(),
     ...base,
     matchIds: matches.map((m) => m.id),
+    travelIds: travel.map((o) => o.id),
     source,
   }
   savePlan(plan)
@@ -555,4 +698,15 @@ export async function buildAssistPlan(text: string, locale: 'de' | 'en'): Promis
 
 export function listingsForPlan(plan: AssistPlan): Listing[] {
   return plan.matchIds.map((id) => store.getListing(id)).filter((l): l is Listing => Boolean(l))
+}
+
+export function travelForPlan(plan: AssistPlan): Array<TravelOffer & { cheapest?: boolean }> {
+  const ids = plan.travelIds || []
+  return searchTravelForNeed({
+    kinds: plan.intent.travelKinds,
+    to: plan.intent.city,
+    from: plan.intent.fromCity,
+    dateIso: plan.intent.dateIso,
+    q: plan.intent.text,
+  }).filter((o) => ids.includes(o.id))
 }

@@ -137,6 +137,7 @@ export function MatchPage() {
             senderId: actor.id,
             senderName: actor.name,
             body: `Orbit Match — ${company.firmName || actor.name} · ${t('match.candidateNote')}`,
+            kind: 'match',
           })
         }
         if (mutual) {

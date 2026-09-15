@@ -7,7 +7,8 @@ export function themeForPath(pathname: string): SectionTheme {
     pathname.startsWith('/jobs') ||
     pathname.startsWith('/prefs') ||
     pathname.startsWith('/foto') ||
-    pathname.startsWith('/marktplatz')
+    pathname.startsWith('/marktplatz') ||
+    pathname.startsWith('/reise')
   ) {
     return 'match'
   }
@@ -15,6 +16,7 @@ export function themeForPath(pathname: string): SectionTheme {
     pathname.startsWith('/mein') ||
     pathname.startsWith('/profile') ||
     pathname.startsWith('/wallet') ||
+    pathname.startsWith('/tickets') ||
     pathname.startsWith('/empfehlen') ||
     pathname.startsWith('/erfahrungen') ||
     pathname.startsWith('/firma')

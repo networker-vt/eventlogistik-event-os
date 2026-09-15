@@ -137,7 +137,11 @@ export interface Thread {
   participantNames: string[]
   lastMessage?: string
   updatedAt: string
+  /** Conversations hub: Match, Booking, Support, Social DM. */
+  kind?: ThreadKind
 }
+
+export type ThreadKind = 'match' | 'booking' | 'support' | 'social'
 
 export interface Booking {
   id: string

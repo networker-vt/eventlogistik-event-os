@@ -1880,6 +1880,7 @@ export const seedThreads: Thread[] = [
     participantNames: ['Alex Müller', 'Sara König'],
     lastMessage: 'Passt, ich sende dir gleich ein formelles Angebot.',
     updatedAt: '2026-09-10T14:30:00Z',
+    kind: 'match',
   },
   {
     id: 'thr-2',
@@ -1889,6 +1890,7 @@ export const seedThreads: Thread[] = [
     participantNames: ['Alex Müller', 'FleetMove Logistics'],
     lastMessage: 'Können wir die Abholung auf 05:30 vorziehen?',
     updatedAt: '2026-09-11T09:15:00Z',
+    kind: 'booking',
   },
   {
     id: 'thr-3',
@@ -1898,6 +1900,16 @@ export const seedThreads: Thread[] = [
     participantNames: ['Alex Müller', 'Sara König'],
     lastMessage: 'GrandMA3 fest — 2 Tage verfügbar, eigene PPE.',
     updatedAt: '2026-09-09T11:00:00Z',
+    kind: 'match',
+  },
+  {
+    id: 'thr-support-1',
+    listingTitle: 'Orbit Support',
+    participantIds: [DEMO_USER_ID, 'orbit-support'],
+    participantNames: ['Alex Müller', 'Orbit Support'],
+    lastMessage: 'Willkommen. Buchungen und Hilfe landen hier (Demo).',
+    updatedAt: '2026-09-12T10:00:00Z',
+    kind: 'support',
   },
 ]
 
@@ -1973,6 +1985,15 @@ export const seedMessages: Message[] = [
     body: 'GrandMA3 fest — 2 Tage verfügbar, eigene PPE.',
     createdAt: '2026-09-09T11:00:00Z',
     read: false,
+  },
+  {
+    id: 'msg-support-1',
+    threadId: 'thr-support-1',
+    senderId: 'orbit-support',
+    senderName: 'Orbit Support',
+    body: 'Willkommen. Buchungen und Hilfe landen hier (Demo). Kein echtes Ticket, kein GDS.',
+    createdAt: '2026-09-12T10:00:00Z',
+    read: true,
   },
 ]
 

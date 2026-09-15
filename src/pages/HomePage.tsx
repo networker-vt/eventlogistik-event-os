@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Mic, Send, Sparkles } from 'lucide-react'
 import { WorldRow } from '../components/listings/WorldRow'
+import { TravelCard } from '../components/travel/TravelCard'
 import { Button } from '../components/ui/Button'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { useListings, useStoreVersion } from '../hooks/useStore'
@@ -13,6 +14,7 @@ import {
   listingsForPlan,
   subscribeAssist,
   togglePlanStep,
+  travelForPlan,
   type AssistPlan,
 } from '../lib/assist'
 import { addLocalCalendarItem } from '../lib/calendar'
@@ -92,6 +94,8 @@ export function HomePage() {
   }
 
   const matches = plan ? listingsForPlan(plan) : []
+  const travelHits = plan ? travelForPlan(plan) : []
+  const examples = [t('assist.exFlight'), t('assist.exStay')]
 
   return (
     <div className="mx-auto max-w-lg space-y-10 pb-scroll-chrome pt-6 md:pt-12">
@@ -140,6 +144,20 @@ export function HomePage() {
               {busy ? t('assist.thinking') : t('assist.submit')} <Send size={16} />
             </Button>
           </div>
+          {!plan && (
+            <div className="flex flex-wrap gap-2">
+              {examples.map((ex) => (
+                <button
+                  key={ex}
+                  type="button"
+                  className="rounded-full border border-border/80 px-3 py-1.5 text-left text-[11px] text-muted hover:text-white"
+                  onClick={() => void submitAsk(ex)}
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          )}
         </form>
 
         <Button className="w-full" variant="secondary" size="lg" onClick={() => navigate(secondaryTo)}>
@@ -230,6 +248,19 @@ export function HomePage() {
               {plan.source === 'llm' ? t('assist.llm') : t('assist.demoResearch')}
             </p>
           </div>
+
+          {travelHits.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold">{t('assist.travelMatches')}</h3>
+              <ul className="space-y-2">
+                {travelHits.map((o) => (
+                  <li key={o.id}>
+                    <TravelCard offer={o} cheapest={o.cheapest} compact />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {matches.length > 0 && (
             <div className="space-y-2">

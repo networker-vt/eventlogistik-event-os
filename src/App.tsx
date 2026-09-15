@@ -44,6 +44,10 @@ import { InterviewPage } from './pages/InterviewPage'
 import { ErfahrungenPage } from './pages/ErfahrungenPage'
 import { FirmaPage } from './pages/FirmaPage'
 import { MarketplacePage } from './pages/MarketplacePage'
+import { TravelPage } from './pages/TravelPage'
+import { TravelCheckoutPage } from './pages/TravelCheckoutPage'
+import { TicketPage } from './pages/TicketPage'
+import { SocialPage } from './pages/SocialPage'
 import { captureRefFromSearch } from './lib/referral'
 import { hydrateSafeTweaks } from './lib/ideas'
 
@@ -88,6 +92,10 @@ function AppReady() {
             <Route path="match" element={<MatchPage />} />
             <Route path="firma" element={<FirmaPage />} />
             <Route path="marktplatz" element={<MarketplacePage />} />
+            <Route path="reise" element={<TravelPage />} />
+            <Route path="reise/:offerId" element={<TravelCheckoutPage />} />
+            <Route path="tickets/:id" element={<TicketPage />} />
+            <Route path="social" element={<SocialPage />} />
             <Route path="quellen" element={<QuellenPage />} />
             <Route path="jobs/compare/:listingId" element={<CompareOffersPage />} />
             <Route path="listings/new" element={<CreateListingPage />} />

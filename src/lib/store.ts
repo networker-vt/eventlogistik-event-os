@@ -311,6 +311,7 @@ export const store = {
       participantNames: [input.requesterName, input.listing.ownerName],
       lastMessage: input.note,
       updatedAt: now,
+      kind: 'match',
     }
     const booking: Booking = {
       id: bookingId,
@@ -433,7 +434,27 @@ export const store = {
     senderId: string
     senderName: string
     body: string
+    kind?: Thread['kind']
   }): Thread {
+    const kind = input.kind ?? 'match'
+    const existing = getData().threads.find(
+      (t) =>
+        t.participantIds.includes(input.participantIds[0]) &&
+        t.participantIds.includes(input.participantIds[1]) &&
+        (t.kind ?? 'match') === kind &&
+        (input.listingId
+          ? t.listingId === input.listingId
+          : !t.listingId && (t.listingTitle || '') === (input.listingTitle || '')),
+    )
+    if (existing) {
+      this.sendMessage({
+        threadId: existing.id,
+        senderId: input.senderId,
+        senderName: input.senderName,
+        body: input.body,
+      })
+      return this.getThread(existing.id) ?? existing
+    }
     const now = new Date().toISOString()
     const threadId = uid('thr')
     const thread: Thread = {
@@ -444,6 +465,7 @@ export const store = {
       participantNames: [...input.participantNames],
       lastMessage: input.body,
       updatedAt: now,
+      kind,
     }
     const msg: Message = {
       id: uid('msg'),
