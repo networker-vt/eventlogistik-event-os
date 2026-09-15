@@ -4,11 +4,14 @@ export const CITIES = [
   'München',
   'Köln',
   'Frankfurt',
-  'Stuttgart',
-  'Düsseldorf',
-  'Leipzig',
-  'Hannover',
-  'Dortmund',
+  'Amsterdam',
+  'London',
+  'Paris',
+  'Warsaw',
+  'Wien',
+  'Zürich',
+  'Madrid',
+  'Remote',
 ] as const
 
 export const CRAFTS = [

@@ -172,7 +172,7 @@ export function exchangeCreditsToEur(credits: number): CreditsState | null {
 
 export function claimReferralCreditsDemo() {
   simulateReferralSignup()
-  return earnCredits(25, 'Referral-Bonus (Demo)')
+  return earnCredits(40, 'Referral-Bonus (Demo)')
 }
 
 export const CREDITS_COSTS: Record<CreditSpendKind, { credits: number; label: string }> = {

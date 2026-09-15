@@ -23,6 +23,7 @@ import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
 import { formatPrice } from '../lib/utils'
 import type { ListingFilters } from '../types'
+import { rankForWorld } from '../lib/behavior'
 
 type Side = 'seek' | 'hire'
 
@@ -38,7 +39,11 @@ export function JobsPage() {
     kind: side === 'seek' ? 'offer' : 'all',
   })
 
-  const { listings } = useListings({ ...filters, vertical: 'job' })
+  const { listings: rawListings } = useListings({ ...filters, vertical: 'job' })
+  const listings = useMemo(
+    () => (side === 'seek' ? rankForWorld(rawListings) : rawListings),
+    [rawListings, side],
+  )
 
   const myJobBookings = useMemo(() => {
     if (!user) return []
@@ -82,8 +87,8 @@ export function JobsPage() {
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-300">
           {side === 'seek'
-            ? 'Keine versteckten Tagessätze. Zeitraum, Qualifikation, Ort, Anfahrt, Übernachtung und Spesen stehen im Inserat — bevor du dich bewirbst.'
-            : 'Structured Post in unter 2 Minuten: Zeitraum · Qualifikation · Ort · Anfahrt · ÜN · Spesen · Tagessatz (10h). Danach Pipeline, Compare, Chat.'}
+            ? 'Prefs und Deine Welt zuerst. Rate, Ort und Typ stehen im Inserat — 1-Tap Interesse statt CV-Spam.'
+            : 'Job posten: Branche, Typ, Remote, Gehalt. Danach Pipeline, Chat, Interview-Stub.'}
         </p>
 
         <div className="mt-4 flex rounded-xl border border-border bg-black/40 p-1 backdrop-blur-sm">
@@ -223,8 +228,7 @@ export function JobsPage() {
             <div className="mb-1 flex items-center gap-2 font-semibold text-teal">
               <Briefcase size={18} /> Structured Post · unter 2 Minuten
             </div>
-            Zeitraum · Ort · Qualifikation · Tagessatz (10h) · Anfahrt · Übernachtung · Spesen —
-            dann Pipeline & Compare.
+            Job posten: Branche · Typ · Remote · Gehalt. Danach Pipeline, Compare, Chat, Interview.
             <div className="mt-3 rounded-xl border border-border/60 bg-black/25 px-3 py-2">
               <MarketRateHint />
             </div>

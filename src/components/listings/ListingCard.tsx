@@ -40,7 +40,12 @@ export function ListingCard({
           <Badge tone={listing.kind === 'offer' ? 'cyan' : 'amber'}>
             {listing.kind === 'offer' ? 'Angebot' : 'Gesuch'}
           </Badge>
-          <Badge tone="teal">{meta?.label}</Badge>
+          {listing.industry ? (
+            <Badge tone="teal">{listing.industry}</Badge>
+          ) : (
+            <Badge tone="teal">{meta?.label}</Badge>
+          )}
+          {listing.jobType && <Badge>{listing.jobType}</Badge>}
           {listing.featured && <Badge tone="cyan">Featured</Badge>}
         </div>
       </div>
@@ -78,6 +83,7 @@ export function ListingCard({
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <span className="chip">
           <MapPin size={11} /> {listing.city}
+          {listing.country && listing.country !== 'Deutschland' ? ` · ${listing.country}` : ''}
         </span>
         {listing.rating != null && (
           <span className="chip" style={{ color: '#fcd34d', borderColor: 'rgba(251,191,36,0.35)' }}>
@@ -101,7 +107,7 @@ export function ListingCard({
           <span className="text-sm font-semibold text-cyan">{rate}</span>
         ) : (
           <span className="text-xs font-medium text-cyan/90 group-hover:text-cyan">
-            {listing.vertical === 'job' ? 'Jetzt bewerben →' : 'Jetzt anfragen →'}
+            {listing.vertical === 'job' ? 'Interesse →' : 'Jetzt anfragen →'}
           </span>
         )}
         <span className="truncate text-xs text-muted">{listing.ownerName}</span>

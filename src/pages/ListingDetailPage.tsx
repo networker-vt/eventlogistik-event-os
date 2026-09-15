@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { MapPin, Scale, ShieldCheck, Sparkles, Star } from 'lucide-react'
 import { JobConditions } from '../components/listings/JobConditions'
@@ -7,6 +7,9 @@ import { FavoriteButton } from '../components/favorites/FavoriteButton'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Select, Textarea } from '../components/ui/Input'
+import { SpeakButton } from '../components/a11y/SpeakButton'
+import { InteresseButton } from '../components/apply/InteresseButton'
+import { ExperienceList } from '../components/reviews/ExperienceList'
 import { BOOKING_STATUS_LABELS, VERTICAL_META } from '../data/constants'
 import { DEMO_USER_ID, seedProfiles } from '../data/seed'
 import { useAuth } from '../lib/auth'
@@ -14,6 +17,9 @@ import { store } from '../lib/store'
 import { useStoreVersion } from '../hooks/useStore'
 import { formatDate, formatPriceRange, verificationLabel } from '../lib/utils'
 import { CalendarExport } from '../components/calendar/CalendarExport'
+import { trackBehavior } from '../lib/behavior'
+import { listingSpeech } from '../lib/tts'
+import { listForListing } from '../lib/experience'
 
 export function ListingDetailPage() {
   const { id } = useParams()
@@ -34,6 +40,17 @@ export function ListingDetailPage() {
     () => (user ? store.listProjects(user.id) : []),
     [user, version],
   )
+
+  useEffect(() => {
+    if (!listing || listing.vertical !== 'job') return
+    trackBehavior({
+      kind: 'view',
+      listingId: listing.id,
+      industry: listing.industry,
+      jobType: listing.jobType,
+      city: listing.city,
+    })
+  }, [listing?.id])
 
   if (!listing) {
     return (
@@ -112,7 +129,20 @@ export function ListingDetailPage() {
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <h1 className="text-xl font-bold md:text-2xl">{listing.title}</h1>
-              <FavoriteButton listingId={listing.id} />
+              <div className="flex items-center gap-1">
+                <SpeakButton
+                  compact
+                  text={listingSpeech({
+                    title: listing.title,
+                    city: listing.city,
+                    ownerName: listing.ownerName,
+                    description: listing.description,
+                    rate,
+                    industry: listing.industry,
+                  })}
+                />
+                <FavoriteButton listingId={listing.id} />
+              </div>
             </div>
             <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
               <span className="inline-flex items-center gap-1">
@@ -253,6 +283,16 @@ export function ListingDetailPage() {
         </div>
       )}
 
+      <section className="rounded-2xl border border-border bg-surface-2 p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-semibold">Erfahrungen</h2>
+          <Link to="/erfahrungen" className="text-xs text-[var(--theme-accent)] hover:underline">
+            Selbst bewerten →
+          </Link>
+        </div>
+        <ExperienceList reviews={listForListing(listing.id, listing.ownerName)} empty="Noch keine Reviews zu Job/Firma." />
+      </section>
+
       {isOwner ? (
         <div className="space-y-3 rounded-2xl border border-teal/30 bg-teal/10 p-5">
           <h2 className="font-semibold text-teal">Dein Inserat</h2>
@@ -275,6 +315,8 @@ export function ListingDetailPage() {
             </Button>
           </div>
         </div>
+      ) : isJob ? (
+        <InteresseButton listing={listing} />
       ) : done ? (
         <div className="success-pop rounded-2xl border border-cyan/30 bg-cyan/10 p-5">
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-cyan/40 bg-cyan/15 text-cyan success-check">
@@ -299,15 +341,15 @@ export function ListingDetailPage() {
         </div>
       ) : (
         <div className="space-y-3 rounded-2xl border border-border bg-surface-2 p-5">
-          <h2 className="font-semibold">{isJob ? '1-Tap bewerben' : 'Anfrage senden'}</h2>
+          <h2 className="font-semibold">Kurze Anfrage</h2>
           <Textarea
-            label={isJob ? 'Kurze Cover-Nachricht' : 'Nachricht'}
+            label="Nachricht (optional, kein Anschreiben nötig)"
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
           {user && projects.length > 0 && (
             <Select
-              label="Optional: an Event/Projekt anhängen"
+              label="Optional: an Projekt anhängen"
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
             >
@@ -320,18 +362,9 @@ export function ListingDetailPage() {
             </Select>
           )}
           <Button className="w-full md:w-auto" size="lg" onClick={submitInquiry}>
-            {user
-              ? isJob
-                ? `Bewerben · ${rate}`
-                : 'Anfrage stellen'
-              : isJob
-                ? 'Demo-Login & bewerben'
-                : 'Demo-Login & Anfrage stellen'}
+            {user ? 'Anfrage stellen' : 'Demo-Login & Anfrage stellen'}
           </Button>
-          <p className="text-xs text-muted">
-            Dual Marketplace: {listing.kind === 'offer' ? 'Angebot' : 'Gesuch'} · Flow Anfrage → Angebot →
-            Buchung.
-          </p>
+          <p className="text-xs text-muted">Kein CV-Spam — kurze Nachricht reicht.</p>
         </div>
       )}
     </div>

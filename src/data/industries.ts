@@ -9,6 +9,7 @@ export const COUNTRIES = [
   'Frankreich',
   'Polen',
   'UK',
+  'Spanien',
   'Remote / Global',
 ] as const
 

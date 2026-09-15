@@ -42,7 +42,7 @@ export function AuthPage() {
     <div className="mx-auto max-w-md space-y-5">
       <div className="text-center">
         <h1 className="text-2xl font-bold">Willkommen bei Orbit</h1>
-        <p className="mt-1 text-sm text-muted">Event-OS für Crew, Gigs, Gear & Transport.</p>
+        <p className="mt-1 text-sm text-muted">Dein Orbit für Arbeit — Matching statt Spam.</p>
         <p className="mt-1 text-sm text-muted">
           Rollenbasierte Registrierung — Mock-Auth lokal, Supabase-ready.
         </p>

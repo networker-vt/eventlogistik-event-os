@@ -3,12 +3,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Heart, SkipForward, Sparkles, SlidersHorizontal, MessageSquare } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
+import { SpeakButton } from '../components/a11y/SpeakButton'
 import { useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
+import { useI18n } from '../lib/i18n'
+import { applyInterest } from '../lib/apply'
+import { rankForWorld, trackBehavior } from '../lib/behavior'
+import { listingSpeech } from '../lib/tts'
+import { cn, formatPrice } from '../lib/utils'
 import {
   filterCandidatesByEmployerPrefs,
-  filterListingsByPrefs,
   getPrefs,
   subscribePrefs,
 } from '../lib/prefs'
@@ -22,14 +27,13 @@ import {
   type MatchScore,
   type MutualMatch,
 } from '../lib/match'
-import { formatPrice } from '../lib/utils'
-import { cn } from '../lib/utils'
 import type { Listing, Profile } from '../types'
 
 export function MatchPage() {
   useStoreVersion()
+  const { t } = useI18n()
   const navigate = useNavigate()
-  const { user, loginDemo } = useAuth()
+  const { user, loginDemo, profile } = useAuth()
   const [prefs, setPrefs] = useState(getPrefs)
   const [, setSwipeTick] = useState(0)
   const [toast, setToast] = useState<MutualMatch | null>(null)
@@ -49,7 +53,7 @@ export function MatchPage() {
   const deck = useMemo(() => {
     if (seekerMode) {
       const done = swipedIds('job')
-      const jobs = filterListingsByPrefs(
+      const jobs = rankForWorld(
         store.listListings({ vertical: 'job', kind: 'offer' }),
         prefs,
       ).filter((l) => !done.has(l.id) && l.status === 'active')
@@ -72,6 +76,13 @@ export function MatchPage() {
   const swipe = (action: 'interested' | 'skip') => {
     if (!current) return
     if (current.kind === 'job') {
+      trackBehavior({
+        kind: action === 'skip' ? 'swipe_skip' : 'swipe_interest',
+        listingId: current.listing.id,
+        industry: current.listing.industry,
+        jobType: current.listing.jobType,
+        city: current.listing.city,
+      })
       const { mutual } = recordSwipe({
         targetId: current.listing.id,
         targetKind: 'job',
@@ -79,21 +90,28 @@ export function MatchPage() {
         title: current.listing.title,
         listingId: current.listing.id,
       })
-      if (mutual && action === 'interested') {
-        const u = user ?? (() => { loginDemo(); return null })()
-        const actor = u || store.getProfile('user-demo-1')
-        if (actor) {
+      if (action === 'interested') {
+        let actor = user
+        if (!actor) {
+          loginDemo()
+          actor = { id: 'user-demo-1', name: 'Alex Müller', email: '', role: 'agency' }
+        }
+        if (actor.id !== current.listing.ownerId) {
           try {
-            store.createInquiry({
+            applyInterest({
               listing: current.listing,
               requesterId: actor.id,
-              requesterName: 'name' in actor ? actor.name : 'Orbit User',
-              note: `Orbit Match: Interesse an „${current.listing.title}" (${current.score.percent}%).`,
+              requesterName: actor.name,
+              city: profile?.city,
             })
-          } catch { /* demo seed best-effort */ }
+          } catch {
+            /* demo best-effort */
+          }
         }
-        setToast(mutual)
-        window.setTimeout(() => setToast(null), 4200)
+        if (mutual) {
+          setToast(mutual)
+          window.setTimeout(() => setToast(null), 4200)
+        }
       }
     } else {
       const { mutual } = recordSwipe({
@@ -111,15 +129,25 @@ export function MatchPage() {
     setSwipeTick((n) => n + 1)
   }
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      if (e.key === 'ArrowLeft') swipe('skip')
+      if (e.key === 'ArrowRight' || e.key === 'Enter') swipe('interested')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current])
+
   if (!prefs.completed) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-16 text-center">
-        <Sparkles className="text-cyan" size={32} />
-        <h1 className="text-xl font-bold">Zuerst Prefs setzen</h1>
-        <p className="text-sm text-muted">
-          Orbit filtert den Feed hard — ohne Prefs kein Match-Deck.
-        </p>
-        <Button onClick={() => navigate('/prefs')}>Prefs öffnen</Button>
+        <Sparkles className="text-[var(--theme-accent)]" size={32} />
+        <h1 className="text-xl font-bold">{t('match.needPrefs')}</h1>
+        <p className="text-sm text-muted">{t('match.needPrefsHint')}</p>
+        <Button onClick={() => navigate('/prefs')}>{t('match.openPrefs')}</Button>
       </div>
     )
   }
@@ -130,9 +158,9 @@ export function MatchPage() {
     <div className="relative mx-auto flex min-h-[70dvh] max-w-lg flex-col gap-4 pb-scroll-chrome">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-cyan">Match Finder</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">{t('match.kicker')}</p>
           <h1 className="text-xl font-bold tracking-tight">
-            {seekerMode ? 'Jobs swipen' : 'Kandidaten swipen'}
+            {seekerMode ? t('match.jobs') : t('match.candidates')}
           </h1>
           <p className="text-xs text-muted">
             {deck.length} Karten · Prefs hard-gefiltert
@@ -146,10 +174,8 @@ export function MatchPage() {
       {!current ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-surface-2 p-8 text-center">
           <p className="text-4xl">🛰️</p>
-          <h2 className="text-lg font-semibold">Deck leer</h2>
-          <p className="text-sm text-muted">
-            Prefs lockern oder später wiederkommen — neue Inserate landen hier.
-          </p>
+          <h2 className="text-lg font-semibold">{t('match.empty')}</h2>
+          <p className="text-sm text-muted">{t('match.emptyHint')}</p>
           <Button variant="secondary" onClick={() => navigate('/prefs')}>
             Prefs anpassen
           </Button>
@@ -177,7 +203,7 @@ export function MatchPage() {
         <div className="sticky bottom-20 z-10 flex items-center justify-center gap-4 md:bottom-4">
           <button
             type="button"
-            aria-label="Skip"
+            aria-label={t('match.skip')}
             onClick={() => swipe('skip')}
             className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-surface-2 text-neutral-300 shadow-lg hover:border-rose-400/50 hover:text-rose-300"
           >
@@ -185,9 +211,9 @@ export function MatchPage() {
           </button>
           <button
             type="button"
-            aria-label="Interessiert"
+            aria-label={t('match.interest')}
             onClick={() => swipe('interested')}
-            className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan text-black shadow-[0_0_28px_rgba(0,240,255,0.35)]"
+            className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--theme-accent)] text-black shadow-[0_0_28px_color-mix(in_oklab,var(--theme-accent)_40%,transparent)]"
           >
             <Heart size={28} fill="currentColor" />
           </button>
@@ -196,10 +222,10 @@ export function MatchPage() {
 
       <div className="flex justify-center gap-6 text-xs text-muted">
         <span className="inline-flex items-center gap-1">
-          <SkipForward size={12} /> Skip
+          <SkipForward size={12} /> {t('match.skip')}
         </span>
-        <span className="inline-flex items-center gap-1 text-cyan">
-          <Heart size={12} /> Interessiert
+        <span className="inline-flex items-center gap-1 text-[var(--theme-accent)]">
+          <Heart size={12} /> {t('match.interest')}
         </span>
       </div>
 
@@ -226,15 +252,15 @@ export function MatchPage() {
 
       {toast && (
         <div className="fixed inset-x-4 bottom-28 z-40 mx-auto max-w-sm rounded-2xl border border-cyan/40 bg-surface-2 p-4 shadow-xl md:bottom-8">
-          <p className="text-sm font-semibold text-cyan">✨ Mutual Match!</p>
+          <p className="text-sm font-semibold text-[var(--theme-accent)]">✨ {t('match.mutual')}</p>
           <p className="mt-1 text-sm text-neutral-200">{toast.title}</p>
-          <p className="mt-1 text-xs text-muted">Chat/Booking-Seed angelegt (Demo).</p>
+          <p className="mt-1 text-xs text-muted">{t('apply.sentHint')}</p>
           <Button
             size="sm"
             className="mt-3 w-full"
             onClick={() => navigate(toast.listingId ? `/listings/${toast.listingId}` : '/messages')}
           >
-            Weiter
+            {t('apply.chat')}
           </Button>
         </div>
       )}
@@ -335,9 +361,25 @@ function JobCard({
             ))}
           </div>
         </div>
-        <button type="button" onClick={onToggleExplain} className="text-xs text-cyan hover:underline">
+        <button type="button" onClick={onToggleExplain} className="text-xs text-[var(--theme-accent)] hover:underline">
           {explain ? 'Score ausblenden' : 'Match erklären'}
         </button>
+      </div>
+      <div className="mt-3">
+        <SpeakButton
+          compact
+          text={listingSpeech({
+            title: listing.title,
+            city: listing.city,
+            ownerName: listing.ownerName,
+            description: listing.description,
+            rate:
+              listing.priceFrom != null
+                ? `${formatPrice(listing.priceFrom)}${listing.priceUnit ? ' / ' + listing.priceUnit : ''}`
+                : undefined,
+            industry: L.industry,
+          })}
+        />
       </div>
       <Breakdown score={score} open={explain} />
       <div className="pointer-events-none absolute -right-8 -top-8 text-7xl opacity-20">

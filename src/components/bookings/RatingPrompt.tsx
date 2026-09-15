@@ -40,6 +40,7 @@ export function RatingPrompt({
       rating: stars,
       comment: comment.trim(),
     })
+    void import('../../lib/rewards').then((m) => m.grantReviewReward()).catch(() => undefined)
     setDone(true)
   }
 

@@ -50,7 +50,7 @@ export function EmpfehlenPage() {
               onClick={() =>
                 void navigator.share?.({
                   title: 'Orbit',
-                  text: 'Event-OS für Crew, Gigs & Gear',
+                  text: 'Orbit — Matching statt Spam. Dein persönlicher Job-Orbit.',
                   url,
                 })
               }
