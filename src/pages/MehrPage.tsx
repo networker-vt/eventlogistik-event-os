@@ -35,6 +35,8 @@ type HubSection = {
   links: HubLink[]
   /** Default-closed disclosure — keep routes, hide from the primary hub scan. */
   archived?: boolean
+  /** Extra hash targets after a merge (e.g. `#wissen` → Event/DE archive). */
+  extraIds?: string[]
 }
 
 export function MehrPage() {
@@ -74,21 +76,12 @@ export function MehrPage() {
       ],
     },
     {
-      id: 'wissen',
-      title: 'Wissen',
-      subtitle: 'Medien & Fortbildung',
-      accent: 'border-amber-500/35 bg-amber-500/5',
-      links: [
-        { to: '/wissen/medien', label: 'Medien', icon: BookOpen },
-        { to: '/wissen/fortbildung', label: 'Fortbildung', icon: GraduationCap },
-      ],
-    },
-    {
       id: 'sektor-event',
       title: t('mehr.event'),
       subtitle: t('mehr.eventHint'),
       accent: 'border-border bg-surface-2/40',
       archived: true,
+      extraIds: ['wissen'],
       links: [
         { to: '/katalog/firmen', label: 'Katalog Firmen (DE Event)', hint: 'Nicht primär — Archiv', icon: Library },
         { to: '/katalog/locations', label: 'Locations', icon: Library },
@@ -96,6 +89,8 @@ export function MehrPage() {
         { to: '/material', label: 'Material / Gear', icon: Briefcase },
         { to: '/transporter', label: 'Transporter', icon: Briefcase },
         { to: '/innovation', label: 'Innovation', hint: 'KI · XR · LED', icon: Sparkles },
+        { to: '/wissen/medien', label: 'Medien', hint: 'Nicht primär — Archiv', icon: BookOpen },
+        { to: '/wissen/fortbildung', label: 'Fortbildung', hint: 'Nicht primär — Archiv', icon: GraduationCap },
       ],
     },
     {
@@ -133,6 +128,9 @@ export function MehrPage() {
             id={section.id}
             className={`scroll-mt-20 rounded-2xl border p-4 md:p-5 ${section.accent}`}
           >
+            {section.extraIds?.map((extraId) => (
+              <span key={extraId} id={extraId} className="sr-only" />
+            ))}
             {section.archived ? (
               <details className="group">
                 <summary className="flex min-h-11 cursor-pointer list-none items-start justify-between gap-3 rounded-lg outline-offset-2 marker:content-none [&::-webkit-details-marker]:hidden">
