@@ -129,7 +129,7 @@ const deDict: Dict = {
   'footer.privacy': 'Datenschutz',
   'footer.terms': 'AGB',
   'mehr.title': 'Mehr',
-  'mehr.lead': 'Quellen, Interviews, Foto-Jobs, Event/DE & Wissen (archiviert), Ideen, Wallet, Legal.',
+  'mehr.lead': 'Quellen, Interviews, Foto-Jobs, Ideen, Wallet, Legal.',
   'mehr.event': 'Archiv · Event/DE & Wissen',
   'mehr.eventHint':
     'Nicht primär — Katalog, Locations, Freelancer VT, Material, Transporter, Innovation, Medien, Fortbildung.',
@@ -235,7 +235,7 @@ const enDict: Dict = {
   'footer.privacy': 'Privacy',
   'footer.terms': 'Terms',
   'mehr.title': 'More',
-  'mehr.lead': 'Sources, interviews, photo jobs, Event/DE & Wissen (archived), ideas, wallet, legal.',
+  'mehr.lead': 'Sources, interviews, photo jobs, ideas, wallet, legal.',
   'mehr.event': 'Archive · Event/DE & Wissen',
   'mehr.eventHint':
     'Not primary — catalogue, locations, Freelancer VT, material, transporters, innovation, media, training.',

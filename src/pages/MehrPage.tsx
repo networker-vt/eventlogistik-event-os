@@ -83,7 +83,7 @@ export function MehrPage() {
       archived: true,
       extraIds: ['wissen'],
       links: [
-        { to: '/katalog/firmen', label: 'Katalog Firmen (DE Event)', hint: 'Nicht primär — Archiv', icon: Library },
+        { to: '/katalog/firmen', label: 'Katalog Firmen (Archiv)', hint: 'Nicht primär — Archiv', icon: Library },
         { to: '/katalog/locations', label: 'Locations', icon: Library },
         { to: '/freelancer', label: 'Freelancer VT', icon: Briefcase },
         { to: '/material', label: 'Material / Gear', icon: Briefcase },
