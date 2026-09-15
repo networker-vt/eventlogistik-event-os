@@ -78,11 +78,13 @@ While the **packs pool** has remainder, packs debit that pool:
 
 ### Gift / Sponsoring (Demo)
 
-Wallet → **Verschenken / Sponsorn**: pick a listing, company or profile → amount → optional message → confirm.
+Wallet → **Verschenken / Sponsorn** (EN: Gift / Sponsor): pick a listing, company or profile → amount → optional message → confirm.
 
-- Debits **your** demo balance (no new mint, 1 Credit fee burned).
-- Quick **Sponsern** on Für-dich cards, listing detail, public profiles, Firma.
-- **No real payout** to the recipient until payments + KYC exist. The local ledger still moves Credits honestly on this device.
+- Debits **your** demo balance (no new mint, 1 Credit fee burned). Circulating drops by the burn; net goes to the P2P float (honest local ledger, still one device).
+- Quick **Sponsern** on Für-dich / Match-suggestion cards, listing detail, public profiles, Firma.
+- **No real payout** to the recipient until payments + KYC exist.
+
+DE: Demo-Ledger, kein Stripe. EN: same honesty — no real money.
 
 ## Channel linking (Demo)
 

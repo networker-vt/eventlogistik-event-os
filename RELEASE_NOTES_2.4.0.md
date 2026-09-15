@@ -16,11 +16,11 @@ Greeting + warm chips + **one** Assist field + **Find dein heutiges Match** (or 
 
 ## Gift / Sponsoring
 
-Wallet **Verschenken / Sponsorn**: Empfänger (Listing / Firma / Profil) → Betrag → optionale Nachricht. Peer-Transfer, 1 Credit Burn, kein neues Mint. Quick **Sponsern** on Für-dich, listing, profile, Firma. Demo until real payments.
+Wallet **Verschenken / Sponsorn** (EN: Gift / Sponsor): Empfänger (Listing / Firma / Profil) → Betrag → optionale Nachricht. Peer-Transfer, 1 Credit Burn, kein neues Mint. Quick **Sponsern** on Für-dich, listing, profile, Firma. Demo until real payments; local balance still updates.
 
 ## Channel linking
 
-Mein: Amazon / Netflix / YouTube / Spotify / Instagram toggles. **No OAuth, no scraping.** Connected flags only bias demo ranking (shopping, entertainment, music, look).
+Mein **Kanäle verbinden**: Amazon / Netflix / YouTube / Spotify / Instagram toggles. **No OAuth, no scraping.** Connected flags only bias demo ranking (shopping, entertainment, music, look). DE+EN copy never claims Orbit read those accounts.
 
 ## Orbit Look / Style
 

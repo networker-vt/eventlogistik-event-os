@@ -18,6 +18,7 @@ import {
   Video,
   Wallet,
   Cable,
+  Link2,
 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 
@@ -75,6 +76,8 @@ export function MehrPage() {
       links: [
         { to: '/ideen', label: 'Ideen-Box', hint: 'Feedback an den Operator', icon: Lightbulb },
         { to: '/empfehlen', label: 'Empfehlen', hint: 'Referral aus dem Rewards-Pool', icon: Gift },
+        { to: '/wallet#gift', label: t('gift.title'), hint: t('gift.lead'), icon: Gift },
+        { to: '/mein#kanaele', label: t('channels.linkTitle'), hint: t('channels.linkLead'), icon: Link2 },
         { to: '/wallet', label: 'Wallet & Credits', hint: '21M Cap · Demo-Ledger', icon: Wallet },
       ],
     },

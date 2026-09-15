@@ -21,8 +21,10 @@ import { trackBehavior } from '../lib/behavior'
 import { listingSpeech } from '../lib/tts'
 import { listForListing } from '../lib/experience'
 import { giftWalletHref } from '../lib/gift'
+import { useI18n } from '../lib/i18n'
 
 export function ListingDetailPage() {
+  const { t } = useI18n()
   const { id } = useParams()
   const version = useStoreVersion()
   const listing = store.getListing(id!)
@@ -151,9 +153,9 @@ export function ListingDetailPage() {
                     hint: listing.ownerName,
                   })}
                   className="tap-target inline-flex h-11 items-center gap-1 rounded-full border border-violet-400/40 px-3 text-xs text-violet-100"
-                  aria-label="Sponsern"
+                  aria-label={t('gift.nudge')}
                 >
-                  <Gift size={14} /> Sponsern
+                  <Gift size={14} /> {t('gift.nudge')}
                 </Link>
               </div>
             </div>

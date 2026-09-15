@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Briefcase,
   GraduationCap,
@@ -58,6 +58,7 @@ export function MeinPage() {
   const { items } = useFavorites()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { hash } = useLocation()
   const [cal, setCal] = useState<LocalCalItem[]>(() => listLocalCalendar())
   const [hub, setHub] = useState(getHub)
   const [prefs, setPrefs] = useState(getPrefs)
@@ -83,6 +84,13 @@ export function MeinPage() {
       u3()
     }
   }, [])
+
+  useEffect(() => {
+    if (!hash) return
+    const id = decodeURIComponent(hash.replace(/^#/, ''))
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [hash])
 
   const listingFavs = items.filter((f) => f.type === 'listing')
   const catalogFavs = items.filter((f) => f.type === 'catalog')

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowDownLeft,
   ArrowLeftRight,
   ArrowUpRight,
+  Gift,
   Landmark,
   Link2,
   Link2Off,
@@ -71,6 +72,7 @@ export function WalletPage() {
   const { t, resolved } = useI18n()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { hash } = useLocation()
   const [params] = useSearchParams()
   const { wallet } = useWallet()
   const { fx } = useFx()
@@ -103,6 +105,14 @@ export function WalletPage() {
     [],
   )
   useEffect(() => subscribeTickets(() => setTickets(listTickets())), [])
+
+  useEffect(() => {
+    if (hash !== '#gift') return
+    const timer = window.setTimeout(() => {
+      document.getElementById('gift')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 80)
+    return () => window.clearTimeout(timer)
+  }, [hash, params])
 
   const connectedCount = WALLET_METHODS.filter((m) => wallet.methods[m.id]?.connected).length
   const eur = Number(fxAmount) || 0
@@ -265,6 +275,12 @@ export function WalletPage() {
           </span>
         </p>
         <p className="text-xs text-violet-200/90">{formatSupplyLine(protocol)}</p>
+        <Link
+          to="/wallet#gift"
+          className="inline-flex min-h-10 items-center gap-1.5 text-sm text-violet-100 hover:underline"
+        >
+          <Gift size={16} /> {t('gift.title')}
+        </Link>
         <p className="text-xs text-violet-100/80">
           {resolved === 'de' ? CREDITS_DISCLAIMER_DE : CREDITS_DISCLAIMER_EN}
         </p>

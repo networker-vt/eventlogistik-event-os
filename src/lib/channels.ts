@@ -9,7 +9,6 @@ export interface ChannelDef {
   label: string
   emoji: string
   tags: string[]
-  benefitDe: string
 }
 
 export const CHANNEL_DEFS: ChannelDef[] = [
@@ -18,35 +17,30 @@ export const CHANNEL_DEFS: ChannelDef[] = [
     label: 'Amazon',
     emoji: '📦',
     tags: ['shop', 'shopping', 'retail', 'handel', 'amazon', 'marktplatz', 'kleid', 'sneaker'],
-    benefitDe: 'Leicht mehr Shopping- & Retail-Deals',
   },
   {
     id: 'netflix',
     label: 'Netflix',
     emoji: '🎬',
     tags: ['film', 'serie', 'stream', 'entertainment', 'netflix', 'creator'],
-    benefitDe: 'Leicht mehr Entertainment & Creator',
   },
   {
     id: 'youtube',
     label: 'YouTube',
     emoji: '▶️',
     tags: ['youtube', 'video', 'creator', 'entertainment', 'tutorial'],
-    benefitDe: 'Leicht mehr Creator- & Video-Themen',
   },
   {
     id: 'spotify',
     label: 'Spotify',
     emoji: '🎧',
     tags: ['musik', 'music', 'band', 'spotify', 'konzert', 'entertainment'],
-    benefitDe: 'Leicht mehr Musik, Bands, Live',
   },
   {
     id: 'instagram',
     label: 'Instagram',
     emoji: '📸',
     tags: ['instagram', 'fashion', 'look', 'style', 'foto', 'creator'],
-    benefitDe: 'Leicht mehr Look, Fashion, Creator',
   },
 ]
 
@@ -130,3 +124,6 @@ export function channelBoostForText(text: string): { score: number; label?: stri
 
 export const CHANNELS_DISCLAIMER_DE =
   'Verbinden ist ein Stub — kein OAuth, kein Login bei Amazon/Netflix/YouTube. Orbit liest diese Konten nicht. Der Schalter speichert nur lokal, damit Demo-Deals etwas in Richtung Shopping, Entertainment oder Musik kippen.'
+
+export const CHANNELS_DISCLAIMER_EN =
+  'Connect is a stub — no OAuth, no Amazon/Netflix/YouTube login. Orbit does not read those accounts. The toggle is stored locally so demo deals tilt slightly toward shopping, entertainment or music.'

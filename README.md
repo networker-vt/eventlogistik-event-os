@@ -13,7 +13,7 @@ Global all-industry marketplace OS (v2.4.0): jobs, B2B, travel & lifestyle, **Lo
 
 ## IA (v2.4.0)
 
-**Start · Match · Chat · Wallet · Mehr** — Create in the header (not on Home). Mein via avatar / Mehr. Home: greeting → warm chips → Assist → Orbit rät jetzt → **Für dich** (one rail).
+**Start · Match · Chat · Wallet · Mehr** — Create in the header (not on Home). Mein via avatar / Mehr. Home: greeting → warm chips → Assist → Match CTA → **Für dich** (one rail).
 
 ## Core routes (v2.4)
 
@@ -23,9 +23,10 @@ Global all-industry marketplace OS (v2.4.0): jobs, B2B, travel & lifestyle, **Lo
 | `/match` | Match Finder — jobs/services **or** candidates + B2B/partners |
 | `/look` | Orbit Look / Style — photo/video, demo try-on, shops, nearby |
 | `/messages` | Chat hub — Match / Booking / Support / Social DM |
-| `/wallet` | Credits (21M cap), methods, bookings, tickets |
+| `/wallet` | Credits (21M cap), gift/sponsoring, methods, bookings, tickets |
 | `/reise` | Travel marketplace (demo, cheapest-first) |
 | `/channels` | Community channel link-stubs |
+| `/mein` | Prefs, **Kanäle verbinden** (Amazon/Netflix… stubs), hub |
 | `/firma` | Company hub |
 | `/marktplatz` | Unified marketplace |
 | `/mehr` | Look, Social, Reise, Firma, Channels, Wallet, Legal |
@@ -39,8 +40,8 @@ Bottom nav: **Start · Match · Chat · Wallet · Mehr**
 - **No real GDS / airline / hotel / rail / car booking.** Travel is mock search + checkout stub. Partner APIs later.
 - Orbit Credits: **21M hard cap**, demo client ledger until Stripe/PayPal/Banking + KYC. Pack checkout does not charge anyone. See [CREDITS.md](./CREDITS.md).
 - **Orbit Look** is filters + labels + seed shops — not live virtual try-on ML.
-- **Channel linking** (Amazon, Netflix, YouTube, Spotify, Instagram) is a localStorage toggle. No OAuth, no scraping. It only nudges demo ranking.
-- **Gift / Sponsoring** moves demo Credits on this device; nobody is paid in fiat.
+- **Channel linking** (Amazon, Netflix, YouTube, Spotify, Instagram) is a localStorage toggle on Mein. No OAuth, no scraping. It only nudges demo ranking. Copy never claims Orbit read those accounts.
+- **Gift / Sponsoring** (Wallet → Verschenken / Sponsorn) moves demo Credits on this device; 1 Credit fee burned; nobody is paid in fiat. Recipients are listings / companies / profiles in the demo.
 - **Social is localStorage-only** — not a full social network.
 - Photo “vision” and in-app video calls are **stubs**. Real calling needs a provider (Daily / Twilio / LiveKit) later.
 - Matching and mutual chat/booking seeds run locally (localStorage) unless Supabase is configured.
