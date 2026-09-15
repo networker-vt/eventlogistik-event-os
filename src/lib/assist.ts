@@ -1,5 +1,6 @@
 import { CITIES } from '../data/constants'
 import type { Listing, MarketType } from '../types'
+import { trackBehavior } from './behavior'
 import { getCompany } from './company'
 import { deriveMarketType, listingHaystack, overlapCount } from './market'
 import { scoreB2bMatch, scoreJobMatch } from './match'
@@ -693,6 +694,11 @@ export async function buildAssistPlan(text: string, locale: 'de' | 'en'): Promis
     source,
   }
   savePlan(plan)
+  trackBehavior({
+    kind: 'assist',
+    query: text,
+    city: intent.city,
+  })
   return plan
 }
 

@@ -13,22 +13,30 @@ import {
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
+import { LaneBadge } from '../components/credits/LaneBadge'
 import { Input, Select } from '../components/ui/Input'
 import { WalletDisclaimer } from '../components/wallet/WalletDisclaimer'
 import { useFx } from '../hooks/useFx'
 import { useWallet } from '../hooks/useWallet'
 import { convertFx, FX_CODES, formatFx, type FxCode } from '../lib/fx'
 import {
+  CREDIT_PACKS,
+  CREDITS_BOOST_KINDS,
   CREDITS_COSTS,
   CREDITS_DISCLAIMER_DE,
+  CREDITS_DISCLAIMER_EN,
+  CREDITS_FREE_DE,
+  CREDITS_FREE_EN,
   CREDITS_PER_EUR,
   claimReferralCreditsDemo,
   creditsToEur,
   exchangeCreditsToEur,
   exchangeEurToCredits,
   getCredits,
+  purchaseCreditPack,
   spendCredits,
   subscribeCredits,
+  type CreditPackId,
 } from '../lib/credits'
 import { REWARD_RULES_DE } from '../lib/rewards'
 import {
@@ -50,7 +58,7 @@ import { formatDateTime, formatPrice } from '../lib/utils'
 import { cn } from '../lib/utils'
 
 export function WalletPage() {
-  const { t } = useI18n()
+  const { t, resolved } = useI18n()
   const { user } = useAuth()
   const navigate = useNavigate()
   const { wallet } = useWallet()
@@ -70,6 +78,7 @@ export function WalletPage() {
   const [credits, setCredits] = useState(getCredits)
   const [creditAmt, setCreditAmt] = useState('50')
   const [tickets, setTickets] = useState(listTickets)
+  const [packPick, setPackPick] = useState<CreditPackId | null>(null)
 
   useEffect(() => subscribeCredits(() => setCredits(getCredits())), [])
   useEffect(() => subscribeTickets(() => setTickets(listTickets())), [])
@@ -189,7 +198,14 @@ export function WalletPage() {
           <div className="border-t border-border/60 pt-3">
             <h3 className="mb-2 text-sm font-semibold">{t('wallet.bookings')}</h3>
             {store.listBookingsForUser(user.id).length === 0 ? (
-              <p className="text-xs text-muted">{t('wallet.bookingsEmpty')}</p>
+              <Empty
+                emoji="📋"
+                title={t('wallet.bookingsEmpty')}
+                hint={t('home.value')}
+                actionLabel={t('travel.toAssist')}
+                onAction={() => navigate('/')}
+                className="py-6"
+              />
             ) : (
               <ul className="space-y-1">
                 {store.listBookingsForUser(user.id).slice(0, 6).map((b) => (
@@ -206,41 +222,114 @@ export function WalletPage() {
       </section>
 
 
-      <section className="rounded-2xl border border-violet-500/35 bg-violet-500/10 p-5 space-y-3">
-        <h2 className="text-lg font-semibold text-violet-200">Orbit Credits</h2>
+      <section className="space-y-4 rounded-2xl border border-violet-500/35 bg-violet-500/10 p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-lg font-semibold text-violet-200">Orbit Credits</h2>
+          <LaneBadge lane="credits" />
+        </div>
         <p className="text-3xl font-bold tabular-nums text-white">
           {credits.balance}{' '}
           <span className="text-sm font-normal text-muted">
             ≈ {creditsToEur(credits.balance).toFixed(2)} € indikativ ({CREDITS_PER_EUR} Cr / €)
           </span>
         </p>
-        <p className="text-xs text-violet-100/80">{CREDITS_DISCLAIMER_DE}</p>
+        <p className="text-xs text-violet-100/80">
+          {resolved === 'de' ? CREDITS_DISCLAIMER_DE : CREDITS_DISCLAIMER_EN}
+        </p>
+
+        <div>
+          <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold">
+            {t('credits.freeLane')} <LaneBadge lane="free" />
+          </h3>
+          <ul className="list-disc space-y-0.5 pl-4 text-xs text-neutral-300">
+            {(resolved === 'de' ? CREDITS_FREE_DE : CREDITS_FREE_EN).map((row) => (
+              <li key={row}>{row}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-semibold">{t('credits.packs')}</h3>
+          <p className="mt-0.5 text-xs text-muted">{t('credits.packsHint')}</p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            {CREDIT_PACKS.map((pack) => (
+              <button
+                key={pack.id}
+                type="button"
+                onClick={() => setPackPick(pack.id)}
+                className="rounded-xl border border-violet-400/30 bg-black/25 px-3 py-3 text-left hover:border-violet-300/60"
+              >
+                <p className="text-sm font-semibold text-white">
+                  {resolved === 'de' ? pack.labelDe : pack.labelEn}
+                </p>
+                <p className="text-lg font-bold tabular-nums">{pack.credits}</p>
+                <p className="text-[11px] text-muted">{pack.priceLabel} · Demo</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {packPick && (
+          <div className="rounded-xl border border-amber-400/50 bg-amber-500/15 p-3">
+            <p className="text-sm font-semibold text-amber-100">{t('credits.checkout')}</p>
+            <p className="mt-1 text-xs text-amber-100/85">{t('credits.checkoutHint')}</p>
+            <p className="mt-2 text-sm">
+              {CREDIT_PACKS.find((p) => p.id === packPick)?.credits} Credits ·{' '}
+              {CREDIT_PACKS.find((p) => p.id === packPick)?.priceLabel}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  const pack = CREDIT_PACKS.find((p) => p.id === packPick)
+                  purchaseCreditPack(packPick)
+                  note(pack ? `+${pack.credits} Credits (Demo, kein Stripe/PayPal)` : 'Pack')
+                  setPackPick(null)
+                }}
+              >
+                {t('credits.confirmPack')}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setPackPick(null)}>
+                {t('create.cancel')}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div>
+          <h3 className="text-sm font-semibold">{t('credits.boosts')}</h3>
+          <p className="mt-0.5 text-xs text-muted">{t('credits.boostsHint')}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {CREDITS_BOOST_KINDS.map((kind) => {
+              const meta = CREDITS_COSTS[kind]
+              return (
+                <Button
+                  key={kind}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    const ok = spendCredits(meta.credits, kind, meta.label)
+                    note(ok ? `−${meta.credits} Credits: ${meta.label}` : t('credits.notEnough'))
+                  }}
+                >
+                  {meta.label} (−{meta.credits})
+                </Button>
+              )
+            })}
+          </div>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
             variant="secondary"
             onClick={() => {
               claimReferralCreditsDemo()
-              note('+25 Credits Referral-Demo')
+              note('+40 Credits Referral-Demo')
             }}
           >
             Referral verdienen
           </Button>
-          {Object.entries(CREDITS_COSTS)
-            .filter(([kind]) => kind !== 'booking')
-            .map(([kind, meta]) => (
-            <Button
-              key={kind}
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                const ok = spendCredits(meta.credits, kind as 'featured' | 'unlock_message' | 'demo_gig', meta.label)
-                note(ok ? `−${meta.credits} Credits: ${meta.label}` : 'Nicht genug Credits')
-              }}
-            >
-              {meta.label} (−{meta.credits})
-            </Button>
-          ))}
         </div>
         <div className="flex flex-wrap items-end gap-2 border-t border-violet-500/20 pt-3">
           <Input
@@ -265,7 +354,7 @@ export function WalletPage() {
             onClick={() => {
               const n = Number(creditAmt) || 0
               const ok = exchangeCreditsToEur(n)
-              note(ok ? `Credits→€: ${n} Cr` : 'Credits reichen nicht')
+              note(ok ? `Credits→€: ${n} Cr` : t('credits.notEnough'))
             }}
           >
             Credits → €

@@ -5,17 +5,19 @@ import { cn } from '../../lib/utils'
 export function WalletDisclaimer({ className, compact = false }: { className?: string; compact?: boolean }) {
   return (
     <div
-      role="note"
+      role="status"
       className={cn(
-        'flex items-start gap-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-amber-100',
+        'flex items-start gap-3 rounded-2xl border-2 border-amber-400/70 bg-amber-500/20 px-4 py-3 text-amber-50 shadow-[0_0_24px_rgba(251,191,36,0.12)]',
         className,
       )}
     >
-      <ShieldAlert size={16} className="mt-0.5 shrink-0 text-amber-300" />
-      <p className={cn('leading-relaxed', compact ? 'text-[11px]' : 'text-xs')}>
-        <strong className="font-semibold text-amber-200">Kein echtes Geld. </strong>
-        {WALLET_DISCLAIMER_DE}
-      </p>
+      <ShieldAlert size={20} className="mt-0.5 shrink-0 text-amber-300" />
+      <div className="min-w-0">
+        <p className="text-sm font-bold uppercase tracking-wide text-amber-200">Demo — kein echtes Geld</p>
+        <p className={cn('mt-1 leading-relaxed text-amber-100/90', compact ? 'text-[11px]' : 'text-xs')}>
+          {WALLET_DISCLAIMER_DE} Credits-Packs sind ein Stub bis Stripe/PayPal.
+        </p>
+      </div>
     </div>
   )
 }

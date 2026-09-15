@@ -71,6 +71,9 @@ export function TravelCheckoutPage() {
         <p className="text-sm text-muted">{t('checkout.lead')}</p>
       </header>
 
+      <p className="rounded-2xl border-2 border-amber-400/70 bg-amber-500/20 px-3 py-3 text-sm font-semibold text-amber-100">
+        {t('checkout.demoBanner')}
+      </p>
       <p className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
         {disclaimer}
       </p>
@@ -151,6 +154,7 @@ export function TravelCheckoutPage() {
       <Button className="w-full" onClick={book} disabled={busy}>
         {busy ? t('checkout.working') : t('checkout.confirm')}
       </Button>
+      <p className="text-center text-xs font-semibold uppercase tracking-wide text-amber-200">{t('badge.demo')}</p>
       <p className="text-center text-[11px] text-neutral-500">{CREDITS_COSTS.booking.label}</p>
     </div>
   )

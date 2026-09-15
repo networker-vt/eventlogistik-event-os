@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plane } from 'lucide-react'
 import { TravelCard } from '../components/travel/TravelCard'
@@ -12,9 +12,13 @@ import {
   TRAVEL_DISCLAIMER_EN,
   TRAVEL_KIND_META,
   TRAVEL_KINDS,
+  mergeDeepScan,
   searchTravelForNeed,
+  withCheapestFlag,
   type TravelKind,
 } from '../lib/travel'
+import { buyBoost, CREDITS_COSTS, hasTravelDeepScan, subscribeCredits } from '../lib/credits'
+import { LaneBadge } from '../components/credits/LaneBadge'
 import { cn } from '../lib/utils'
 
 export function TravelPage() {
@@ -26,17 +30,21 @@ export function TravelPage() {
   const [from, setFrom] = useState(params.get('from') || '')
   const [date, setDate] = useState(params.get('date') || '')
   const [q, setQ] = useState(params.get('q') || '')
+  const [scanTick, setScanTick] = useState(0)
+  useEffect(() => subscribeCredits(() => setScanTick((n) => n + 1)), [])
+  const scanOn = hasTravelDeepScan()
 
   const results = useMemo(() => {
     const kinds = kindParam === 'all' ? undefined : [kindParam]
-    return searchTravelForNeed({
+    const base = searchTravelForNeed({
       kinds,
       to: to || undefined,
       from: from || undefined,
       dateIso: date || undefined,
       q: q || undefined,
     })
-  }, [kindParam, to, from, date, q])
+    return withCheapestFlag(mergeDeepScan(base, scanOn))
+  }, [kindParam, to, from, date, q, scanOn, scanTick])
 
   const setKind = (next: TravelKind | 'all') => {
     const p = new URLSearchParams(params)
@@ -64,9 +72,29 @@ export function TravelPage() {
         </div>
       </header>
 
-      <p className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+      <p className="rounded-2xl border border-amber-500/50 bg-amber-500/15 px-3 py-2 text-xs text-amber-100">
         {disclaimer}
       </p>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {scanOn ? (
+          <span className="inline-flex items-center gap-2 text-xs text-[var(--theme-accent)]">
+            <LaneBadge lane="credits" /> {t('travel.deepScanOn')}
+          </span>
+        ) : (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              buyBoost('travel_scan')
+              setScanTick((n) => n + 1)
+            }}
+          >
+            {t('travel.deepScan')} · {CREDITS_COSTS.travel_scan.credits} Credits
+          </Button>
+        )}
+        <p className="text-[11px] text-muted">{t('travel.deepScanHint')}</p>
+      </div>
 
       <form
         className="grid gap-2 sm:grid-cols-2"

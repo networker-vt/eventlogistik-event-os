@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Mic, Send, Sparkles } from 'lucide-react'
+import { ArrowRight, Mic, Send } from 'lucide-react'
 import { WorldRow } from '../components/listings/WorldRow'
+import { TopDealCard } from '../components/listings/TopDealCard'
+import { MatchSuggestionCard } from '../components/home/MatchSuggestionCard'
+import { NewsStrip } from '../components/home/NewsStrip'
 import { TravelCard } from '../components/travel/TravelCard'
+import { LaneBadge } from '../components/credits/LaneBadge'
 import { Button } from '../components/ui/Button'
-import { SpeakButton } from '../components/a11y/SpeakButton'
+import { Empty } from '../components/ui/Empty'
 import { useListings, useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import {
@@ -17,20 +21,24 @@ import {
   travelForPlan,
   type AssistPlan,
 } from '../lib/assist'
-import { addLocalCalendarItem } from '../lib/calendar'
 import { getCompany, subscribeCompany } from '../lib/company'
 import { isCompanySide, getPrefs, subscribePrefs } from '../lib/prefs'
-import { rankForCompanyWorld, rankForWorld, subscribeBehavior } from '../lib/behavior'
+import { rankTopDeals, subscribeBehavior } from '../lib/behavior'
+import { rankHomeNews, rankMatchSuggestions } from '../lib/homeSuggestions'
 import { getCredits, subscribeCredits } from '../lib/credits'
 import { useI18n } from '../lib/i18n'
 import { canListen, listenOnce } from '../lib/speech'
+import { store } from '../lib/store'
 import { cn } from '../lib/utils'
+
+type WarmChip = 'seek' | 'offer' | 'think'
 
 export function HomePage() {
   useStoreVersion()
   const { t, resolved } = useI18n()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const askRef = useRef<HTMLTextAreaElement>(null)
   const [prefs, setPrefs] = useState(getPrefs)
   const [company, setCompany] = useState(getCompany)
   const [behaviorTick, setBehaviorTick] = useState(0)
@@ -39,8 +47,9 @@ export function HomePage() {
   const [ask, setAsk] = useState('')
   const [busy, setBusy] = useState(false)
   const [listening, setListening] = useState(false)
+  const [warm, setWarm] = useState<WarmChip>('seek')
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
-  const { listings: raw } = useListings(companyView ? {} : { vertical: 'job', kind: 'offer' })
+  const { listings: raw } = useListings({})
 
   useEffect(() => {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
@@ -57,17 +66,46 @@ export function HomePage() {
     }
   }, [])
 
-  const world = useMemo(() => {
-    if (companyView) return rankForCompanyWorld(raw, prefs).slice(0, 4)
-    return rankForWorld(raw, prefs).filter((l) => l.vertical === 'job').slice(0, 4)
-  }, [raw, prefs, behaviorTick, companyView])
+  const deals = useMemo(
+    () => rankTopDeals(raw, prefs, resolved, 4),
+    [raw, prefs, behaviorTick, resolved],
+  )
+
+  const suggestions = useMemo(
+    () =>
+      rankMatchSuggestions(
+        raw,
+        store.listProfiles(),
+        prefs,
+        resolved,
+        6,
+        deals.map((d) => d.id),
+      ),
+    [raw, prefs, behaviorTick, resolved, deals],
+  )
+
+  const news = useMemo(
+    () => rankHomeNews(prefs, resolved, 4),
+    [prefs, behaviorTick, resolved],
+  )
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
   const greeting = first ? `${t('home.hello')}, ${first}.` : `${t('home.hello')}.`
-  const askLine = companyView ? t('assist.askCompany') : t('assist.ask')
-  const secondaryTo = prefs.completed ? '/match' : '/prefs'
-  const secondaryLabel = prefs.completed ? t('home.ctaMatch') : t('home.ctaPrefs')
-  const speak = `${greeting} ${askLine}`
+  const matchTo = prefs.completed ? '/match' : '/prefs'
+  const matchLabel = prefs.completed ? t('home.ctaMatch') : t('home.ctaPrefs')
+  const placeholder =
+    warm === 'offer'
+      ? t('home.phOffer')
+      : warm === 'think'
+        ? t('home.phThink')
+        : companyView
+          ? t('assist.phCompany')
+          : t('home.phSeek')
+
+  const pickWarm = (id: WarmChip) => {
+    setWarm(id)
+    window.requestAnimationFrame(() => askRef.current?.focus())
+  }
 
   const submitAsk = async (text: string) => {
     const q = text.trim()
@@ -95,19 +133,39 @@ export function HomePage() {
 
   const matches = plan ? listingsForPlan(plan) : []
   const travelHits = plan ? travelForPlan(plan) : []
-  const examples = [t('assist.exFlight'), t('assist.exStay')]
+
+  const warmChips: { id: WarmChip; label: string }[] = [
+    { id: 'seek', label: t('home.warmSeek') },
+    { id: 'offer', label: t('home.warmOffer') },
+    { id: 'think', label: t('home.warmThink') },
+  ]
 
   return (
-    <div className="mx-auto max-w-lg space-y-10 pb-scroll-chrome pt-6 md:pt-12">
-      <header className="space-y-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Orbit</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-[2rem]">{greeting}</h1>
-            <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted">{askLine}</p>
-          </div>
-          <SpeakButton compact text={speak} />
+    <div className="mx-auto max-w-lg space-y-8 pb-scroll-chrome pt-6 md:pt-12">
+      <header className="space-y-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Orbit</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-[2rem]">{greeting}</h1>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted">{t('home.value')}</p>
         </div>
+
+        <nav aria-label={t('home.how')} className="flex flex-wrap gap-2">
+          {warmChips.map((chip) => (
+            <button
+              key={chip.id}
+              type="button"
+              onClick={() => pickWarm(chip.id)}
+              className={cn(
+                'rounded-full border px-3 py-1.5 text-xs',
+                warm === chip.id
+                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-white'
+                  : 'border-border text-muted hover:text-white',
+              )}
+            >
+              {chip.label}
+            </button>
+          ))}
+        </nav>
 
         <form
           className="space-y-2"
@@ -117,12 +175,13 @@ export function HomePage() {
           }}
         >
           <label className="block">
-            <span className="sr-only">{t('assist.placeholder')}</span>
+            <span className="sr-only">{placeholder}</span>
             <textarea
+              ref={askRef}
               value={ask}
               onChange={(e) => setAsk(e.target.value)}
-              rows={3}
-              placeholder={companyView ? t('assist.phCompany') : t('assist.placeholder')}
+              rows={2}
+              placeholder={placeholder}
               className="w-full resize-none rounded-2xl border border-border bg-surface-2 px-3 py-3 text-base text-white placeholder:text-neutral-600 outline-none focus:border-cyan/50"
             />
           </label>
@@ -133,7 +192,7 @@ export function HomePage() {
                 onClick={() => void onMic()}
                 aria-label={t('assist.voice')}
                 className={cn(
-                  'tap-target flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface-3',
+                  'tap-target flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface-3 text-neutral-400',
                   listening && 'border-[var(--theme-accent)] text-[var(--theme-accent)]',
                 )}
               >
@@ -144,29 +203,11 @@ export function HomePage() {
               {busy ? t('assist.thinking') : t('assist.submit')} <Send size={16} />
             </Button>
           </div>
-          {!plan && (
-            <div className="flex flex-wrap gap-2">
-              {examples.map((ex) => (
-                <button
-                  key={ex}
-                  type="button"
-                  className="rounded-full border border-border/80 px-3 py-1.5 text-left text-[11px] text-muted hover:text-white"
-                  onClick={() => void submitAsk(ex)}
-                >
-                  {ex}
-                </button>
-              ))}
-            </div>
-          )}
         </form>
-
-        <Button className="w-full" variant="secondary" size="lg" onClick={() => navigate(secondaryTo)}>
-          {secondaryLabel} <ArrowRight size={18} />
-        </Button>
       </header>
 
       {plan && (
-        <section className="space-y-4" aria-labelledby="assist-plan">
+        <section className="space-y-3" aria-labelledby="assist-plan">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
@@ -181,7 +222,7 @@ export function HomePage() {
             </button>
           </div>
           <ol className="space-y-2">
-            {plan.steps.map((s, i) => (
+            {plan.steps.slice(0, 3).map((s, i) => (
               <li
                 key={s.id}
                 className={cn(
@@ -200,107 +241,28 @@ export function HomePage() {
                   </button>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-white">{s.title}</p>
-                    {s.hint && <p className="mt-0.5 text-xs text-muted">{s.hint}</p>}
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {s.actionTo && (
-                        <Link to={s.actionTo} className="text-xs text-[var(--theme-accent)] hover:underline">
-                          {s.actionLabel} →
-                        </Link>
-                      )}
-                      {s.remindable && (
-                        <button
-                          type="button"
-                          className="text-xs text-neutral-400 hover:text-white"
-                          onClick={() =>
-                            addLocalCalendarItem({
-                              title: `Orbit: ${s.title}`,
-                              startIso: plan.intent.dateIso
-                                ? `${plan.intent.dateIso}T09:00:00`
-                                : new Date(Date.now() + 3600000).toISOString(),
-                              location: plan.intent.city,
-                              kind: 'reminder',
-                            })
-                          }
-                        >
-                          {t('assist.remind')}
-                        </button>
-                      )}
-                    </div>
+                    {s.actionTo && (
+                      <Link to={s.actionTo} className="mt-1 inline-block text-xs text-[var(--theme-accent)] hover:underline">
+                        {s.actionLabel} →
+                      </Link>
+                    )}
                   </div>
                 </div>
               </li>
             ))}
           </ol>
-
-          <div className="rounded-2xl border border-[var(--theme-accent)]/25 bg-[var(--theme-accent)]/5 p-3">
-            <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-              <Sparkles size={14} className="text-[var(--theme-accent)]" /> {t('assist.tips')}
-            </h3>
+          {travelHits.length > 0 && (
             <ul className="space-y-2">
-              {plan.tips.map((tip) => (
-                <li key={tip.title}>
-                  <p className="text-sm font-medium text-white">{tip.title}</p>
-                  <p className="text-xs text-muted">{tip.body}</p>
+              {travelHits.slice(0, 2).map((o) => (
+                <li key={o.id}>
+                  <TravelCard offer={o} cheapest={o.cheapest} compact />
                 </li>
               ))}
             </ul>
-            <p className="mt-2 text-[11px] text-neutral-500">
-              {plan.source === 'llm' ? t('assist.llm') : t('assist.demoResearch')}
-            </p>
-          </div>
-
-          {travelHits.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold">{t('assist.travelMatches')}</h3>
-              <ul className="space-y-2">
-                {travelHits.map((o) => (
-                  <li key={o.id}>
-                    <TravelCard offer={o} cheapest={o.cheapest} compact />
-                  </li>
-                ))}
-              </ul>
-            </div>
           )}
-
           {matches.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold">{t('assist.matches')}</h3>
-              <ul className="space-y-2">
-                {matches.map((l) => (
-                  <li key={l.id}>
-                    <WorldRow listing={l} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
-
-      {!plan && (
-        <section className="space-y-4" aria-labelledby="world-heading">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 id="world-heading" className="text-base font-semibold text-white">
-              {t('home.world')}
-            </h2>
-            <Link to="/match" className="text-sm text-[var(--theme-accent)] hover:underline">
-              {t('home.toMatch')}
-            </Link>
-          </div>
-          {world.length === 0 ? (
-            <p className="text-sm text-muted">
-              {t('home.worldEmpty')}{' '}
-              <button
-                type="button"
-                className="text-[var(--theme-accent)] hover:underline"
-                onClick={() => navigate('/mein')}
-              >
-                {t('nav.mein')}
-              </button>
-            </p>
-          ) : (
             <ul className="space-y-2">
-              {world.map((l) => (
+              {matches.slice(0, 2).map((l) => (
                 <li key={l.id}>
                   <WorldRow listing={l} />
                 </li>
@@ -310,11 +272,84 @@ export function HomePage() {
         </section>
       )}
 
-      <p className="text-xs text-muted">
-        <Link to="/wallet" className="hover:text-[var(--theme-accent)]">
-          {credits.balance} Credits
+      <section className="rounded-2xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/8 p-4">
+        <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
+          {t('home.swipeKicker')}
+        </p>
+        <h2 className="mt-1 text-lg font-semibold text-white">
+          {prefs.completed ? t('home.swipePrompt') : t('home.ctaPrefs')}
+        </h2>
+        <Button className="mt-3 w-full" size="lg" onClick={() => navigate(matchTo)}>
+          {matchLabel} <ArrowRight size={18} />
+        </Button>
+      </section>
+
+      <section className="space-y-3" aria-labelledby="deals-heading">
+        <h2 id="deals-heading" className="text-base font-semibold text-white">
+          {t('home.deals')}
+        </h2>
+        {deals.length === 0 ? (
+          <Empty
+            emoji="✨"
+            title={t('home.dealsEmpty')}
+            hint={t('home.dealsEmptyHint')}
+            actionLabel={matchLabel}
+            onAction={() => navigate(matchTo)}
+            className="py-8"
+          />
+        ) : (
+          <ul className="space-y-2">
+            {deals.map((d) => (
+              <li key={d.id}>
+                <TopDealCard deal={d} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="space-y-3" aria-labelledby="suggest-heading">
+        <h2 id="suggest-heading" className="text-base font-semibold text-white">
+          {t('suggest.title')}
+        </h2>
+        {suggestions.length === 0 ? (
+          <Empty
+            emoji="🤝"
+            title={t('suggest.empty')}
+            hint={t('suggest.emptyHint')}
+            actionLabel={matchLabel}
+            onAction={() => navigate(matchTo)}
+            className="py-6"
+          />
+        ) : (
+          <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:thin]">
+            <ul className="flex snap-x snap-mandatory gap-2">
+              {suggestions.map((s) => (
+                <li key={s.id}>
+                  <MatchSuggestionCard item={s} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3" aria-labelledby="news-heading">
+        <div>
+          <h2 id="news-heading" className="text-base font-semibold text-white">
+            {t('news.title')}
+          </h2>
+          <p className="mt-0.5 text-[11px] text-muted">{t('news.demo')}</p>
+        </div>
+        <NewsStrip items={news} />
+      </section>
+
+      <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
+        <Link to="/wallet" className="inline-flex items-center gap-2 hover:text-[var(--theme-accent)]">
+          <span className="tabular-nums text-white">{credits.balance} Credits</span>
+          <LaneBadge lane="credits" />
         </Link>
-        <span className="text-neutral-600"> · {t('home.creditsDemo')}</span>
+        <span className="text-neutral-600">· {t('home.creditsPeek')}</span>
       </p>
     </div>
   )

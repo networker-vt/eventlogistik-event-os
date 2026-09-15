@@ -90,13 +90,15 @@ export function AppShell() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setCreateOpen(true)}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--theme-accent)] px-3 py-2 text-sm font-semibold text-black"
-            >
-              <Plus size={16} /> {t('nav.create')}
-            </button>
+            {location.pathname !== '/' && (
+              <button
+                type="button"
+                onClick={() => setCreateOpen(true)}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--theme-accent)] px-3 py-2 text-sm font-semibold text-black"
+              >
+                <Plus size={16} /> {t('nav.create')}
+              </button>
+            )}
             {user ? (
               <button
                 type="button"
@@ -123,14 +125,16 @@ export function AppShell() {
           <BrandMark compact />
         </button>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setCreateOpen(true)}
-            aria-label={t('nav.create')}
-            className="tap-target flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface-3"
-          >
-            <Plus size={18} />
-          </button>
+          {location.pathname !== '/' && (
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              aria-label={t('nav.create')}
+              className="tap-target flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface-3"
+            >
+              <Plus size={18} />
+            </button>
+          )}
           {user ? (
             <button
               type="button"
