@@ -4,6 +4,7 @@ import { FavoriteButton } from '../favorites/FavoriteButton'
 import type { Listing } from '../../types'
 import { Badge } from '../ui/Badge'
 import { VERTICAL_META } from '../../data/constants'
+import { deriveMarketType } from '../../lib/market'
 import { formatDate, formatPriceRange } from '../../lib/utils'
 import { JobConditions } from './JobConditions'
 
@@ -46,6 +47,12 @@ export function ListingCard({
             <Badge tone="teal">{meta?.label}</Badge>
           )}
           {listing.jobType && <Badge>{listing.jobType}</Badge>}
+          {listing.marketType && listing.marketType !== 'job' && (
+            <Badge tone="violet">{listing.marketType}</Badge>
+          )}
+          {!listing.marketType && deriveMarketType(listing) !== 'job' && (
+            <Badge tone="violet">{deriveMarketType(listing)}</Badge>
+          )}
           {listing.featured && <Badge tone="cyan">Featured</Badge>}
         </div>
       </div>

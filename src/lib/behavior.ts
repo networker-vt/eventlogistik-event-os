@@ -1,4 +1,5 @@
 import type { Listing } from '../types'
+import { deriveMarketType, isMarketplaceLane } from './market'
 import { filterListingsByPrefs, getPrefs, type OrbitPrefs } from './prefs'
 import { grantSearchActivity } from './rewards'
 
@@ -139,4 +140,28 @@ export function rankForWorld(listings: Listing[], prefs?: OrbitPrefs): Listing[]
 
 export function hideNoise(listings: Listing[]): Listing[] {
   return rankForWorld(listings).filter((l) => l.vertical === 'job')
+}
+
+/** Calm Home world for company mode — complementary B2B/partners/services, still ≤4 at call site. */
+export function rankForCompanyWorld(listings: Listing[], prefs?: OrbitPrefs): Listing[] {
+  const p = prefs ?? getPrefs()
+  const eventOk = (p.employer.industries || []).some((i) => i.startsWith('Event'))
+  const scored = listings
+    .filter((l) => l.status === 'active')
+    .map((l) => {
+      const lane = deriveMarketType(l)
+      let score = 8
+      const industry = l.industry || ''
+      if (industry && (p.employer.industries || []).includes(industry as never)) score += 24
+      if (lane === 'partnership') score += 10
+      if (lane === 'b2b') score += 8
+      if (lane === 'service') score += 6
+      if (lane === 'asset') score += 3
+      if (l.kind === 'request') score += 5
+      if (l.featured) score += 3
+      if (isMarketplaceLane(l)) score += 4
+      if (isEventSectorListing(l) && !eventOk) score -= 55
+      return { l, score }
+    })
+  return scored.sort((a, b) => b.score - a.score).map((x) => x.l)
 }

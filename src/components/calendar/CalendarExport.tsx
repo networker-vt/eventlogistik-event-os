@@ -14,7 +14,7 @@ export function CalendarExport({
   compact,
 }: {
   event: CalEventInput
-  kind?: 'interview' | 'start' | 'application' | 'other'
+  kind?: 'interview' | 'start' | 'application' | 'other' | 'reminder' | 'plan'
   compact?: boolean
 }) {
   const addLocal = () => {

@@ -13,7 +13,7 @@ const EVT = 'orbit-credits-changed'
 /** Indicative: 10 Credits ≈ 1 EUR (demo only). */
 export const CREDITS_PER_EUR = 10
 
-export type CreditSpendKind = 'featured' | 'unlock_message' | 'demo_gig'
+export type CreditSpendKind = 'featured' | 'unlock_message' | 'demo_gig' | 'booking'
 
 export interface CreditTx {
   id: string
@@ -179,6 +179,8 @@ export const CREDITS_COSTS: Record<CreditSpendKind, { credits: number; label: st
   featured: { credits: 40, label: 'Featured Listing (7 Tage Demo)' },
   unlock_message: { credits: 5, label: 'Nachricht freischalten (Demo)' },
   demo_gig: { credits: 20, label: 'Demo-Gig buchen' },
+  /** Pauschale Demo-Gutschrift — nicht der EUR-Ticketpreis. */
+  booking: { credits: 25, label: 'Reise-Buchung (Demo-Pauschale)' },
 }
 
 export const CREDITS_DISCLAIMER_DE =

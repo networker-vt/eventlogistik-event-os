@@ -7,6 +7,13 @@ export type Vertical =
   | 'courier'
   | 'hotel'
   | 'job'
+  | 'partnership'
+
+/** Unified marketplace taxonomy (v2.2) — Jobs remain one lane among several. */
+export type MarketType = 'job' | 'minijob' | 'service' | 'b2b' | 'partnership' | 'asset'
+
+/** Simple create-sheet intents. Need = Gesuch on any lane. */
+export type CreateIntent = 'job' | 'service' | 'partnership' | 'need'
 
 export type Role =
   | 'freelancer'
@@ -99,6 +106,12 @@ export interface Listing {
   languages?: string[]
   source?: string
   salaryPeriod?: 'hour' | 'day' | 'month' | 'year'
+  /** Marketplace lane; derived from vertical/jobType when omitted (legacy seeds). */
+  marketType?: MarketType
+  /** What this post offers (chips) — used in offer↔need scoring. */
+  offerTags?: string[]
+  /** What this post needs (chips). */
+  needTags?: string[]
 }
 
 
@@ -124,7 +137,11 @@ export interface Thread {
   participantNames: string[]
   lastMessage?: string
   updatedAt: string
+  /** Conversations hub: Match, Booking, Support, Social DM. */
+  kind?: ThreadKind
 }
+
+export type ThreadKind = 'match' | 'booking' | 'support' | 'social'
 
 export interface Booking {
   id: string
@@ -177,6 +194,7 @@ export interface ListingFilters {
   dateFrom?: string
   /** Mock-Radius: filtert Stadt + Nachbarstädte (vereinfacht) */
   radiusKm?: number
+  marketType?: MarketType | 'all'
 }
 
 export interface AuthUser {

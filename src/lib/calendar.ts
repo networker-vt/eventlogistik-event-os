@@ -98,7 +98,7 @@ export interface LocalCalItem {
   startIso: string
   endIso?: string
   location?: string
-  kind: 'interview' | 'start' | 'application' | 'other'
+  kind: 'interview' | 'start' | 'application' | 'other' | 'reminder' | 'plan'
   createdAt: string
 }
 

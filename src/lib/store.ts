@@ -18,6 +18,7 @@ import type {
   StoreMode,
   Thread,
 } from '../types'
+import { deriveMarketType } from './market'
 import { isSupabaseConfigured } from './supabase'
 import {
   fetchSupabaseSnapshot,
@@ -27,7 +28,7 @@ import {
 import { uid } from './utils'
 
 const KEY = 'el_store_v4'
-const SEED_REV = 6
+const SEED_REV = 7
 const REVIEWS_KEY = 'el_reviews_v1'
 
 interface StoreData {
@@ -179,6 +180,9 @@ export const store = {
     if (filters.kind && filters.kind !== 'all') {
       items = items.filter((l) => l.kind === filters.kind)
     }
+    if (filters.marketType && filters.marketType !== 'all') {
+      items = items.filter((l) => deriveMarketType(l) === filters.marketType)
+    }
     if (filters.city) {
       items = items.filter((l) => l.city === filters.city)
     }
@@ -235,6 +239,28 @@ export const store = {
     return item
   },
 
+  updateListing(id: string, patch: Partial<Listing>): Listing | undefined {
+    let updated: Listing | undefined
+    mutate((d) => {
+      const i = d.listings.findIndex((l) => l.id === id)
+      if (i < 0) return
+      d.listings[i] = { ...d.listings[i], ...patch, id: d.listings[i].id }
+      updated = d.listings[i]
+    })
+    if (updated) void pushListingToSupabase(updated)
+    return updated
+  },
+
+  archiveListing(id: string): Listing | undefined {
+    return store.updateListing(id, { status: 'archived' })
+  },
+
+  listListingsForOwner(ownerId: string): Listing[] {
+    return getData()
+      .listings.filter((l) => l.ownerId === ownerId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  },
+
   listProfiles(): Profile[] {
     return [...getData().profiles]
   },
@@ -285,6 +311,7 @@ export const store = {
       participantNames: [input.requesterName, input.listing.ownerName],
       lastMessage: input.note,
       updatedAt: now,
+      kind: 'match',
     }
     const booking: Booking = {
       id: bookingId,
@@ -397,6 +424,63 @@ export const store = {
       }
     })
     return msg
+  },
+
+  createDirectThread(input: {
+    participantIds: [string, string]
+    participantNames: [string, string]
+    listingId?: string
+    listingTitle?: string
+    senderId: string
+    senderName: string
+    body: string
+    kind?: Thread['kind']
+  }): Thread {
+    const kind = input.kind ?? 'match'
+    const existing = getData().threads.find(
+      (t) =>
+        t.participantIds.includes(input.participantIds[0]) &&
+        t.participantIds.includes(input.participantIds[1]) &&
+        (t.kind ?? 'match') === kind &&
+        (input.listingId
+          ? t.listingId === input.listingId
+          : !t.listingId && (t.listingTitle || '') === (input.listingTitle || '')),
+    )
+    if (existing) {
+      this.sendMessage({
+        threadId: existing.id,
+        senderId: input.senderId,
+        senderName: input.senderName,
+        body: input.body,
+      })
+      return this.getThread(existing.id) ?? existing
+    }
+    const now = new Date().toISOString()
+    const threadId = uid('thr')
+    const thread: Thread = {
+      id: threadId,
+      listingId: input.listingId,
+      listingTitle: input.listingTitle,
+      participantIds: [...input.participantIds],
+      participantNames: [...input.participantNames],
+      lastMessage: input.body,
+      updatedAt: now,
+      kind,
+    }
+    const msg: Message = {
+      id: uid('msg'),
+      threadId,
+      senderId: input.senderId,
+      senderName: input.senderName,
+      body: input.body,
+      createdAt: now,
+      read: false,
+    }
+    mutate((d) => {
+      d.threads.unshift(thread)
+      d.messages.push(msg)
+    })
+    return thread
   },
 
   listProjects(ownerId: string): Project[] {

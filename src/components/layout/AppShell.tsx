@@ -6,7 +6,7 @@ import {
   MessageSquare,
   MoreHorizontal,
   Plus,
-  UserRound,
+  Wallet,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../lib/auth'
@@ -29,16 +29,16 @@ export function AppShell() {
   const mobileNav = [
     { to: '/', label: t('nav.home'), icon: Home, end: true },
     { to: '/match', label: t('nav.match'), icon: Briefcase },
-    { to: '/mein', label: t('nav.mein'), icon: UserRound },
     { to: '/messages', label: t('nav.inbox'), icon: MessageSquare },
+    { to: '/wallet', label: t('nav.wallet'), icon: Wallet },
     { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal },
   ] as const
 
   const desktopPrimary = [
     { to: '/', label: t('nav.home'), end: true },
     { to: '/match', label: t('nav.match') },
-    { to: '/mein', label: t('nav.mein') },
     { to: '/messages', label: t('nav.inbox') },
+    { to: '/wallet', label: t('nav.wallet') },
     { to: '/mehr', label: t('nav.mehr') },
   ]
 

@@ -20,10 +20,12 @@ export function AgbPage() {
 
       <h2>§ 2 Leistungsbeschreibung</h2>
       <p>
-        {LEGAL.brand} stellt eine Demo-PWA für Job-Matching bereit: zuerst Präferenzen
-        (preference-first), dann der Match Finder für passende Jobs und Minijobs. Die aktuelle
-        öffentliche Version ist eine funktionsfähige Demo mit lokalem Speicher. Verbindliche
-        Verfügbarkeit, SLA oder Live-Zahlungen sind nicht geschuldet.
+        {LEGAL.brand} stellt eine Demo-PWA für einen ruhigen Marktplatz bereit: duales Matching
+        (Suchende und Firmen — B2B, Dienstleistungen, Partnerschaften, Jobs), Orbit Assist
+        (lokaler Planer / Demo-Recherche), Reise-Suche mit Mock-Preisen, In-App-Checkout-Stubs,
+        Tickets in der Wallet und ein lokaler Social-Feed. Die aktuelle öffentliche Version ist
+        eine funktionsfähige Demo mit lokalem Speicher. Verbindliche Verfügbarkeit, SLA,
+        Live-Zahlungen oder echte GDS-/Airline-/Hotel-Buchungen sind nicht geschuldet.
       </p>
 
       <h2>§ 3 Registrierung</h2>
@@ -45,9 +47,11 @@ export function AgbPage() {
       <h2>§ 5 Entgelte & Zahlungen</h2>
       <p>
         Die Nutzung der Demo ist kostenlos. Wallet, Featured-Credits, FX-Anzeige, IBAN- und
-        Krypto-Formulare bewegen <strong>kein echtes Geld</strong>. Erst nach Anbindung von
-        Stripe/PayPal/Banking-Partner inklusive KYC können Entgelte oder Treuhandzahlungen entstehen —
-        dann mit gesonderter Preisangabe.
+        Krypto-Formulare sowie Reise-Checkout bewegen <strong>kein echtes Geld</strong>.
+        Angezeigte Flüge, Hotels, Bahn- und Mietwagenpreise sind Mock-Daten — keine
+        GDS-/OTA-Buchung. Social-Funktionen laufen nur lokal auf dem Gerät. Erst nach Anbindung
+        von Stripe/PayPal/Banking-Partner inklusive KYC und Reise-Partner-APIs können Entgelte
+        oder echte Buchungen entstehen — dann mit gesonderter Preisangabe.
       </p>
 
       <h2>§ 6 Haftung</h2>

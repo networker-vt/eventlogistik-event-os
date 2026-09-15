@@ -9,25 +9,36 @@ import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
 import { useI18n } from '../lib/i18n'
 import { applyInterest } from '../lib/apply'
-import { rankForWorld, trackBehavior } from '../lib/behavior'
+import { rankForCompanyWorld, rankForWorld, trackBehavior } from '../lib/behavior'
 import { listingSpeech } from '../lib/tts'
 import { cn, formatPrice } from '../lib/utils'
+import { getCompany, subscribeCompany } from '../lib/company'
+import { deriveMarketType, isSeekerFeedListing } from '../lib/market'
 import {
   filterCandidatesByEmployerPrefs,
   getPrefs,
   subscribePrefs,
 } from '../lib/prefs'
 import {
+  getMatchDeckMode,
   getSwipes,
   recordSwipe,
+  scoreB2bMatch,
   scoreCandidateMatch,
   scoreJobMatch,
+  setMatchDeckMode,
   subscribeSwipes,
   swipedIds,
+  type MatchDeckMode,
   type MatchScore,
   type MutualMatch,
 } from '../lib/match'
 import type { Listing, Profile } from '../types'
+
+type DeckCard =
+  | { kind: 'job'; listing: Listing; score: MatchScore }
+  | { kind: 'company'; listing: Listing; score: MatchScore }
+  | { kind: 'candidate'; profile: Profile; score: MatchScore }
 
 export function MatchPage() {
   useStoreVersion()
@@ -35,71 +46,127 @@ export function MatchPage() {
   const navigate = useNavigate()
   const { user, loginDemo, profile } = useAuth()
   const [prefs, setPrefs] = useState(getPrefs)
+  const [company, setCompany] = useState(getCompany)
   const [, setSwipeTick] = useState(0)
   const [toast, setToast] = useState<MutualMatch | null>(null)
   const [explain, setExplain] = useState(false)
+  const [deckMode, setDeckMode] = useState<MatchDeckMode>(() =>
+    getMatchDeckMode(getPrefs().side === 'employer' ? 'company' : 'seeker'),
+  )
 
   useEffect(() => {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
     const u2 = subscribeSwipes(() => setSwipeTick((n) => n + 1))
+    const u3 = subscribeCompany(() => setCompany(getCompany()))
     return () => {
       u1()
       u2()
+      u3()
     }
   }, [])
 
-  const seekerMode = !prefs.completed || prefs.side === 'seeker'
+  const both = prefs.side === 'both'
+  const useSeekerDeck = prefs.side === 'seeker' || (prefs.side === 'both' && deckMode === 'seeker')
 
-  const deck = useMemo(() => {
-    if (seekerMode) {
-      const done = swipedIds('job')
+  const deck = useMemo((): DeckCard[] => {
+    if (useSeekerDeck) {
+      const done = swipedIds(['job', 'company'])
       const jobs = rankForWorld(
-        store.listListings({ vertical: 'job', kind: 'offer' }),
+        store.listListings({}).filter((l) => isSeekerFeedListing(l) && l.kind === 'offer'),
         prefs,
       ).filter((l) => !done.has(l.id) && l.status === 'active')
-      return jobs.map((l) => ({ kind: 'job' as const, listing: l, score: scoreJobMatch(l, prefs) }))
+      return jobs.map((l) => {
+        const lane = deriveMarketType(l)
+        if (lane === 'service') {
+          return { kind: 'company' as const, listing: l, score: scoreB2bMatch(l, prefs, company) }
+        }
+        return { kind: 'job' as const, listing: l, score: scoreJobMatch(l, prefs) }
+      })
     }
-    const done = swipedIds('candidate')
+    const donePeople = swipedIds('candidate')
+    const doneListings = swipedIds(['company', 'job'])
     const candidates = filterCandidatesByEmployerPrefs(
       store.listProfiles().filter((p) => p.role === 'freelancer' || p.role === 'courier'),
       prefs,
-    ).filter((p) => !done.has(p.id))
-    return candidates.map((p) => ({
-      kind: 'candidate' as const,
+    ).filter((p) => !donePeople.has(p.id) && p.id !== user?.id)
+    const listings = rankForCompanyWorld(
+      store.listListings({}).filter((l) => l.ownerId !== user?.id),
+      prefs,
+    ).filter((l) => !doneListings.has(l.id))
+    const peopleCards: DeckCard[] = candidates.map((p) => ({
+      kind: 'candidate',
       profile: p,
-      score: scoreCandidateMatch(p, prefs),
+      score: scoreCandidateMatch(p, prefs, company),
     }))
-  }, [prefs, seekerMode, toast])
+    const listingCards: DeckCard[] = listings.map((l) => ({
+      kind: 'company',
+      listing: l,
+      score: scoreB2bMatch(l, prefs, company),
+    }))
+    return [...listingCards, ...peopleCards].sort((a, b) => b.score.percent - a.score.percent)
+  }, [prefs, company, useSeekerDeck, toast, user?.id])
 
   const current = deck[0]
 
+  const ensureActor = () => {
+    let actor = user
+    if (!actor) {
+      loginDemo()
+      actor = { id: 'user-demo-1', name: 'Alex Müller', email: '', role: 'agency' }
+    }
+    return actor
+  }
+
   const swipe = (action: 'interested' | 'skip') => {
     if (!current) return
-    if (current.kind === 'job') {
-      trackBehavior({
-        kind: action === 'skip' ? 'swipe_skip' : 'swipe_interest',
-        listingId: current.listing.id,
-        industry: current.listing.industry,
-        jobType: current.listing.jobType,
-        city: current.listing.city,
-      })
+    if (current.kind === 'candidate') {
       const { mutual } = recordSwipe({
-        targetId: current.listing.id,
-        targetKind: 'job',
+        targetId: current.profile.id,
+        targetKind: 'candidate',
         action,
-        title: current.listing.title,
-        listingId: current.listing.id,
+        title: current.profile.name,
+        candidateId: current.profile.id,
       })
       if (action === 'interested') {
-        let actor = user
-        if (!actor) {
-          loginDemo()
-          actor = { id: 'user-demo-1', name: 'Alex Müller', email: '', role: 'agency' }
+        const actor = ensureActor()
+        if (actor.id !== current.profile.id) {
+          store.createDirectThread({
+            participantIds: [actor.id, current.profile.id],
+            participantNames: [actor.name, current.profile.name],
+            listingTitle: current.profile.name,
+            senderId: actor.id,
+            senderName: actor.name,
+            body: `Orbit Match — ${company.firmName || actor.name} · ${t('match.candidateNote')}`,
+            kind: 'match',
+          })
         }
-        if (actor.id !== current.listing.ownerId) {
+        if (mutual) {
+          setToast(mutual)
+          window.setTimeout(() => setToast(null), 4200)
+        }
+      }
+    } else {
+      const listing = current.listing
+      trackBehavior({
+        kind: action === 'skip' ? 'swipe_skip' : 'swipe_interest',
+        listingId: listing.id,
+        industry: listing.industry,
+        jobType: listing.jobType,
+        city: listing.city,
+      })
+      const { mutual } = recordSwipe({
+        targetId: listing.id,
+        targetKind: current.kind === 'job' ? 'job' : 'company',
+        action,
+        title: listing.title,
+        listingId: listing.id,
+      })
+      if (action === 'interested') {
+        const actor = ensureActor()
+        if (actor.id !== listing.ownerId) {
           try {
             applyInterest({
-              listing: current.listing,
+              listing,
               requesterId: actor.id,
               requesterName: actor.name,
               city: profile?.city,
@@ -112,18 +179,6 @@ export function MatchPage() {
           setToast(mutual)
           window.setTimeout(() => setToast(null), 4200)
         }
-      }
-    } else {
-      const { mutual } = recordSwipe({
-        targetId: current.profile.id,
-        targetKind: 'candidate',
-        action,
-        title: current.profile.name,
-        candidateId: current.profile.id,
-      })
-      if (mutual) {
-        setToast(mutual)
-        window.setTimeout(() => setToast(null), 4200)
       }
     }
     setSwipeTick((n) => n + 1)
@@ -153,17 +208,16 @@ export function MatchPage() {
   }
 
   const mutuals = getSwipes().mutuals
+  const heading = useSeekerDeck ? t('match.jobs') : t('match.companyDeck')
 
   return (
     <div className="relative mx-auto flex min-h-[70dvh] max-w-lg flex-col gap-4 pb-scroll-chrome">
       <header className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">{t('match.kicker')}</p>
-          <h1 className="text-xl font-bold tracking-tight">
-            {seekerMode ? t('match.jobs') : t('match.candidates')}
-          </h1>
+          <h1 className="text-xl font-bold tracking-tight">{heading}</h1>
           <p className="text-xs text-muted">
-            {deck.length} Karten · Prefs hard-gefiltert
+            {deck.length} {t('match.cards')}
           </p>
         </div>
         <Button size="sm" variant="ghost" onClick={() => navigate('/prefs')}>
@@ -171,31 +225,53 @@ export function MatchPage() {
         </Button>
       </header>
 
+      {both && (
+        <div className="flex gap-1 rounded-full border border-border p-1" role="tablist">
+          {(['seeker', 'company'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => {
+                setDeckMode(m)
+                setMatchDeckMode(m)
+              }}
+              className={cn(
+                'min-h-10 flex-1 rounded-full text-xs font-medium',
+                deckMode === m ? 'bg-[var(--theme-accent)] text-black' : 'text-neutral-300',
+              )}
+            >
+              {m === 'seeker' ? t('match.jobs') : t('match.companyDeck')}
+            </button>
+          ))}
+        </div>
+      )}
+
       {!current ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-surface-2 p-8 text-center">
           <p className="text-4xl">🛰️</p>
           <h2 className="text-lg font-semibold">{t('match.empty')}</h2>
           <p className="text-sm text-muted">{t('match.emptyHint')}</p>
           <Button variant="secondary" onClick={() => navigate('/prefs')}>
-            Prefs anpassen
+            {t('match.tweakPrefs')}
           </Button>
-          <Link to="/quellen" className="text-sm text-cyan hover:underline">
-            Quellen / Aggregatoren →
+          <Link to="/marktplatz" className="text-sm text-cyan hover:underline">
+            {t('market.nav')} →
           </Link>
         </div>
-      ) : current.kind === 'job' ? (
-        <JobCard
-          listing={current.listing}
-          score={current.score}
-          explain={explain}
-          onToggleExplain={() => setExplain((v) => !v)}
-        />
-      ) : (
+      ) : current.kind === 'candidate' ? (
         <CandidateCard
           profile={current.profile}
           score={current.score}
           explain={explain}
           onToggleExplain={() => setExplain((v) => !v)}
+        />
+      ) : (
+        <JobCard
+          listing={current.listing}
+          score={current.score}
+          explain={explain}
+          onToggleExplain={() => setExplain((v) => !v)}
+          lane={deriveMarketType(current.listing)}
         />
       )}
 
@@ -232,7 +308,7 @@ export function MatchPage() {
       {mutuals.length > 0 && (
         <section className="rounded-2xl border border-teal/30 bg-teal/5 p-4">
           <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-teal">
-            <MessageSquare size={16} /> Mutual Matches ({mutuals.length})
+            <MessageSquare size={16} /> {t('match.mutual')} ({mutuals.length})
           </h2>
           <ul className="space-y-2">
             {mutuals.slice(0, 5).map((m) => (
@@ -242,7 +318,7 @@ export function MatchPage() {
                   to={m.listingId ? `/listings/${m.listingId}` : '/messages'}
                   className="shrink-0 text-cyan hover:underline"
                 >
-                  Öffnen
+                  {t('apply.chat')}
                 </Link>
               </li>
             ))}
@@ -288,19 +364,13 @@ function ScoreRing({ score }: { score: MatchScore }) {
 
 function Breakdown({ score, open }: { score: MatchScore; open: boolean }) {
   if (!open) return null
-  const rows: [string, number][] = [
-    ['Skills', score.breakdown.skills],
-    ['Land', score.breakdown.land],
-    ['Sprache', score.breakdown.sprache],
-    ['Gehalt', score.breakdown.gehalt],
-    ['Typ', score.breakdown.typ],
-  ]
+  const rows = score.labels
   return (
     <div className="mt-3 space-y-1 rounded-xl border border-border/80 bg-black/30 p-3 text-xs">
-      {rows.map(([label, v]) => (
+      {rows.map(([label, key]) => (
         <div key={label} className="flex items-center justify-between gap-2">
           <span className="text-muted">{label}</span>
-          <span className="tabular-nums text-neutral-200">{v}</span>
+          <span className="tabular-nums text-neutral-200">{score.breakdown[key]}</span>
         </div>
       ))}
       <ul className="mt-2 list-disc space-y-0.5 pl-4 text-neutral-300">
@@ -317,18 +387,23 @@ function JobCard({
   score,
   explain,
   onToggleExplain,
+  lane,
 }: {
   listing: Listing
   score: MatchScore
   explain: boolean
   onToggleExplain: () => void
+  lane?: string
 }) {
-  const L = listing as Listing & { industry?: string; jobType?: string; workMode?: string; source?: string }
+  const { t } = useI18n()
+  const L = listing
   return (
     <article className="relative flex flex-1 flex-col overflow-hidden rounded-3xl border border-cyan/30 bg-gradient-to-b from-surface-2 to-black p-5 shadow-[0_0_40px_rgba(0,240,255,0.08)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap gap-1.5">
+            {lane && <Badge tone="violet">{t(`market.${lane}` as 'market.job')}</Badge>}
+            {L.kind === 'request' && <Badge tone="amber">{t('create.need')}</Badge>}
             {L.industry && <Badge tone="cyan">{L.industry}</Badge>}
             {L.jobType && <Badge tone="teal">{L.jobType}</Badge>}
             {L.workMode && <Badge>{L.workMode}</Badge>}
@@ -362,7 +437,7 @@ function JobCard({
           </div>
         </div>
         <button type="button" onClick={onToggleExplain} className="text-xs text-[var(--theme-accent)] hover:underline">
-          {explain ? 'Score ausblenden' : 'Match erklären'}
+          {explain ? t('match.hideScore') : t('match.explain')}
         </button>
       </div>
       <div className="mt-3">
@@ -400,6 +475,7 @@ function CandidateCard({
   explain: boolean
   onToggleExplain: () => void
 }) {
+  const { t } = useI18n()
   return (
     <article className="relative flex flex-1 flex-col overflow-hidden rounded-3xl border border-teal/30 bg-gradient-to-b from-surface-2 to-black p-5">
       <div className="flex items-start justify-between gap-3">
@@ -425,7 +501,7 @@ function CandidateCard({
         onClick={onToggleExplain}
         className="mt-3 self-end text-xs text-cyan hover:underline"
       >
-        {explain ? 'Score ausblenden' : 'Match erklären'}
+        {explain ? t('match.hideScore') : t('match.explain')}
       </button>
       <Breakdown score={score} open={explain} />
     </article>

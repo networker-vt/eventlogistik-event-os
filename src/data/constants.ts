@@ -42,16 +42,17 @@ export const VERTICAL_META: Record<
   courier: { label: 'Kurier', labelPlural: 'Kuriere', emoji: '🏍️', path: '/kuriere' },
   hotel: { label: 'Hotel', labelPlural: 'Hotels', emoji: '🏨', path: '/hotels' },
   job: { label: 'Job', labelPlural: 'Jobs', emoji: '💼', path: '/jobs' },
+  partnership: { label: 'Partnerschaft', labelPlural: 'Partnerschaften', emoji: '🔗', path: '/marktplatz' },
 }
 
 export const ROLE_LABELS: Record<string, string> = {
   freelancer: 'Freelancer',
-  company: 'Technikfirma',
+  company: 'Firma',
   hotel: 'Hotel',
   transporter: 'Transporter',
   courier: 'Kurierdienst',
   material: 'Materialanbieter',
-  agency: 'Eventagentur',
+  agency: 'Agentur',
   admin: 'Admin',
 }
 

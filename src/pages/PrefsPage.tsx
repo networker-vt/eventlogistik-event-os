@@ -24,6 +24,7 @@ import {
   type PrefsSide,
   type SeekerPrefs,
 } from '../lib/prefs'
+import { completeCompany, getCompany } from '../lib/company'
 import { cn } from '../lib/utils'
 
 function Chip({
@@ -62,6 +63,11 @@ export function PrefsPage() {
   const [step, setStep] = useState(0)
   const [seeker, setSeeker] = useState<SeekerPrefs>(initial.seeker)
   const [employer, setEmployer] = useState<EmployerPrefs>(initial.employer)
+  const [firmName, setFirmName] = useState(() => getCompany().firmName)
+  const [offerDraft, setOfferDraft] = useState('')
+  const [seekDraft, setSeekDraft] = useState('')
+  const [offers, setOffers] = useState(() => getCompany().offers)
+  const [seeks, setSeeks] = useState(() => getCompany().seeks)
   const [skillDraft, setSkillDraft] = useState('')
 
   const seekerSteps = ['Seite', 'Ort & Sprache', 'Branche & Typ', 'Gehalt & Skills']
@@ -70,6 +76,18 @@ export function PrefsPage() {
 
   const finish = () => {
     savePrefs({ side, seeker, employer })
+    if (side !== 'seeker') {
+      completeCompany({
+        firmName: firmName.trim(),
+        offers,
+        seeks,
+        industries: employer.industries,
+        countries: employer.countries,
+        languages: employer.languages,
+        hiringNeeds: employer.rolesHiring,
+        size: employer.companySize,
+      })
+    }
     completePrefs(side)
     navigate('/match')
   }
@@ -116,18 +134,23 @@ export function PrefsPage() {
       </p>
 
       {step === 0 && (
-        <section className="grid gap-3 sm:grid-cols-2">
+        <section className="grid gap-3 sm:grid-cols-3">
           {(
             [
               {
                 id: 'seeker' as const,
                 title: 'Ich suche Arbeit',
-                hint: 'Jobs & Gigs nach Prefs matchen',
+                hint: 'Jobs, Minijobs, Dienstleistungen nach Prefs',
               },
               {
                 id: 'employer' as const,
-                title: 'Ich stelle ein',
-                hint: 'Kandidaten nach Must-haves swipen',
+                title: 'Ich bin eine Firma',
+                hint: 'Kandidaten, B2B, Partnerschaften swipen',
+              },
+              {
+                id: 'both' as const,
+                title: 'Beides',
+                hint: 'Suchende und Firma — Match-Decks umschalten',
               },
             ] as const
           ).map((opt) => (
@@ -277,8 +300,17 @@ export function PrefsPage() {
         </section>
       )}
 
-      {step === 2 && side === 'employer' && (
+      {step === 2 && side !== 'seeker' && (
         <section className="space-y-4">
+          <label className="block text-sm font-semibold">
+            Firmenname
+            <Input
+              className="mt-1"
+              value={firmName}
+              placeholder="Northline Ops B.V."
+              onChange={(e) => setFirmName(e.target.value)}
+            />
+          </label>
           <div>
             <h2 className="mb-2 text-sm font-semibold">Branchen</h2>
             <div className="flex flex-wrap gap-2">
@@ -329,12 +361,55 @@ export function PrefsPage() {
               ))}
             </div>
           </div>
+          <div>
+            <h2 className="mb-2 text-sm font-semibold">Wir bieten / wir suchen</h2>
+            <div className="flex gap-2">
+              <Input
+                value={offerDraft}
+                placeholder="Angebot hinzufügen"
+                onChange={(e) => setOfferDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    const v = offerDraft.trim()
+                    if (v && !offers.includes(v)) setOffers([...offers, v])
+                    setOfferDraft('')
+                  }
+                }}
+              />
+              <Input
+                value={seekDraft}
+                placeholder="Bedarf hinzufügen"
+                onChange={(e) => setSeekDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    const v = seekDraft.trim()
+                    if (v && !seeks.includes(v)) setSeeks([...seeks, v])
+                    setSeekDraft('')
+                  }
+                }}
+              />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {offers.map((o) => (
+                <Chip key={o} active onClick={() => setOffers(offers.filter((x) => x !== o))}>
+                  + {o}
+                </Chip>
+              ))}
+              {seeks.map((o) => (
+                <Chip key={o} active onClick={() => setSeeks(seeks.filter((x) => x !== o))}>
+                  − {o}
+                </Chip>
+              ))}
+            </div>
+          </div>
         </section>
       )}
 
       {step === 3 && (
         <section className="space-y-4">
-          {side === 'seeker' && (
+          {(side === 'seeker' || side === 'both') && (
             <label className="block text-sm font-semibold">
               Gehalt Minimum (€ / Monat, grob)
               <Input

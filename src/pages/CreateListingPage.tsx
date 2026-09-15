@@ -12,23 +12,270 @@ import {
   TRAVEL_OPTIONS,
   VERTICAL_META,
 } from '../data/constants'
+import { INDUSTRIES } from '../data/industries'
 import { DEMO_USER_ID, seedProfiles } from '../data/seed'
 import { useAuth } from '../lib/auth'
+import { getCompany } from '../lib/company'
+import { CREDITS_COSTS, getCredits, spendCredits } from '../lib/credits'
+import { useI18n } from '../lib/i18n'
+import { CREATE_INTENTS, intentToDraft, MARKET_EMOJI, MARKET_TYPES, verticalForMarket } from '../lib/market'
 import { store } from '../lib/store'
-import type { ExpensesCover, ListingKind, OvernightCover, TravelCover, Vertical } from '../types'
+import { cn } from '../lib/utils'
+import type {
+  CreateIntent,
+  ExpensesCover,
+  ListingKind,
+  MarketType,
+  OvernightCover,
+  TravelCover,
+  Vertical,
+} from '../types'
 import { vehicleSizes } from '../data/catalog'
 
 const EMOJI: Record<Vertical, string> = {
-  freelancer: '👷',
-  company: '🏢',
-  material: '🎛️',
+  freelancer: '🛠️',
+  company: '🤝',
+  material: '📦',
   transporter: '🚛',
   courier: '🏍️',
   hotel: '🏨',
   job: '💼',
+  partnership: '🔗',
+}
+
+function parseIntent(params: URLSearchParams): CreateIntent {
+  const raw = params.get('intent') as CreateIntent | null
+  if (raw && CREATE_INTENTS.includes(raw)) return raw
+  const vertical = params.get('vertical')
+  const kind = params.get('kind')
+  if (kind === 'request') return 'need'
+  if (vertical === 'job') return 'job'
+  if (vertical === 'partnership') return 'partnership'
+  if (vertical && vertical !== 'job') return 'service'
+  return 'job'
 }
 
 export function CreateListingPage() {
+  const [params] = useSearchParams()
+  if (params.get('full') === '1') return <FullCreateListing />
+  return <SimpleCreateListing />
+}
+
+function SimpleCreateListing() {
+  const [params] = useSearchParams()
+  const { t } = useI18n()
+  const { user, profile, loginDemo } = useAuth()
+  const navigate = useNavigate()
+  const company = getCompany()
+  const credits = getCredits()
+
+  const [intent, setIntent] = useState<CreateIntent>(() => parseIntent(params))
+  const [needLane, setNeedLane] = useState<MarketType>('b2b')
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [price, setPrice] = useState('')
+  const [priceUnit, setPriceUnit] = useState('')
+  const [city, setCity] = useState(profile?.city || company.locations[0] || 'Berlin')
+  const [industry, setIndustry] = useState(company.industry || '')
+  const [boost, setBoost] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+
+  const draft = useMemo(() => {
+    if (intent === 'need') {
+      return { kind: 'request' as const, marketType: needLane, vertical: verticalForMarket(needLane) }
+    }
+    return intentToDraft(intent)
+  }, [intent, needLane])
+
+  const cost = CREDITS_COSTS.featured
+  const canBoost = credits.balance >= cost.credits
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault()
+    let u = user
+    let p = profile
+    if (!u || !p) {
+      loginDemo()
+      const demo = seedProfiles.find((x) => x.id === DEMO_USER_ID)!
+      u = { id: demo.id, email: demo.email, name: demo.name, role: demo.role }
+      p = demo
+    }
+    const trimmed = title.trim()
+    if (!trimmed) return
+    const desc = description.trim() || `${trimmed}`
+    let featured = false
+    if (boost && canBoost) {
+      const spent = spendCredits(cost.credits, 'featured', `${cost.label}: ${trimmed}`)
+      featured = Boolean(spent)
+    }
+    const ownerName = company.firmName || p.companyName || u.name
+    const listing = store.createListing({
+      kind: draft.kind,
+      vertical: draft.vertical,
+      marketType: draft.marketType,
+      title: trimmed,
+      description: desc,
+      city,
+      crafts: [],
+      priceFrom: price ? Number(price) : undefined,
+      priceUnit: priceUnit || undefined,
+      currency: 'EUR',
+      ownerId: u.id,
+      ownerName,
+      ownerVerified: p.verified,
+      rating: p.rating,
+      tags: [draft.marketType, draft.kind === 'request' ? 'Gesuch' : 'Angebot'],
+      imageEmoji: MARKET_EMOJI[draft.marketType] || EMOJI[draft.vertical],
+      featured,
+      industry: industry || undefined,
+      jobType: draft.marketType === 'minijob' ? 'Minijob' : draft.marketType === 'job' ? 'Freelance' : undefined,
+      country: city === 'Remote' ? 'Remote / Global' : undefined,
+      languages: company.languages.length ? company.languages : undefined,
+      source: 'Orbit Direct',
+      offerTags: draft.kind === 'offer' ? company.offers.slice(0, 4) : undefined,
+      needTags: draft.kind === 'request' ? company.seeks.slice(0, 4) : undefined,
+      matchReason: featured ? 'Orbit Credits Boost (Demo)' : undefined,
+    })
+    navigate(`/listings/${listing.id}`)
+  }
+
+  return (
+    <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome">
+      <div>
+        <h1 className="text-2xl font-bold">{t('create.title')}</h1>
+        <p className="text-sm text-muted">{t('create.simpleLead')}</p>
+      </div>
+      <form onSubmit={submit} className="space-y-4 rounded-2xl border border-border bg-surface-2 p-5">
+        <fieldset>
+          <legend className="mb-2 text-sm text-muted">{t('create.type')}</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {CREATE_INTENTS.map((id) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setIntent(id)}
+                className={cn(
+                  'min-h-12 rounded-2xl border px-3 py-2 text-left text-sm font-medium',
+                  intent === id
+                    ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-white'
+                    : 'border-border bg-black/20 text-neutral-300',
+                )}
+              >
+                {t(`create.${id}`)}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        {intent === 'need' && (
+          <div className="flex flex-wrap gap-1.5">
+            {MARKET_TYPES.filter((m) => m !== 'minijob').map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setNeedLane(m)}
+                className={cn(
+                  'min-h-9 rounded-full border px-3 text-xs',
+                  needLane === m
+                    ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15'
+                    : 'border-border',
+                )}
+              >
+                {t(`market.${m}`)}
+              </button>
+            ))}
+          </div>
+        )}
+        <Input
+          label={t('create.titleField')}
+          required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={t('create.titlePh')}
+        />
+        <Textarea
+          label={t('create.descOptional')}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t('create.descPh')}
+        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input
+            label={t('create.priceOptional')}
+            type="number"
+            min="0"
+            step="1"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="—"
+          />
+          <Input
+            label={t('create.unit')}
+            value={priceUnit}
+            onChange={(e) => setPriceUnit(e.target.value)}
+            placeholder={t('create.unitPh')}
+          />
+        </div>
+        <label className="flex min-h-11 items-start gap-2 rounded-xl border border-border bg-black/20 px-3 py-2 text-sm">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={boost}
+            disabled={!canBoost}
+            onChange={(e) => setBoost(e.target.checked)}
+          />
+          <span>
+            {t('create.boost')} ({cost.credits} Credits)
+            <span className="block text-[11px] text-muted">{t('create.boostHint')}</span>
+          </span>
+        </label>
+        <button
+          type="button"
+          className="text-sm text-[var(--theme-accent)] hover:underline"
+          onClick={() => setDetailsOpen((v) => !v)}
+        >
+          {detailsOpen ? t('create.hideDetails') : t('create.moreDetails')}
+        </button>
+        {detailsOpen && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Select label={t('create.city')} value={city} onChange={(e) => setCity(e.target.value)}>
+              {CITIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
+            <Select label={t('create.industry')} value={industry} onChange={(e) => setIndustry(e.target.value)}>
+              <option value="">{t('create.industryAny')}</option>
+              {INDUSTRIES.map((ind) => (
+                <option key={ind} value={ind}>
+                  {ind}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
+        {!user && (
+          <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+            {t('create.demoNote')}
+          </p>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit">{t('create.publish')}</Button>
+          <Button type="button" variant="secondary" onClick={() => navigate(-1)}>
+            {t('create.cancel')}
+          </Button>
+        </div>
+        <p className="text-[11px] text-muted">
+          <Link to="/listings/new?full=1" className="hover:underline">
+            {t('create.classic')}
+          </Link>
+        </p>
+      </form>
+    </div>
+  )
+}
+
+function FullCreateListing() {
   const [params] = useSearchParams()
   const { user, profile, loginDemo } = useAuth()
   const navigate = useNavigate()
@@ -136,6 +383,11 @@ export function CreateListingPage() {
             ? 'Strukturiert in unter 2 Minuten: Zeitraum, Ort, Qualifikation, Tagessatz, Anfahrt, Übernachtung, Spesen.'
             : `Dual Marketplace: als Angebot oder Gesuch für ${meta.labelPlural}.`}
         </p>
+        <p className="mt-1 text-xs text-muted">
+          <Link to="/listings/new" className="text-cyan hover:underline">
+            ← Einfaches Sheet
+          </Link>
+        </p>
       </div>
       <form onSubmit={submit} className="space-y-4 rounded-2xl border border-border bg-surface-2 p-5">
         <div className="grid gap-3 sm:grid-cols-2">
@@ -192,7 +444,6 @@ export function CreateListingPage() {
           </Select>
         </div>
 
-
         {vertical === 'transporter' && (
           <Select
             label="Fahrzeuggröße"
@@ -205,14 +456,6 @@ export function CreateListingPage() {
               </option>
             ))}
           </Select>
-        )}
-        {vertical === 'transporter' && (
-          <p className="text-xs text-muted">
-            Referenz:{' '}
-            <Link to="/katalog/fahrzeuggroessen" className="text-cyan hover:underline">
-              Fahrzeuggrößen-Katalog
-            </Link>
-          </p>
         )}
 
         {isJob && (
@@ -348,20 +591,11 @@ export function CreateListingPage() {
 
         {!user && (
           <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-            Nicht eingeloggt — beim Speichern starten wir die Demo-Session (Agentur) und veröffentlichen
-            sofort.
+            Nicht eingeloggt — beim Speichern starten wir die Demo-Session und veröffentlichen sofort.
           </p>
         )}
         <div className="flex flex-wrap gap-2">
-          <Button type="submit">
-            {isJob
-              ? kind === 'offer'
-                ? 'Job veröffentlichen'
-                : 'Gesuch veröffentlichen'
-              : kind === 'offer'
-                ? 'Angebot veröffentlichen'
-                : 'Gesuch veröffentlichen'}
-          </Button>
+          <Button type="submit">Veröffentlichen</Button>
           <Button type="button" variant="secondary" onClick={() => navigate(-1)}>
             Abbrechen
           </Button>

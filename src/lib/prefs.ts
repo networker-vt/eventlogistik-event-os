@@ -1,10 +1,20 @@
 import type { Industry, JobType, WorkMode } from '../data/industries'
-import type { Listing, Profile } from '../types'
+import { deriveMarketType, isSeekerFeedListing } from './market'
+import type { Listing, MarketType, Profile } from '../types'
 
 const KEY = 'orbit_prefs_v1'
 const EVT = 'orbit-prefs-changed'
 
-export type PrefsSide = 'seeker' | 'employer'
+/** seeker = person; employer = company/hiring (legacy key); both = dual mode. */
+export type PrefsSide = 'seeker' | 'employer' | 'both'
+
+export function isCompanySide(side: PrefsSide) {
+  return side === 'employer' || side === 'both'
+}
+
+export function isSeekerSide(side: PrefsSide) {
+  return side === 'seeker' || side === 'both'
+}
 
 export interface SeekerPrefs {
   countries: string[]
@@ -25,6 +35,8 @@ export interface EmployerPrefs {
   companySize: string
   mustHaveSkills: string[]
   industries: Industry[]
+  /** B2B match radius (km) for on-site partners / assets. */
+  radiusKm: number
 }
 
 export interface OrbitPrefs {
@@ -51,12 +63,13 @@ export function defaultPrefs(): OrbitPrefs {
       mustHaveSkills: [],
     },
     employer: {
-      countries: ['Deutschland'],
-      languages: ['Deutsch'],
+      countries: ['Deutschland', 'Remote / Global'],
+      languages: ['Deutsch', 'Englisch'],
       rolesHiring: [],
       companySize: '11–50',
       mustHaveSkills: [],
       industries: [],
+      radiusKm: 80,
     },
     updatedAt: new Date().toISOString(),
   }
@@ -68,9 +81,14 @@ function load(): OrbitPrefs {
     if (!raw) return defaultPrefs()
     const parsed = JSON.parse(raw) as OrbitPrefs
     const base = defaultPrefs()
+    const side: PrefsSide =
+      parsed.side === 'both' || parsed.side === 'employer' || parsed.side === 'seeker'
+        ? parsed.side
+        : base.side
     return {
       ...base,
       ...parsed,
+      side,
       seeker: { ...base.seeker, ...parsed.seeker },
       employer: { ...base.employer, ...parsed.employer },
     }
@@ -135,7 +153,7 @@ export function resetPrefs() {
 /** Hard-filter listings by seeker prefs before any feed/cards. */
 export function filterListingsByPrefs(listings: Listing[], prefs?: OrbitPrefs): Listing[] {
   const p = prefs ?? get()
-  if (!p.completed || p.side !== 'seeker') return listings
+  if (!p.completed || !isSeekerSide(p.side)) return listings
   const s = p.seeker
   return listings.filter((l) => {
     if (l.vertical !== 'job' && l.kind !== 'offer') {
@@ -220,7 +238,7 @@ export function filterCandidatesByEmployerPrefs(
   prefs?: OrbitPrefs,
 ): Profile[] {
   const p = prefs ?? get()
-  if (!p.completed || p.side !== 'employer') return profiles
+  if (!p.completed || !isCompanySide(p.side)) return profiles
   const e = p.employer
   return profiles.filter((prof) => {
     if (e.mustHaveSkills.length) {
@@ -232,6 +250,35 @@ export function filterCandidatesByEmployerPrefs(
     if (e.rolesHiring.length) {
       const hay = [...(prof.crafts || []), prof.role, prof.bio].join(' ').toLowerCase()
       if (!e.rolesHiring.some((r) => hay.includes(r.toLowerCase()))) return false
+    }
+    return true
+  })
+}
+
+/** Preference-first marketplace filter (jobs + services + B2B + partners). Soft on missing fields. */
+export function filterMarketplaceByPrefs(
+  listings: Listing[],
+  prefs?: OrbitPrefs,
+  marketType?: MarketType | 'all',
+): Listing[] {
+  const p = prefs ?? get()
+  return listings.filter((l) => {
+    if (l.status !== 'active') return false
+    const lane = deriveMarketType(l)
+    if (marketType && marketType !== 'all' && lane !== marketType) return false
+    const industries = isCompanySide(p.side) ? p.employer.industries : p.seeker.industries
+    if (industries.length && l.industry && !industries.includes(l.industry as Industry)) {
+      const hay = [...(l.tags || []), ...(l.crafts || []), l.title].join(' ').toLowerCase()
+      const hit = industries.some((ind) => hay.includes(ind.toLowerCase().split('/')[0].trim()))
+      if (!hit) return false
+    }
+    const countries = isCompanySide(p.side) ? p.employer.countries : p.seeker.countries
+    if (countries.length && !countries.includes('Remote / Global')) {
+      const country = l.country || 'Deutschland'
+      if (!countries.includes(country) && country !== 'Remote / Global') return false
+    }
+    if (isSeekerSide(p.side) && isSeekerFeedListing(l) && p.seeker.jobTypes.length && lane === 'job') {
+      if (l.jobType && !p.seeker.jobTypes.includes(l.jobType as JobType)) return false
     }
     return true
   })

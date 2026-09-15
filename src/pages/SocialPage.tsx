@@ -1,0 +1,230 @@
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Heart, MessageCircle, Users } from 'lucide-react'
+import { Button } from '../components/ui/Button'
+import { Empty } from '../components/ui/Empty'
+import { Textarea } from '../components/ui/Input'
+import { SpeakButton } from '../components/a11y/SpeakButton'
+import { useStoreVersion } from '../hooks/useStore'
+import { useAuth } from '../lib/auth'
+import { DEMO_USER_ID } from '../data/seed'
+import { useI18n } from '../lib/i18n'
+import {
+  addComment,
+  addPost,
+  discoverPeople,
+  getSocial,
+  startSocialDm,
+  subscribeSocial,
+  toggleFollow,
+  toggleLike,
+} from '../lib/social'
+import { store } from '../lib/store'
+import { formatDateTime, cn } from '../lib/utils'
+
+export function SocialPage() {
+  const { t } = useI18n()
+  const { user, loginDemo } = useAuth()
+  const navigate = useNavigate()
+  useStoreVersion()
+  const [social, setSocial] = useState(getSocial)
+  const [draft, setDraft] = useState('')
+  const [commentDraft, setCommentDraft] = useState<Record<string, string>>({})
+  const [shareId, setShareId] = useState('')
+
+  useEffect(() => subscribeSocial(() => setSocial(getSocial())), [])
+
+  const actor = user ?? { id: DEMO_USER_ID, name: 'Alex Müller' }
+  const listings = store.listListings({}).slice(0, 8)
+  const people = discoverPeople()
+
+  const ensureUser = () => {
+    if (!user) loginDemo()
+    return user ?? { id: DEMO_USER_ID, name: 'Alex Müller' }
+  }
+
+  const publish = () => {
+    const me = ensureUser()
+    const listing = listings.find((l) => l.id === shareId)
+    addPost({
+      authorId: me.id,
+      authorName: me.name,
+      authorKind: 'person',
+      body: draft,
+      listingId: listing?.id,
+    })
+    setDraft('')
+    setShareId('')
+  }
+
+  return (
+    <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome">
+      <header className="space-y-1">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
+              {t('social.kicker')}
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight">{t('social.title')}</h1>
+            <p className="mt-1 text-sm text-muted">{t('social.lead')}</p>
+          </div>
+          <SpeakButton compact text={`${t('social.title')}. ${t('social.lead')}`} />
+        </div>
+      </header>
+
+      <p className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+        {t('social.demo')}
+      </p>
+
+      <section className="rounded-2xl border border-border bg-surface-2 p-4 space-y-2">
+        <Textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={t('social.compose')}
+          className="min-h-20"
+        />
+        <label className="block text-xs text-muted">
+          {t('social.shareOffer')}
+          <select
+            className="mt-1 w-full min-h-10 rounded-xl border border-border bg-surface-3 px-2 text-sm"
+            value={shareId}
+            onChange={(e) => setShareId(e.target.value)}
+          >
+            <option value="">{t('social.noOffer')}</option>
+            {listings.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Button onClick={publish} disabled={!draft.trim()} className="w-full">
+          {t('social.post')}
+        </Button>
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="flex items-center gap-2 text-sm font-semibold">
+          <Users size={16} /> {t('social.discover')}
+        </h2>
+        <ul className="space-y-2">
+          {people.map((p) => {
+            const following = social.following.includes(p.id)
+            return (
+              <li
+                key={p.id}
+                className="flex items-center gap-3 rounded-2xl border border-border bg-surface-2/60 px-3 py-2"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-white">{p.name}</p>
+                  <p className="truncate text-xs text-muted">
+                    {p.companyName || p.city} · {p.role}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleFollow(p.id)}
+                  className={cn(
+                    'min-h-9 rounded-full border px-3 text-xs',
+                    following
+                      ? 'border-[var(--theme-accent)] text-[var(--theme-accent)]'
+                      : 'border-border',
+                  )}
+                >
+                  {following ? t('social.following') : t('social.follow')}
+                </button>
+                <button
+                  type="button"
+                  className="text-xs text-muted hover:text-white"
+                  onClick={() => {
+                    const me = ensureUser()
+                    const thread = startSocialDm({
+                      meId: me.id,
+                      meName: me.name,
+                      otherId: p.id,
+                      otherName: p.name,
+                    })
+                    navigate(`/messages/${thread.id}`)
+                  }}
+                >
+                  DM
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold">{t('social.feed')}</h2>
+        {social.posts.length === 0 ? (
+          <Empty emoji="✨" title={t('social.empty')} hint={t('social.emptyHint')} />
+        ) : (
+          <ul className="space-y-3">
+            {social.posts.map((post) => {
+              const liked = post.likes.includes(actor.id)
+              return (
+                <li key={post.id} className="rounded-2xl border border-border bg-surface-2 p-4">
+                  <p className="text-xs text-muted">
+                    {post.authorName} · {post.authorKind === 'company' ? t('role.company') : t('role.seeker')} ·{' '}
+                    {formatDateTime(post.createdAt)}
+                  </p>
+                  <p className="mt-2 text-sm text-white whitespace-pre-wrap">{post.body}</p>
+                  {post.listingId && (
+                    <Link
+                      to={`/listings/${post.listingId}`}
+                      className="mt-2 inline-block text-xs text-[var(--theme-accent)] hover:underline"
+                    >
+                      {t('social.openOffer')} →
+                    </Link>
+                  )}
+                  <div className="mt-3 flex items-center gap-3 text-xs text-muted">
+                    <button
+                      type="button"
+                      className={cn('inline-flex items-center gap-1', liked && 'text-rose-300')}
+                      onClick={() => toggleLike(post.id, ensureUser().id)}
+                    >
+                      <Heart size={14} fill={liked ? 'currentColor' : 'none'} /> {post.likes.length}
+                    </button>
+                    <span className="inline-flex items-center gap-1">
+                      <MessageCircle size={14} /> {post.comments.length}
+                    </span>
+                  </div>
+                  {post.comments.length > 0 && (
+                    <ul className="mt-2 space-y-1 border-t border-border/60 pt-2">
+                      {post.comments.map((c) => (
+                        <li key={c.id} className="text-xs">
+                          <span className="font-medium text-neutral-200">{c.authorName}: </span>
+                          <span className="text-muted">{c.body}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <form
+                    className="mt-2 flex gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      const me = ensureUser()
+                      addComment(post.id, me.id, me.name, commentDraft[post.id] || '')
+                      setCommentDraft((d) => ({ ...d, [post.id]: '' }))
+                    }}
+                  >
+                    <input
+                      value={commentDraft[post.id] || ''}
+                      onChange={(e) => setCommentDraft((d) => ({ ...d, [post.id]: e.target.value }))}
+                      placeholder={t('social.comment')}
+                      className="min-h-10 flex-1 rounded-xl border border-border bg-surface-3 px-3 text-sm"
+                    />
+                    <Button type="submit" size="sm" variant="secondary" disabled={!commentDraft[post.id]?.trim()}>
+                      {t('social.send')}
+                    </Button>
+                  </form>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+    </div>
+  )
+}

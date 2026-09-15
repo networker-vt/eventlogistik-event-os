@@ -110,7 +110,17 @@ export function AuthPage() {
           navigate('/dashboard')
         }}
       >
-        Demo als Eventagentur starten
+        Demo als Agentur starten
+      </Button>
+      <Button
+        variant="ghost"
+        className="w-full"
+        onClick={() => {
+          loginDemo('user-b2b-1')
+          navigate('/firma')
+        }}
+      >
+        Demo als Firma starten
       </Button>
       <p className="text-center text-xs text-muted">
         Ohne Supabase-Keys läuft Auth lokal (localStorage). Siehe README & `.env.example`.

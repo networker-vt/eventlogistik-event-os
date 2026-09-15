@@ -77,6 +77,7 @@ export function FilterBar({
           <option value="courier">Kuriere</option>
           <option value="hotel">Hotels</option>
           <option value="job">Jobs</option>
+          <option value="partnership">Partnerschaften</option>
         </Select>
       ) : (
         <Input
