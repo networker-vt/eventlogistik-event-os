@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { AuthProvider } from './lib/auth'
+import { I18nProvider, useI18n } from './lib/i18n'
+import { initRewards } from './lib/rewards'
 import { initStore } from './lib/store'
 import { AuthPage } from './pages/AuthPage'
 import { BookingPage } from './pages/BookingPage'
@@ -37,6 +39,9 @@ import { EmpfehlenPage } from './pages/EmpfehlenPage'
 import { PrefsPage } from './pages/PrefsPage'
 import { MatchPage } from './pages/MatchPage'
 import { QuellenPage } from './pages/QuellenPage'
+import { PhotoJobsPage } from './pages/PhotoJobsPage'
+import { InterviewPage } from './pages/InterviewPage'
+import { ErfahrungenPage } from './pages/ErfahrungenPage'
 import { captureRefFromSearch } from './lib/referral'
 import { hydrateSafeTweaks } from './lib/ideas'
 
@@ -45,22 +50,24 @@ function V({ vertical }: { vertical: Vertical }) {
 }
 
 export default function App() {
+  return (
+    <I18nProvider>
+      <AppReady />
+    </I18nProvider>
+  )
+}
+
+function AppReady() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     hydrateSafeTweaks()
     captureRefFromSearch(window.location.search)
+    initRewards()
     void initStore().finally(() => setReady(true))
   }, [])
 
-  if (!ready) {
-    return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-surface">
-        <div className="h-10 w-10 rounded-2xl border border-cyan/30 bg-cyan/10 skeleton-shimmer" />
-        <p className="text-sm text-muted">Orbit wird geladen…</p>
-      </div>
-    )
-  }
+  if (!ready) return <BootScreen />
 
   return (
     <AuthProvider>
@@ -85,6 +92,10 @@ export default function App() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="mehr" element={<MehrPage />} />
             <Route path="mein" element={<MeinPage />} />
+            <Route path="foto" element={<PhotoJobsPage />} />
+            <Route path="interview" element={<InterviewPage />} />
+            <Route path="interview/:roomId" element={<InterviewPage />} />
+            <Route path="erfahrungen" element={<ErfahrungenPage />} />
             <Route path="wallet" element={<WalletPage />} />
             <Route path="ideen" element={<IdeenPage />} />
             <Route path="integrationen" element={<IntegrationenPage />} />
@@ -116,5 +127,15 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+  )
+}
+
+function BootScreen() {
+  const { t } = useI18n()
+  return (
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-surface">
+      <div className="h-10 w-10 rounded-2xl border border-cyan/30 bg-cyan/10 skeleton-shimmer" />
+      <p className="text-sm text-muted">{t('brand.loading')}</p>
+    </div>
   )
 }

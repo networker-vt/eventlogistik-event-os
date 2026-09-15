@@ -51,7 +51,7 @@ export function CreateSheet({ open, onClose }: Props) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Erstellen">
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Erstellen">
       <button
         type="button"
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"

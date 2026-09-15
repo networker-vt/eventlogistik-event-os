@@ -35,6 +35,9 @@
   ::selection {
     background: color-mix(in oklab, var(--color-cyan) 40%, transparent);
   }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
   input, select, textarea, button {
     font: inherit;
   }
@@ -50,17 +53,79 @@
 }
 
 :root {
-  /* Mobile fixed chrome: bottom nav + FAB clearance (md+ unused) */
+  /* Mobile fixed chrome: bottom nav */
   --el-nav-h: 3.25rem;
   --el-nav-pad: max(0.5rem, env(safe-area-inset-bottom, 0px));
   --el-fab-size: 3.5rem;
   --el-fab-gap: 0.75rem;
-  /* Nav stack height (matches safe-pb on bottom nav) */
   --el-nav-stack: calc(var(--el-nav-h) + var(--el-nav-pad));
-  /* FAB sits above nav */
   --el-fab-bottom: calc(var(--el-nav-stack) + var(--el-fab-gap));
-  /* Main content clears bottom nav + raised center FAB */
-  --el-bottom-chrome: calc(var(--el-nav-stack) + 2.75rem);
+  --el-bottom-chrome: calc(var(--el-nav-stack) + 0.75rem);
+  --theme-accent: #00e0ea;
+  --theme-accent-2: #14b8a6;
+  --theme-wash: transparent;
+}
+
+[data-theme="home"] {
+  --theme-accent: #00e0ea;
+  --theme-accent-2: #2dd4bf;
+  --theme-wash: color-mix(in oklab, #00e0ea 7%, transparent);
+}
+[data-theme="match"] {
+  --theme-accent: #fb7185;
+  --theme-accent-2: #f472b6;
+  --theme-wash: color-mix(in oklab, #fb7185 8%, transparent);
+}
+[data-theme="mein"] {
+  --theme-accent: #a78bfa;
+  --theme-accent-2: #818cf8;
+  --theme-wash: color-mix(in oklab, #a78bfa 9%, transparent);
+}
+[data-theme="inbox"] {
+  --theme-accent: #2dd4bf;
+  --theme-accent-2: #67e8f9;
+  --theme-wash: color-mix(in oklab, #2dd4bf 8%, transparent);
+}
+[data-theme="mehr"] {
+  --theme-accent: #fbbf24;
+  --theme-accent-2: #fb923c;
+  --theme-wash: color-mix(in oklab, #fbbf24 7%, transparent);
+}
+
+.theme-shell {
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -10%, var(--theme-wash), transparent 55%),
+    var(--color-surface);
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -100%;
+  z-index: 80;
+  border-radius: 0.75rem;
+  background: var(--theme-accent);
+  color: #111;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.skip-link:focus {
+  top: 0.75rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--theme-accent, var(--color-cyan));
+  outline-offset: 2px;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--theme-accent, var(--color-cyan));
+  outline-offset: 2px;
 }
 
 @layer utilities {

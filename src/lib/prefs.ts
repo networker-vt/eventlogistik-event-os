@@ -40,8 +40,8 @@ export function defaultPrefs(): OrbitPrefs {
     side: 'seeker',
     completed: false,
     seeker: {
-      countries: ['Deutschland'],
-      languages: ['Deutsch'],
+      countries: ['Deutschland', 'Remote / Global'],
+      languages: ['Deutsch', 'Englisch'],
       industries: [],
       jobTypes: ['Vollzeit', 'Teilzeit', 'Minijob', 'Freelance'],
       workModes: ['remote', 'hybrid', 'onsite'],
@@ -121,7 +121,9 @@ export function savePrefs(partial: Partial<OrbitPrefs>): OrbitPrefs {
 }
 
 export function completePrefs(side: PrefsSide): OrbitPrefs {
-  return savePrefs({ side, completed: true })
+  const next = savePrefs({ side, completed: true })
+  void import('./rewards').then((m) => m.maybeGrantPrefsComplete()).catch(() => undefined)
+  return next
 }
 
 export function resetPrefs() {

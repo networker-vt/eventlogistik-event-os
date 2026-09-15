@@ -29,6 +29,7 @@ import {
   spendCredits,
   subscribeCredits,
 } from '../lib/credits'
+import { REWARD_RULES_DE } from '../lib/rewards'
 import {
   WALLET_METHODS,
   connectMethod,
@@ -215,6 +216,14 @@ export function WalletPage() {
             </li>
           ))}
         </ul>
+        <div className="rounded-xl border border-border/70 bg-black/20 p-3">
+          <h3 className="text-sm font-semibold">Faire Rewards (Demo)</h3>
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-neutral-300">
+            {REWARD_RULES_DE.map((r) => (
+              <li key={r}>{r}</li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {sheet && (

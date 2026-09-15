@@ -82,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     store.upsertProfile(p)
     persist({ id: p.id, email: p.email, name: p.name, role: p.role }, p)
     consumePendingReferral(p.id)
+    void import('./rewards').then((m) => m.grantWelcomeOnSignup()).catch(() => undefined)
   }, [persist])
 
   const login = useCallback(
@@ -116,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       store.upsertProfile(p)
       persist({ id, email, name, role }, p)
       consumePendingReferral(id)
+      void import('./rewards').then((m) => m.grantWelcomeOnSignup()).catch(() => undefined)
     },
     [persist],
   )
@@ -139,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       store.upsertProfile(p)
       persist({ id, email, name, role }, p)
       consumePendingReferral(id)
+      void import('./rewards').then((m) => m.grantWelcomeOnSignup()).catch(() => undefined)
       return p
     },
     [persist],

@@ -80,6 +80,14 @@ export function BookingPage() {
         {booking.offerAmount != null && (
           <p className="mt-2 text-lg font-semibold text-cyan">{formatPrice(booking.offerAmount)}</p>
         )}
+        <div className="mt-4">
+          <Link
+            to={`/interview`}
+            className="text-sm text-[var(--theme-accent)] hover:underline"
+          >
+            Interview-Raum (Chat · Slot · Video-Stub) →
+          </Link>
+        </div>
       </div>
 
       {booking.dateFrom && (
@@ -133,7 +141,16 @@ export function BookingPage() {
                 <Button onClick={() => setPayOpen(true)}>Zahlung & als gebucht markieren</Button>
               )}
               {booking.status === 'booked' && (
-                <Button onClick={() => advance('completed')}>Abschließen</Button>
+                <Button
+                  onClick={() => {
+                    advance('completed')
+                    void import('../lib/rewards')
+                      .then((m) => m.grantJobCompleted(booking.id))
+                      .catch(() => undefined)
+                  }}
+                >
+                  Abschließen
+                </Button>
               )}
               <Button variant="danger" onClick={() => advance('cancelled')}>
                 Stornieren

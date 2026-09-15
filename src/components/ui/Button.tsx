@@ -14,7 +14,7 @@ export function Button({
 }) {
   const variants: Record<Variant, string> = {
     primary:
-      'bg-cyan text-black hover:bg-cyan/90 font-semibold glow-cyan shadow-[0_0_20px_rgba(0,240,255,0.18)] disabled:opacity-50',
+      'bg-[var(--theme-accent,#00f0ff)] text-black hover:opacity-90 font-semibold shadow-[0_0_20px_color-mix(in_oklab,var(--theme-accent)_28%,transparent)] disabled:opacity-50',
     secondary:
       'bg-surface-3 border border-border text-white hover:border-cyan/45 hover:bg-surface-3/80 disabled:opacity-50',
     ghost: 'bg-transparent text-neutral-300 hover:text-white hover:bg-white/5',

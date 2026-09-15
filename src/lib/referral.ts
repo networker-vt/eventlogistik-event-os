@@ -98,7 +98,7 @@ export function consumePendingReferral(userId?: string) {
 /** Demo: simulate a successful friend signup via own code. */
 export function simulateReferralSignup() {
   const next = structuredClone(get())
-  next.featuredCredits += 25
+  next.featuredCredits += 40
   next.signups.unshift({
     at: new Date().toISOString(),
     ref: next.code,
@@ -119,7 +119,7 @@ export const REFERRAL_RULES_DE = [
   'Jeder Account erhält einen persönlichen Code (lokal auf diesem Gerät).',
   'Link teilen: ?ref=CODE — der Code wird beim ersten Besuch gespeichert.',
   'Bei Registrierung oder Demo-Login wird der Code dem neuen Account zugeordnet.',
-  'Belohnung (Demo): 25 Credits pro geworbenem Signup, 15 Welcome-Credits für den Geworbenen.',
+  'Belohnung (Demo): 40 Credits pro geworbenem Signup, 15 Welcome-Credits für den Geworbenen — bewusst teilenswert, nicht spammy.',
   'Credits gelten nur für Featured-Listings in der Demo — kein Auszahlungsanspruch.',
   'Eigenen Code auf dem eigenen Gerät zu nutzen, bringt keine Extra-Credits.',
   'Programm ist ein Produkt-Stub bis echte Accounts, Anti-Fraud und Auszahlung existieren.',

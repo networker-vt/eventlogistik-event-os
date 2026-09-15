@@ -46,7 +46,7 @@ export function DashboardPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm text-muted">Hallo {user.name.split(' ')[0]} — Ops Lite Übersicht</p>
+          <p className="text-sm text-muted">Hallo {user.name.split(' ')[0]} — Buchungen, Chats, Projekte.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => navigate('/projects/new')}>
