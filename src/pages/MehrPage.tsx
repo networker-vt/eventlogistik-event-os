@@ -5,6 +5,7 @@ import {
   Briefcase,
   Cable,
   Camera,
+  ChevronDown,
   FileText,
   Gift,
   GraduationCap,
@@ -32,6 +33,8 @@ type HubSection = {
   subtitle: string
   accent: string
   links: HubLink[]
+  /** Default-closed disclosure — keep routes, hide from the primary hub scan. */
+  archived?: boolean
 }
 
 export function MehrPage() {
@@ -85,6 +88,7 @@ export function MehrPage() {
       title: t('mehr.event'),
       subtitle: t('mehr.eventHint'),
       accent: 'border-border bg-surface-2/40',
+      archived: true,
       links: [
         { to: '/katalog/firmen', label: 'Katalog Firmen (DE Event)', hint: 'Nicht primär — Archiv', icon: Library },
         { to: '/katalog/locations', label: 'Locations', icon: Library },
@@ -114,34 +118,63 @@ export function MehrPage() {
         <p className="text-sm text-muted">{t('mehr.lead')}</p>
       </header>
 
-      {sections.map((section) => (
-        <section
-          key={section.id}
-          id={section.id}
-          className={`scroll-mt-20 rounded-2xl border p-4 md:p-5 ${section.accent}`}
-        >
-          <div className="mb-3">
+      {sections.map((section) => {
+        const heading = (
+          <div>
             <h2 className="text-lg font-semibold text-white">{section.title}</h2>
             <p className="text-xs text-neutral-400">{section.subtitle}</p>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {section.links.map((link) => (
-              <Link
-                key={link.to + link.label}
-                to={link.to}
-                className="card-hover flex min-h-12 items-center gap-3 rounded-xl border border-border/80 bg-black/25 px-3 py-3"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-3 text-[var(--theme-accent)]">
-                  <link.icon size={18} />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium text-white">{link.label}</span>
-                  {link.hint && <span className="block truncate text-[11px] text-muted">{link.hint}</span>}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
+        )
+        const links = <HubLinkGrid links={section.links} />
+
+        return (
+          <section
+            key={section.id}
+            id={section.id}
+            className={`scroll-mt-20 rounded-2xl border p-4 md:p-5 ${section.accent}`}
+          >
+            {section.archived ? (
+              <details className="group">
+                <summary className="flex min-h-11 cursor-pointer list-none items-start justify-between gap-3 rounded-lg outline-offset-2 marker:content-none [&::-webkit-details-marker]:hidden">
+                  {heading}
+                  <ChevronDown
+                    size={18}
+                    aria-hidden
+                    className="mt-1 shrink-0 text-muted transition-transform motion-reduce:transition-none group-open:rotate-180"
+                  />
+                </summary>
+                <div className="mt-3">{links}</div>
+              </details>
+            ) : (
+              <>
+                <div className="mb-3">{heading}</div>
+                {links}
+              </>
+            )}
+          </section>
+        )
+      })}
+    </div>
+  )
+}
+
+function HubLinkGrid({ links }: { links: HubLink[] }) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {links.map((link) => (
+        <Link
+          key={link.to + link.label}
+          to={link.to}
+          className="card-hover flex min-h-12 items-center gap-3 rounded-xl border border-border/80 bg-black/25 px-3 py-3"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-3 text-[var(--theme-accent)]">
+            <link.icon size={18} />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-white">{link.label}</span>
+            {link.hint && <span className="block truncate text-[11px] text-muted">{link.hint}</span>}
+          </span>
+        </Link>
       ))}
     </div>
   )

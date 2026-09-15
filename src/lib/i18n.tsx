@@ -130,8 +130,8 @@ const deDict: Dict = {
   'footer.terms': 'AGB',
   'mehr.title': 'Mehr',
   'mehr.lead': 'Quellen, Interviews, Foto-Jobs, Event-Sektor (archiviert), Ideen, Wallet, Legal.',
-  'mehr.event': 'Sektor Event / VT',
-  'mehr.eventHint': 'Archiv-Modul — eine Branche unter vielen, nicht die Startseite.',
+  'mehr.event': 'Archiv · Event/DE',
+  'mehr.eventHint': 'Nicht primär — Katalog, Locations, Freelancer VT, Material, Transporter, Innovation.',
 }
 
 const enDict: Dict = {
@@ -235,8 +235,8 @@ const enDict: Dict = {
   'footer.terms': 'Terms',
   'mehr.title': 'More',
   'mehr.lead': 'Sources, interviews, photo jobs, Event sector (archived), ideas, wallet, legal.',
-  'mehr.event': 'Event / VT sector',
-  'mehr.eventHint': 'Archive module — one industry among many, not the home screen.',
+  'mehr.event': 'Archive · Event/DE',
+  'mehr.eventHint': 'Not primary — catalogue, locations, Freelancer VT, material, transporters, innovation.',
 }
 
 const dicts: Record<'de' | 'en', Dict> = { de: deDict, en: enDict }
