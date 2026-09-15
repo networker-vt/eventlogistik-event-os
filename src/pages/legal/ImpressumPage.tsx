@@ -13,7 +13,7 @@ export function ImpressumPage() {
       <p>
         <strong>{LEGAL.operatorName}</strong>
         <br />
-        {LEGAL.brand} — Event-OS (privat betrieben)
+        {LEGAL.brand} — Job-Matching (privat betrieben)
         <br />
         {LEGAL.street}
         <br />
