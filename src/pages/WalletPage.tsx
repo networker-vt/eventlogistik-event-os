@@ -14,6 +14,7 @@ import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
 import { LaneBadge } from '../components/credits/LaneBadge'
+import { SupplyMeter } from '../components/credits/SupplyMeter'
 import { Input, Select } from '../components/ui/Input'
 import { WalletDisclaimer } from '../components/wallet/WalletDisclaimer'
 import { useFx } from '../hooks/useFx'
@@ -28,12 +29,21 @@ import {
   CREDITS_FREE_DE,
   CREDITS_FREE_EN,
   CREDITS_PER_EUR,
+  ALLOCATION_TABLE,
+  P2P_ORDERS,
+  buyP2POrder,
   claimReferralCreditsDemo,
   creditsToEur,
   exchangeCreditsToEur,
   exchangeEurToCredits,
+  formatSupplyLine,
   getCredits,
+  getProtocol,
+  getSignupIdentity,
+  giftCredits,
+  isPackMarketP2P,
   purchaseCreditPack,
+  simulatePacksSoldOut,
   spendCredits,
   subscribeCredits,
   type CreditPackId,
@@ -79,8 +89,19 @@ export function WalletPage() {
   const [creditAmt, setCreditAmt] = useState('50')
   const [tickets, setTickets] = useState(listTickets)
   const [packPick, setPackPick] = useState<CreditPackId | null>(null)
+  const [giftAmt, setGiftAmt] = useState('20')
+  const [protocol, setProtocol] = useState(getProtocol)
+  const identity = getSignupIdentity()
+  const p2pOnly = isPackMarketP2P()
 
-  useEffect(() => subscribeCredits(() => setCredits(getCredits())), [])
+  useEffect(
+    () =>
+      subscribeCredits(() => {
+        setCredits(getCredits())
+        setProtocol(getProtocol())
+      }),
+    [],
+  )
   useEffect(() => subscribeTickets(() => setTickets(listTickets())), [])
 
   const connectedCount = WALLET_METHODS.filter((m) => wallet.methods[m.id]?.connected).length
@@ -226,6 +247,16 @@ export function WalletPage() {
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-lg font-semibold text-violet-200">Orbit Credits</h2>
           <LaneBadge lane="credits" />
+          {identity?.earlyTester && (
+            <span className="rounded-full border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[11px] text-amber-100">
+              Early Tester #{identity.ordinal}
+            </span>
+          )}
+          {identity && !identity.earlyTester && (
+            <span className="rounded-full border border-white/15 px-2 py-0.5 text-[11px] text-neutral-300">
+              Signup #{identity.ordinal}
+            </span>
+          )}
         </div>
         <p className="text-3xl font-bold tabular-nums text-white">
           {credits.balance}{' '}
@@ -233,9 +264,38 @@ export function WalletPage() {
             ≈ {creditsToEur(credits.balance).toFixed(2)} € indikativ ({CREDITS_PER_EUR} Cr / €)
           </span>
         </p>
+        <p className="text-xs text-violet-200/90">{formatSupplyLine(protocol)}</p>
         <p className="text-xs text-violet-100/80">
           {resolved === 'de' ? CREDITS_DISCLAIMER_DE : CREDITS_DISCLAIMER_EN}
         </p>
+
+        <SupplyMeter />
+
+        <div className="rounded-xl border border-violet-400/20 bg-black/20 p-3">
+          <h3 className="text-sm font-semibold">Allokation (21M)</h3>
+          <ul className="mt-2 space-y-1 text-[11px] text-neutral-300">
+            {ALLOCATION_TABLE.map((row) => {
+              const left =
+                row.id === 'p2p'
+                  ? protocol.p2pFloat
+                  : row.id in protocol.pools
+                    ? protocol.pools[row.id as keyof typeof protocol.pools].remaining
+                    : row.amount
+              return (
+                <li key={row.id} className="flex justify-between gap-2">
+                  <span>
+                    {row.labelDe}
+                    <span className="block text-muted">{row.noteDe}</span>
+                  </span>
+                  <span className="shrink-0 tabular-nums text-right">
+                    {row.amount.toLocaleString('de-DE')}
+                    <span className="block text-muted">noch {left.toLocaleString('de-DE')}</span>
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
 
         <div>
           <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold">
@@ -248,28 +308,63 @@ export function WalletPage() {
           </ul>
         </div>
 
-        <div>
-          <h3 className="text-sm font-semibold">{t('credits.packs')}</h3>
-          <p className="mt-0.5 text-xs text-muted">{t('credits.packsHint')}</p>
-          <div className="mt-2 grid gap-2 sm:grid-cols-3">
-            {CREDIT_PACKS.map((pack) => (
-              <button
-                key={pack.id}
-                type="button"
-                onClick={() => setPackPick(pack.id)}
-                className="rounded-xl border border-violet-400/30 bg-black/25 px-3 py-3 text-left hover:border-violet-300/60"
-              >
-                <p className="text-sm font-semibold text-white">
-                  {resolved === 'de' ? pack.labelDe : pack.labelEn}
-                </p>
-                <p className="text-lg font-bold tabular-nums">{pack.credits}</p>
-                <p className="text-[11px] text-muted">{pack.priceLabel} · Demo</p>
-              </button>
-            ))}
+        {!p2pOnly ? (
+          <div>
+            <h3 className="text-sm font-semibold">{t('credits.packs')}</h3>
+            <p className="mt-0.5 text-xs text-muted">{t('credits.packsHint')}</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {CREDIT_PACKS.map((pack) => (
+                <button
+                  key={pack.id}
+                  type="button"
+                  onClick={() => setPackPick(pack.id)}
+                  className="rounded-xl border border-violet-400/30 bg-black/25 px-3 py-3 text-left hover:border-violet-300/60"
+                >
+                  <p className="text-sm font-semibold text-white">
+                    {resolved === 'de' ? pack.labelDe : pack.labelEn}
+                  </p>
+                  <p className="text-lg font-bold tabular-nums">{pack.credits}</p>
+                  <p className="text-[11px] text-muted">{pack.priceLabel} · Demo</p>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div>
+            <h3 className="text-sm font-semibold">{t('credits.p2p')}</h3>
+            <p className="mt-0.5 text-xs text-muted">{t('credits.p2pHint')}</p>
+            <ul className="mt-2 space-y-2">
+              {P2P_ORDERS.map((order) => {
+                const filled = protocol.filledOrderIds.includes(order.id)
+                return (
+                  <li
+                    key={order.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-violet-400/25 bg-black/25 px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-white">{order.seller}</p>
+                      <p className="text-[11px] text-muted">
+                        {order.credits} Credits · {order.priceEur.toFixed(2)} € · {order.note}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      disabled={filled}
+                      onClick={() => {
+                        const ok = buyP2POrder(order.id)
+                        note(ok ? t('credits.p2pBought') : t('credits.p2pFail'))
+                      }}
+                    >
+                      {filled ? t('credits.p2pFilled') : t('credits.p2pBuy')}
+                    </Button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
 
-        {packPick && (
+        {packPick && !p2pOnly && (
           <div className="rounded-xl border border-amber-400/50 bg-amber-500/15 p-3">
             <p className="text-sm font-semibold text-amber-100">{t('credits.checkout')}</p>
             <p className="mt-1 text-xs text-amber-100/85">{t('credits.checkoutHint')}</p>
@@ -282,8 +377,12 @@ export function WalletPage() {
                 size="sm"
                 onClick={() => {
                   const pack = CREDIT_PACKS.find((p) => p.id === packPick)
-                  purchaseCreditPack(packPick)
-                  note(pack ? `+${pack.credits} Credits (Demo, kein Stripe/PayPal)` : 'Pack')
+                  const ok = purchaseCreditPack(packPick)
+                  note(
+                    ok && pack
+                      ? `+${pack.credits} Credits (Demo, aus Reserve, kein Stripe/PayPal)`
+                      : t('credits.reserveEmpty'),
+                  )
                   setPackPick(null)
                 }}
               >
@@ -319,17 +418,49 @@ export function WalletPage() {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-end gap-2 border-t border-violet-500/20 pt-3">
+          <Input
+            label={t('credits.giftAmt')}
+            type="number"
+            value={giftAmt}
+            onChange={(e) => setGiftAmt(e.target.value)}
+          />
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              const n = Number(giftAmt) || 0
+              const ok = giftCredits(n)
+              note(ok ? t('credits.giftOk') : t('credits.notEnough'))
+            }}
+          >
+            {t('credits.gift')}
+          </Button>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
             variant="secondary"
             onClick={() => {
-              claimReferralCreditsDemo()
-              note('+40 Credits Referral-Demo')
+              const ok = claimReferralCreditsDemo()
+              note(ok ? '+40 Credits Referral (Rewards-Pool)' : t('credits.reserveEmpty'))
             }}
           >
             Referral verdienen
           </Button>
+          {!p2pOnly && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                simulatePacksSoldOut()
+                note(t('credits.packsSoldOut'))
+              }}
+            >
+              {t('credits.simulateEmpty')}
+            </Button>
+          )}
         </div>
         <div className="flex flex-wrap items-end gap-2 border-t border-violet-500/20 pt-3">
           <Input
@@ -343,7 +474,13 @@ export function WalletPage() {
             onClick={() => {
               const n = Number(creditAmt) || 0
               const ok = exchangeEurToCredits(n)
-              note(ok ? `EUR→Credits: ${n} €` : 'Wallet-EUR reicht nicht')
+              note(
+                ok
+                  ? `EUR→Credits: ${n} €`
+                  : p2pOnly
+                    ? t('credits.p2pHint')
+                    : 'Wallet-EUR reicht nicht oder Reserve leer',
+              )
             }}
           >
             € → Credits
@@ -365,7 +502,7 @@ export function WalletPage() {
             <li key={tx.id} className="flex justify-between gap-2">
               <span className="truncate">{tx.label}</span>
               <span className="tabular-nums shrink-0">
-                {tx.type === 'spend' || tx.type === 'exchange_out' ? '−' : '+'}
+                {tx.type === 'spend' || tx.type === 'exchange_out' || tx.type === 'gift' ? '−' : '+'}
                 {tx.amount}
               </span>
             </li>
@@ -448,8 +585,8 @@ export function WalletPage() {
         >
           Featured 7 Tage · 49 € (Demo)
         </Button>
-        <Link to="/jobs" className="block text-sm text-cyan hover:underline">
-          Bookings über die Booking-Seite mit Pay-Sheet zahlen →
+        <Link to="/match" className="block text-sm text-cyan hover:underline">
+          Bookings über Match / Booking-Seite mit Pay-Sheet zahlen →
         </Link>
       </section>
 

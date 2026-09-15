@@ -1,14 +1,50 @@
 /**
- * Orbit Credits — freemium in-app currency (demo ledger).
- * Core discovery stays free: Assist ask, Match browse + daily swipe allowance,
- * basic chat, wallet view, social read. Credits buy boosts only.
- * Purchase packs are a stub until Stripe/PayPal go live.
+ * Orbit Credits — user wallet on top of the 21M protocol (demo ledger).
+ * Core discovery stays free. Credits buy boosts only.
+ * All grants debit a pre-allocated pool or fail — never mint above MAX_SUPPLY.
  */
+import {
+  EARLY_TESTER_GRANT,
+  P2P_ORDERS,
+  WELCOME_GRANT,
+  ensureSignupIdentity,
+  holdFromUser,
+  isPackMarketP2P,
+  mintFromPool,
+  packsRemain,
+  peerTransferOut,
+  simulatePacksSoldOut as protocolSimulatePacksSoldOut,
+  takeFromP2P,
+  welcomeGrantFor,
+  type CreditPoolId,
+} from './creditProtocol'
 import { getReferral, spendFeaturedCredits, simulateReferralSignup } from './referral'
 import { getWallet, mockAdjustBalance } from './wallet'
 import { uid } from './utils'
 
-const KEY = 'orbit_credits_v1'
+export {
+  MAX_SUPPLY,
+  EARLY_TESTER_CAP,
+  EARLY_TESTER_GRANT,
+  WELCOME_GRANT,
+  SPONSOR_FEE,
+  ALLOCATION_TABLE,
+  P2P_ORDERS,
+  POOL_ALLOCATION,
+  formatSupplyLine,
+  getProtocol,
+  getSignupIdentity,
+  ensureSignupIdentity,
+  isPackMarketP2P,
+  remainingReserve,
+  supplyMeterPct,
+  wertIndex,
+  type ProtocolState,
+  type SignupIdentity,
+  type P2POrder,
+} from './creditProtocol'
+
+const KEY = 'orbit_credits_v2'
 const EVT = 'orbit-credits-changed'
 
 /** Indicative: 10 Credits ≈ 1 EUR (demo only). */
@@ -28,10 +64,15 @@ export type CreditSpendKind =
   | 'booking'
   | 'unlock_message'
   | 'demo_gig'
+  | 'sponsor_fee'
+  | 'look_tryon'
+  | 'look_shop'
+
+export type CreditTxType = 'earn' | 'spend' | 'exchange_in' | 'exchange_out' | 'purchase' | 'gift' | 'p2p' | 'welcome'
 
 export interface CreditTx {
   id: string
-  type: 'earn' | 'spend' | 'exchange_in' | 'exchange_out' | 'purchase'
+  type: CreditTxType
   amount: number
   label: string
   kind?: CreditSpendKind
@@ -45,6 +86,7 @@ export interface CreditsState {
   swipesUsed: number
   extraSwipes: number
   travelScanDay?: string
+  lookTryOnDay?: string
 }
 
 export interface CreditPack {
@@ -67,18 +109,9 @@ function todayKey() {
 }
 
 function defaultState(): CreditsState {
-  const ref = getReferral()
   return {
-    balance: Math.max(0, ref.featuredCredits) + 100,
-    txs: [
-      {
-        id: 'cr-seed',
-        type: 'earn',
-        amount: 100,
-        label: 'Willkommen in Orbit (Demo)',
-        createdAt: new Date().toISOString(),
-      },
-    ],
+    balance: 0,
+    txs: [],
     swipeDay: todayKey(),
     swipesUsed: 0,
     extraSwipes: 0,
@@ -90,12 +123,13 @@ function normalize(raw: Partial<CreditsState> & { balance: number; txs: CreditTx
   const swipeDay = raw.swipeDay || day
   const rolled = swipeDay !== day
   return {
-    balance: raw.balance,
+    balance: Math.max(0, raw.balance),
     txs: Array.isArray(raw.txs) ? raw.txs : [],
     swipeDay: rolled ? day : swipeDay,
     swipesUsed: rolled ? 0 : Math.max(0, raw.swipesUsed ?? 0),
     extraSwipes: rolled ? 0 : Math.max(0, raw.extraSwipes ?? 0),
     travelScanDay: raw.travelScanDay,
+    lookTryOnDay: raw.lookTryOnDay,
   }
 }
 
@@ -154,19 +188,59 @@ export function eurToCredits(eur: number) {
   return Math.round(eur * CREDITS_PER_EUR)
 }
 
-export function earnCredits(amount: number, label: string): CreditsState {
+function creditWallet(
+  amount: number,
+  type: CreditTxType,
+  label: string,
+  kind?: CreditSpendKind,
+): CreditsState {
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(amount))
   next.balance += amt
   next.txs.unshift({
     id: uid('cr'),
-    type: 'earn',
+    type,
     amount: amt,
     label,
+    kind,
     createdAt: new Date().toISOString(),
   })
   commit(next)
   return next
+}
+
+/** Debit a protocol pool then credit this device. Fails closed at cap / empty pool. */
+export function mintFromPoolToWallet(
+  pool: CreditPoolId,
+  amount: number,
+  label: string,
+  type: CreditTxType = 'earn',
+): CreditsState | null {
+  const amt = Math.max(0, Math.round(amount))
+  if (amt === 0) return getCredits()
+  if (!mintFromPool(pool, amt)) return null
+  return creditWallet(amt, type, label)
+}
+
+/** Performance / contribution — always the pre-allocated rewards pool. */
+export function earnCredits(amount: number, label: string): CreditsState | null {
+  return mintFromPoolToWallet('rewards', amount, label, 'earn')
+}
+
+export function grantWelcomeAllocation(): CreditsState | null {
+  const identity = ensureSignupIdentity()
+  const grant = welcomeGrantFor(identity)
+  const minted = mintFromPoolToWallet(grant.pool, grant.amount, grant.label, 'welcome')
+  if (minted) return minted
+  if (grant.pool === 'early') {
+    return mintFromPoolToWallet(
+      'welcome',
+      WELCOME_GRANT,
+      `Willkommen (Early-Pool leer) · Signup #${identity.ordinal} — ${WELCOME_GRANT} Credits`,
+      'welcome',
+    )
+  }
+  return null
 }
 
 function applySpendSideEffects(next: CreditsState, kind: CreditSpendKind) {
@@ -175,6 +249,9 @@ function applySpendSideEffects(next: CreditsState, kind: CreditSpendKind) {
   }
   if (kind === 'travel_scan') {
     next.travelScanDay = todayKey()
+  }
+  if (kind === 'look_tryon') {
+    next.lookTryOnDay = todayKey()
   }
 }
 
@@ -186,6 +263,7 @@ export function spendCredits(
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(amount))
   if (next.balance < amt) return null
+  if (!holdFromUser(amt)) return null
   next.balance -= amt
   next.txs.unshift({
     id: uid('cr'),
@@ -205,30 +283,53 @@ export function spendCredits(
   return next
 }
 
-/** Mock exchange: Wallet EUR ↔ Orbit Credits (no real fiat). */
-export function exchangeEurToCredits(eur: number): CreditsState | null {
-  const wallet = getWallet()
-  const amt = Math.max(0, eur)
-  if (wallet.balanceEur < amt) return null
-  mockAdjustBalance('payout', amt, 'sepa')
-  const credits = eurToCredits(amt)
+/** Gift / sponsoring: peer transfer, no mint. Tiny fee burned. */
+export function giftCredits(amount: number, toLabel = 'Orbit-Nutzer (Demo)'): CreditsState | null {
   const next = structuredClone(get())
-  next.balance += credits
+  const amt = Math.max(0, Math.round(amount))
+  if (amt <= 0 || next.balance < amt) return null
+  const moved = peerTransferOut(amt)
+  if (!moved) return null
+  next.balance -= amt
   next.txs.unshift({
     id: uid('cr'),
-    type: 'exchange_in',
-    amount: credits,
-    label: `Umtausch ${amt.toFixed(2)} € → ${credits} Credits (Demo)`,
+    type: 'gift',
+    amount: amt,
+    kind: 'sponsor_fee',
+    label: `Geschenk / Sponsoring an ${toLabel} · ${moved.net} an Peer, ${moved.burned} gebbrannt`,
     createdAt: new Date().toISOString(),
   })
   commit(next)
   return next
 }
 
+/** Mock exchange: Wallet EUR → Credits. Draws from the packs pool (system mint) or fails. */
+export function exchangeEurToCredits(eur: number): CreditsState | null {
+  const wallet = getWallet()
+  const amt = Math.max(0, eur)
+  if (wallet.balanceEur < amt) return null
+  const credits = eurToCredits(amt)
+  if (credits <= 0) return getCredits()
+  if (!packsRemain(credits) || isPackMarketP2P()) return null
+  mockAdjustBalance('payout', amt, 'sepa')
+  const minted = mintFromPoolToWallet(
+    'packs',
+    credits,
+    `Umtausch ${amt.toFixed(2)} € → ${credits} Credits (Demo, aus Pack-Reserve)`,
+    'exchange_in',
+  )
+  if (!minted) {
+    mockAdjustBalance('topup', amt, 'sepa')
+    return null
+  }
+  return minted
+}
+
 export function exchangeCreditsToEur(credits: number): CreditsState | null {
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(credits))
   if (next.balance < amt) return null
+  if (!holdFromUser(amt)) return null
   next.balance -= amt
   const eur = creditsToEur(amt)
   mockAdjustBalance('topup', eur, 'sepa')
@@ -245,24 +346,35 @@ export function exchangeCreditsToEur(credits: number): CreditsState | null {
 
 export function claimReferralCreditsDemo() {
   simulateReferralSignup()
-  return earnCredits(40, 'Referral-Bonus (Demo)')
+  return earnCredits(40, 'Referral-Bonus (Demo) — aus Rewards-Pool')
 }
 
-/** Demo checkout — credits appear, no Stripe/PayPal charge. */
+/** Demo checkout — credits appear only if the packs pool still has room. */
 export function purchaseCreditPack(id: CreditPackId): CreditsState | null {
   const pack = CREDIT_PACKS.find((p) => p.id === id)
   if (!pack) return null
-  const next = structuredClone(get())
-  next.balance += pack.credits
-  next.txs.unshift({
-    id: uid('cr'),
-    type: 'purchase',
-    amount: pack.credits,
-    label: `Pack ${pack.labelDe} · ${pack.credits} Credits · ${pack.priceLabel} (Demo-Checkout, kein Stripe/PayPal)`,
-    createdAt: new Date().toISOString(),
-  })
-  commit(next)
-  return next
+  if (!packsRemain(pack.credits) || isPackMarketP2P()) return null
+  return mintFromPoolToWallet(
+    'packs',
+    pack.credits,
+    `Pack ${pack.labelDe} · ${pack.credits} Credits · ${pack.priceLabel} (Demo-Checkout, aus Reserve, kein Stripe/PayPal)`,
+    'purchase',
+  )
+}
+
+export function buyP2POrder(orderId: string): CreditsState | null {
+  const order = P2P_ORDERS.find((o) => o.id === orderId)
+  if (!order) return null
+  if (!takeFromP2P(order.credits, order.id)) return null
+  return creditWallet(
+    order.credits,
+    'p2p',
+    `P2P von ${order.seller} · ${order.credits} Credits · ${order.priceEur.toFixed(2)} € (kein Mint)`,
+  )
+}
+
+export function simulatePacksSoldOut(): boolean {
+  return protocolSimulatePacksSoldOut()
 }
 
 export interface SwipeBudget {
@@ -313,6 +425,8 @@ export const CREDITS_BOOST_KINDS: CreditSpendKind[] = [
   'travel_scan',
   'social_boost',
   'interview_slot',
+  'look_tryon',
+  'look_shop',
 ]
 
 export const CREDITS_COSTS: Record<CreditSpendKind, { credits: number; label: string }> = {
@@ -324,26 +438,33 @@ export const CREDITS_COSTS: Record<CreditSpendKind, { credits: number; label: st
   booking: { credits: 25, label: 'Reise-Buchung (Demo-Pauschale)' },
   unlock_message: { credits: 5, label: 'Nachricht freischalten (Demo)' },
   demo_gig: { credits: 20, label: 'Demo-Gig buchen' },
+  sponsor_fee: { credits: 1, label: 'Sponsoring-Gebühr (Burn)' },
+  look_tryon: { credits: 15, label: 'Look: Extra-Varianten (heute)' },
+  look_shop: { credits: 20, label: 'Look: Nearby-Shop featuren (Demo)' },
 }
 
 export const CREDITS_FREE_DE = [
   'Assist fragen',
   `Match browsen + ${FREE_SWIPES_PER_DAY} Swipes / Tag`,
+  'Look-Analyse (Basis)',
   'Chat (Match / Booking / Support)',
   'Wallet ansehen',
   'Social lesen',
 ]
 
 export const CREDITS_FREE_EN = [
-  'Ask Assist',
-  `Browse Match + ${FREE_SWIPES_PER_DAY} swipes / day`,
-  'Chat (match / booking / support)',
-  'View Wallet',
-  'Read social',
+  'Assist fragen',
+  `Match browsen + ${FREE_SWIPES_PER_DAY} Swipes / Tag`,
+  'Look-Analyse (Basis)',
+  'Chat (Match / Booking / Support)',
+  'Wallet ansehen',
+  'Social lesen',
 ]
 
 export const CREDITS_DISCLAIMER_DE =
-  'Orbit Credits sind eine Demo-In-App-Währung. Pack-Kauf ist ein Stub — kein Stripe/PayPal, kein echter Fiat-Transfer, bis Payments + KYC live sind. Kern-Entdeckung bleibt kostenlos.'
+  'Orbit Credits sind eine Demo-In-App-Währung mit hartem Cap 21.000.000. Das Ledger läuft client-seitig — echte 21M-Enforcement braucht später Server oder Chain. Dieser Client mint nie über den Cap. Pack-Kauf ist ein Stub (kein Stripe/PayPal). Kern-Entdeckung bleibt kostenlos.'
 
 export const CREDITS_DISCLAIMER_EN =
-  'Orbit Credits are a demo in-app currency. Pack purchase is a stub — no Stripe/PayPal, no real fiat until payments + KYC are live. Core discovery stays free.'
+  'Orbit Credits are a demo in-app currency with a hard cap of 21,000,000. The ledger is client-side — real 21M enforcement needs a server or chain later. This client still never mints above the cap. Pack purchase is a stub (no Stripe/PayPal). Core discovery stays free.'
+
+export const EARLY_TESTER_COPY_DE = `Die ersten ${50} Signups sind Early Testers (${EARLY_TESTER_GRANT.toLocaleString('de-DE')} Credits). Ab Signup 51: ${WELCOME_GRANT} Credits. Alles aus der 21M-Reserve.`

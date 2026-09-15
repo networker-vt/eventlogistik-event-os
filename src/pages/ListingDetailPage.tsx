@@ -303,7 +303,7 @@ export function ListingDetailPage() {
           </p>
           <div className="flex flex-wrap gap-2">
             {isJob && (
-              <Button onClick={() => navigate('/jobs?side=hire')}>Hire-Board</Button>
+              <Button onClick={() => navigate('/match')}>Match</Button>
             )}
             {isJob && apps.length >= 2 && (
               <Button variant="secondary" onClick={() => navigate(`/jobs/compare/${listing.id}`)}>
@@ -334,8 +334,8 @@ export function ListingDetailPage() {
             <Button variant="secondary" onClick={() => navigate(`/bookings/${done.bookingId}`)}>
               Status öffnen
             </Button>
-            <Button variant="ghost" onClick={() => navigate(isJob ? '/jobs?side=seek' : '/dashboard')}>
-              {isJob ? 'Meine Jobs' : 'Dashboard'}
+            <Button variant="ghost" onClick={() => navigate(isJob ? '/match' : '/dashboard')}>
+              {isJob ? 'Match' : 'Dashboard'}
             </Button>
           </div>
         </div>

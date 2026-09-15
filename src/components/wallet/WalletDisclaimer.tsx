@@ -15,7 +15,9 @@ export function WalletDisclaimer({ className, compact = false }: { className?: s
       <div className="min-w-0">
         <p className="text-sm font-bold uppercase tracking-wide text-amber-200">Demo — kein echtes Geld</p>
         <p className={cn('mt-1 leading-relaxed text-amber-100/90', compact ? 'text-[11px]' : 'text-xs')}>
-          {WALLET_DISCLAIMER_DE} Credits-Packs sind ein Stub bis Stripe/PayPal.
+          {WALLET_DISCLAIMER_DE} Credits: hartes Cap 21.000.000, client-seitiges Demo-Ledger. Echte
+          Enforcement braucht später Server/Chain — dieser Client mint nie darüber. Packs sind ein Stub
+          bis Stripe/PayPal.
         </p>
       </div>
     </div>

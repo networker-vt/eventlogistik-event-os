@@ -2,9 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Mic, Send } from 'lucide-react'
 import { WorldRow } from '../components/listings/WorldRow'
-import { TopDealCard } from '../components/listings/TopDealCard'
-import { MatchSuggestionCard } from '../components/home/MatchSuggestionCard'
-import { NewsStrip } from '../components/home/NewsStrip'
+import { FuerDichCard } from '../components/home/FuerDichCard'
 import { TravelCard } from '../components/travel/TravelCard'
 import { LaneBadge } from '../components/credits/LaneBadge'
 import { Button } from '../components/ui/Button'
@@ -23,12 +21,11 @@ import {
 } from '../lib/assist'
 import { getCompany, subscribeCompany } from '../lib/company'
 import { isCompanySide, getPrefs, subscribePrefs } from '../lib/prefs'
-import { rankTopDeals, subscribeBehavior } from '../lib/behavior'
-import { rankHomeNews, rankMatchSuggestions } from '../lib/homeSuggestions'
-import { getCredits, subscribeCredits } from '../lib/credits'
+import { subscribeBehavior } from '../lib/behavior'
+import { rankFuerDich } from '../lib/fuerDich'
+import { formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
 import { useI18n } from '../lib/i18n'
 import { canListen, listenOnce } from '../lib/speech'
-import { store } from '../lib/store'
 import { cn } from '../lib/utils'
 
 type WarmChip = 'seek' | 'offer' | 'think'
@@ -66,33 +63,13 @@ export function HomePage() {
     }
   }, [])
 
-  const deals = useMemo(
-    () => rankTopDeals(raw, prefs, resolved, 4),
+  const fuerDich = useMemo(
+    () => rankFuerDich(raw, prefs, resolved, 8),
     [raw, prefs, behaviorTick, resolved],
-  )
-
-  const suggestions = useMemo(
-    () =>
-      rankMatchSuggestions(
-        raw,
-        store.listProfiles(),
-        prefs,
-        resolved,
-        6,
-        deals.map((d) => d.id),
-      ),
-    [raw, prefs, behaviorTick, resolved, deals],
-  )
-
-  const news = useMemo(
-    () => rankHomeNews(prefs, resolved, 4),
-    [prefs, behaviorTick, resolved],
   )
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
   const greeting = first ? `${t('home.hello')}, ${first}.` : `${t('home.hello')}.`
-  const matchTo = prefs.completed ? '/match' : '/prefs'
-  const matchLabel = prefs.completed ? t('home.ctaMatch') : t('home.ctaPrefs')
   const placeholder =
     warm === 'offer'
       ? t('home.phOffer')
@@ -101,6 +78,24 @@ export function HomePage() {
         : companyView
           ? t('assist.phCompany')
           : t('home.phSeek')
+
+  const advice = (() => {
+    if (!prefs.completed) {
+      return { to: '/prefs', label: t('home.ctaPrefs'), sub: t('home.advicePrefs') }
+    }
+    if (plan?.steps[0]?.actionTo) {
+      return {
+        to: plan.steps[0].actionTo,
+        label: t('home.ctaAdvice'),
+        sub: plan.steps[0].title,
+      }
+    }
+    const firstItem = fuerDich.find((x) => x.to)
+    if (firstItem?.to) {
+      return { to: firstItem.to, label: t('home.ctaAdvice'), sub: firstItem.title }
+    }
+    return { to: '/match', label: t('home.ctaMatch'), sub: t('home.swipePrompt') }
+  })()
 
   const pickWarm = (id: WarmChip) => {
     setWarm(id)
@@ -141,7 +136,7 @@ export function HomePage() {
   ]
 
   return (
-    <div className="mx-auto max-w-lg space-y-8 pb-scroll-chrome pt-6 md:pt-12">
+    <div className="mx-auto max-w-lg space-y-6 pb-scroll-chrome pt-6 md:pt-12">
       <header className="space-y-4">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted">Orbit</p>
@@ -272,61 +267,40 @@ export function HomePage() {
         </section>
       )}
 
-      <section className="rounded-2xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/8 p-4">
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
-          {t('home.swipeKicker')}
-        </p>
-        <h2 className="mt-1 text-lg font-semibold text-white">
-          {prefs.completed ? t('home.swipePrompt') : t('home.ctaPrefs')}
-        </h2>
-        <Button className="mt-3 w-full" size="lg" onClick={() => navigate(matchTo)}>
-          {matchLabel} <ArrowRight size={18} />
-        </Button>
-      </section>
+      {!plan && (
+        <section className="rounded-2xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/8 p-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
+            {t('home.adviceKicker')}
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-white">{advice.sub}</h2>
+          <Button className="mt-3 w-full" size="lg" onClick={() => navigate(advice.to)}>
+            {advice.label} <ArrowRight size={18} />
+          </Button>
+        </section>
+      )}
 
-      <section className="space-y-3" aria-labelledby="deals-heading">
-        <h2 id="deals-heading" className="text-base font-semibold text-white">
-          {t('home.deals')}
-        </h2>
-        {deals.length === 0 ? (
+      <section className="space-y-2" aria-labelledby="fuer-dich">
+        <div>
+          <h2 id="fuer-dich" className="text-base font-semibold text-white">
+            {t('home.fuerDich')}
+          </h2>
+          <p className="mt-0.5 text-[11px] text-muted">{t('home.fuerDichHint')}</p>
+        </div>
+        {fuerDich.length === 0 ? (
           <Empty
             emoji="✨"
             title={t('home.dealsEmpty')}
             hint={t('home.dealsEmptyHint')}
-            actionLabel={matchLabel}
-            onAction={() => navigate(matchTo)}
-            className="py-8"
-          />
-        ) : (
-          <ul className="space-y-2">
-            {deals.map((d) => (
-              <li key={d.id}>
-                <TopDealCard deal={d} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="space-y-3" aria-labelledby="suggest-heading">
-        <h2 id="suggest-heading" className="text-base font-semibold text-white">
-          {t('suggest.title')}
-        </h2>
-        {suggestions.length === 0 ? (
-          <Empty
-            emoji="🤝"
-            title={t('suggest.empty')}
-            hint={t('suggest.emptyHint')}
-            actionLabel={matchLabel}
-            onAction={() => navigate(matchTo)}
+            actionLabel={advice.label}
+            onAction={() => navigate(advice.to)}
             className="py-6"
           />
         ) : (
           <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:thin]">
             <ul className="flex snap-x snap-mandatory gap-2">
-              {suggestions.map((s) => (
-                <li key={s.id}>
-                  <MatchSuggestionCard item={s} />
+              {fuerDich.map((item) => (
+                <li key={item.id}>
+                  <FuerDichCard item={item} />
                 </li>
               ))}
             </ul>
@@ -334,21 +308,15 @@ export function HomePage() {
         )}
       </section>
 
-      <section className="space-y-3" aria-labelledby="news-heading">
-        <div>
-          <h2 id="news-heading" className="text-base font-semibold text-white">
-            {t('news.title')}
-          </h2>
-          <p className="mt-0.5 text-[11px] text-muted">{t('news.demo')}</p>
-        </div>
-        <NewsStrip items={news} />
-      </section>
-
       <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
         <Link to="/wallet" className="inline-flex items-center gap-2 hover:text-[var(--theme-accent)]">
           <span className="tabular-nums text-white">{credits.balance} Credits</span>
           <LaneBadge lane="credits" />
         </Link>
+        <span className="tabular-nums text-neutral-400">{formatSupplyLine()}</span>
+        {getSignupIdentity()?.earlyTester && (
+          <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
+        )}
         <span className="text-neutral-600">· {t('home.creditsPeek')}</span>
       </p>
     </div>

@@ -1,16 +1,11 @@
 import { useEffect, type ComponentType } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  BookOpen,
-  Briefcase,
   Building2,
-  Cable,
   Camera,
-  ChevronDown,
   FileText,
   Gift,
-  GraduationCap,
-  Library,
+  Hash,
   Lightbulb,
   Plane,
   Plus,
@@ -22,6 +17,7 @@ import {
   Users,
   Video,
   Wallet,
+  Cable,
 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 
@@ -38,10 +34,6 @@ type HubSection = {
   subtitle: string
   accent: string
   links: HubLink[]
-  /** Default-closed disclosure — keep routes, hide from the primary hub scan. */
-  archived?: boolean
-  /** Extra hash targets after a merge (e.g. `#wissen` → Event/DE archive). */
-  extraIds?: string[]
 }
 
 export function MehrPage() {
@@ -58,13 +50,15 @@ export function MehrPage() {
     {
       id: 'entdecken',
       title: 'Entdecken',
-      subtitle: 'Match-Tools ohne Katalog-Spam',
+      subtitle: 'Everything App — ohne Katalog-Spam',
       accent: 'border-[var(--theme-accent)]/35 bg-[var(--theme-accent)]/5',
       links: [
+        { to: '/look', label: t('look.nav'), hint: t('look.hint'), icon: Sparkles },
         { to: '/firma', label: t('firma.nav'), hint: t('firma.hint'), icon: Building2 },
         { to: '/marktplatz', label: t('market.nav'), hint: t('market.hint'), icon: Store },
         { to: '/reise', label: t('travel.nav'), hint: t('travel.lead'), icon: Plane },
         { to: '/social', label: t('social.title'), hint: t('social.kicker'), icon: Users },
+        { to: '/channels', label: t('channels.nav'), hint: t('channels.hint'), icon: Hash },
         { to: '/mein', label: t('nav.mein'), hint: t('mein.lead'), icon: UserRound },
         { to: '/listings/new', label: t('nav.create'), hint: t('create.lead'), icon: Plus },
         { to: '/foto', label: t('photo.title'), hint: 'Kamera · Demo-Vision', icon: Camera },
@@ -76,31 +70,12 @@ export function MehrPage() {
     {
       id: 'ideen',
       title: 'Ideen & Credits',
-      subtitle: 'Feedback, Referral, Wallet',
+      subtitle: 'Feedback, Referral, Wallet · Cap 21M',
       accent: 'border-violet-500/35 bg-violet-500/5',
       links: [
         { to: '/ideen', label: 'Ideen-Box', hint: 'Feedback an den Operator', icon: Lightbulb },
-        { to: '/empfehlen', label: 'Empfehlen', hint: 'Referral-Bonus zum Teilen', icon: Gift },
-        { to: '/wallet', label: 'Wallet & Credits', hint: 'Demo-Ledger', icon: Wallet },
-      ],
-    },
-    {
-      id: 'sektor-event',
-      title: t('mehr.event'),
-      subtitle: t('mehr.eventHint'),
-      accent: 'border-border bg-surface-2/40',
-      archived: true,
-      extraIds: ['wissen'],
-      links: [
-        { to: '/jobs', label: 'Jobs Liste', hint: 'Klassische Liste — Archiv', icon: Briefcase },
-        { to: '/katalog/firmen', label: 'Katalog Firmen (Archiv)', hint: 'Nicht primär — Archiv', icon: Library },
-        { to: '/katalog/locations', label: 'Locations', icon: Library },
-        { to: '/freelancer', label: 'Freelancer VT', icon: Briefcase },
-        { to: '/material', label: 'Material / Gear', icon: Briefcase },
-        { to: '/transporter', label: 'Transporter', icon: Briefcase },
-        { to: '/innovation', label: 'Innovation', hint: 'KI · XR · LED', icon: Sparkles },
-        { to: '/wissen/medien', label: 'Medien', hint: 'Nicht primär — Archiv', icon: BookOpen },
-        { to: '/wissen/fortbildung', label: 'Fortbildung', hint: 'Nicht primär — Archiv', icon: GraduationCap },
+        { to: '/empfehlen', label: 'Empfehlen', hint: 'Referral aus dem Rewards-Pool', icon: Gift },
+        { to: '/wallet', label: 'Wallet & Credits', hint: '21M Cap · Demo-Ledger', icon: Wallet },
       ],
     },
     {
@@ -123,45 +98,19 @@ export function MehrPage() {
         <p className="text-sm text-muted">{t('mehr.lead')}</p>
       </header>
 
-      {sections.map((section) => {
-        const heading = (
-          <div>
+      {sections.map((section) => (
+        <section
+          key={section.id}
+          id={section.id}
+          className={`scroll-mt-20 rounded-2xl border p-4 md:p-5 ${section.accent}`}
+        >
+          <div className="mb-3">
             <h2 className="text-lg font-semibold text-white">{section.title}</h2>
             <p className="text-xs text-neutral-400">{section.subtitle}</p>
           </div>
-        )
-        const links = <HubLinkGrid links={section.links} />
-
-        return (
-          <section
-            key={section.id}
-            id={section.id}
-            className={`scroll-mt-20 rounded-2xl border p-4 md:p-5 ${section.accent}`}
-          >
-            {section.extraIds?.map((extraId) => (
-              <span key={extraId} id={extraId} className="sr-only" />
-            ))}
-            {section.archived ? (
-              <details className="group">
-                <summary className="flex min-h-11 cursor-pointer list-none items-start justify-between gap-3 rounded-lg outline-offset-2 marker:content-none [&::-webkit-details-marker]:hidden">
-                  {heading}
-                  <ChevronDown
-                    size={18}
-                    aria-hidden
-                    className="mt-1 shrink-0 text-muted transition-transform motion-reduce:transition-none group-open:rotate-180"
-                  />
-                </summary>
-                <div className="mt-3">{links}</div>
-              </details>
-            ) : (
-              <>
-                <div className="mb-3">{heading}</div>
-                {links}
-              </>
-            )}
-          </section>
-        )
-      })}
+          <HubLinkGrid links={section.links} />
+        </section>
+      ))}
     </div>
   )
 }
