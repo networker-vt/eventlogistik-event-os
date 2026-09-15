@@ -92,6 +92,7 @@ export function MehrPage() {
       archived: true,
       extraIds: ['wissen'],
       links: [
+        { to: '/jobs', label: 'Jobs Liste', hint: 'Klassische Liste — Archiv', icon: Briefcase },
         { to: '/katalog/firmen', label: 'Katalog Firmen (Archiv)', hint: 'Nicht primär — Archiv', icon: Library },
         { to: '/katalog/locations', label: 'Locations', icon: Library },
         { to: '/freelancer', label: 'Freelancer VT', icon: Briefcase },
@@ -100,7 +101,6 @@ export function MehrPage() {
         { to: '/innovation', label: 'Innovation', hint: 'KI · XR · LED', icon: Sparkles },
         { to: '/wissen/medien', label: 'Medien', hint: 'Nicht primär — Archiv', icon: BookOpen },
         { to: '/wissen/fortbildung', label: 'Fortbildung', hint: 'Nicht primär — Archiv', icon: GraduationCap },
-        { to: '/jobs', label: 'Jobs Liste', hint: 'Nicht primär — Archiv', icon: Briefcase },
       ],
     },
     {

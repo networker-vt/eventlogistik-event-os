@@ -251,7 +251,7 @@ const deDict: Dict = {
   'mehr.lead': 'Reise, Social, Firma, Marktplatz, Quellen, Wallet, Legal — Start bleibt Assist.',
   'mehr.event': 'Archiv · Event/DE & Wissen',
   'mehr.eventHint':
-    'Nicht primär — Katalog, Locations, Freelancer VT, Material, Transporter, Innovation, Medien, Fortbildung.',
+    'Nicht primär — Jobs Liste, Katalog, Locations, Freelancer VT, Material, Transporter, Innovation, Medien, Fortbildung.',
   'travel.kicker': 'Reise & Lifestyle',
   'travel.nav': 'Reise',
   'travel.title': 'Flüge, Hotels, Bahn, Auto',
@@ -545,7 +545,7 @@ const enDict: Dict = {
   'mehr.lead': 'Travel, social, company, marketplace, sources, wallet, legal — Home stays Assist-first.',
   'mehr.event': 'Archive · Event/DE & Wissen',
   'mehr.eventHint':
-    'Not primary — catalogue, locations, Freelancer VT, material, transporters, innovation, media, training.',
+    'Not primary — Jobs Liste, catalogue, locations, Freelancer VT, material, transporters, innovation, media, training.',
   'travel.kicker': 'Travel & lifestyle',
   'travel.nav': 'Travel',
   'travel.title': 'Flights, hotels, rail, cars',
