@@ -668,7 +668,11 @@ function llmConfigured() {
   return Boolean(key && key.trim())
 }
 
-async function tryLlmEnrich(intent: ParsedIntent, locale: 'de' | 'en'): Promise<AssistTip[] | null> {
+async function tryLlmEnrich(
+  intent: ParsedIntent,
+  locale: 'de' | 'en',
+  signal?: AbortSignal,
+): Promise<AssistTip[] | null> {
   const key = import.meta.env.VITE_LLM_API_KEY?.trim()
   if (!key) return null
   const url = import.meta.env.VITE_LLM_URL?.trim() || 'https://api.openai.com/v1/chat/completions'
@@ -680,6 +684,8 @@ async function tryLlmEnrich(intent: ParsedIntent, locale: 'de' | 'en'): Promise<
   try {
     const ctrl = new AbortController()
     const t = window.setTimeout(() => ctrl.abort(), 8000)
+    const onAbort = () => ctrl.abort()
+    signal?.addEventListener('abort', onAbort)
     const res = await fetch(url, {
       method: 'POST',
       signal: ctrl.signal,
@@ -695,6 +701,7 @@ async function tryLlmEnrich(intent: ParsedIntent, locale: 'de' | 'en'): Promise<
       }),
     })
     window.clearTimeout(t)
+    signal?.removeEventListener('abort', onAbort)
     if (!res.ok) return null
     const json = (await res.json()) as { choices?: { message?: { content?: string } }[] }
     const content = json.choices?.[0]?.message?.content || ''
@@ -706,17 +713,27 @@ async function tryLlmEnrich(intent: ParsedIntent, locale: 'de' | 'en'): Promise<
   return null
 }
 
-export async function buildAssistPlan(text: string, locale: 'de' | 'en'): Promise<AssistPlan> {
+export function primaryAssistAction(plan: AssistPlan): PlanStep | null {
+  return plan.steps.find((s) => !s.done && s.actionTo) || plan.steps.find((s) => s.actionTo) || null
+}
+
+export async function buildAssistPlan(
+  text: string,
+  locale: 'de' | 'en',
+  signal?: AbortSignal,
+): Promise<AssistPlan | null> {
+  if (signal?.aborted) return null
   const intent = parseIntent(text)
   const base = heuristicPlan(intent, locale)
   let source: AssistPlan['source'] = 'heuristic'
   if (llmConfigured()) {
-    const extra = await tryLlmEnrich(intent, locale)
+    const extra = await tryLlmEnrich(intent, locale, signal)
     if (extra?.length) {
       base.tips = [...extra, ...base.tips].slice(0, 4)
       source = 'llm'
     }
   }
+  if (signal?.aborted) return null
   const matches = intent.kind === 'travel' ? [] : matchListingsForIntent(intent, 4)
   const travel =
     intent.kind === 'travel'

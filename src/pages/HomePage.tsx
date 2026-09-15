@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Mic, Send } from 'lucide-react'
-import { WorldRow } from '../components/listings/WorldRow'
+import { Mic, Send } from 'lucide-react'
 import { FuerDichCard } from '../components/home/FuerDichCard'
-import { TravelCard } from '../components/travel/TravelCard'
-import { LaneBadge } from '../components/credits/LaneBadge'
 import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
 import { useListings, useStoreVersion } from '../hooks/useStore'
@@ -14,17 +11,21 @@ import {
   clearPlan,
   getLastPlan,
   listingsForPlan,
+  primaryAssistAction,
   subscribeAssist,
-  togglePlanStep,
   travelForPlan,
   type AssistPlan,
 } from '../lib/assist'
 import { getCompany, subscribeCompany } from '../lib/company'
-import { isCompanySide, getPrefs, savePrefs, subscribePrefs } from '../lib/prefs'
+import { isCompanySide, getPrefs, savePrefs, subscribePrefs, type PrefsSide } from '../lib/prefs'
 import { subscribeBehavior } from '../lib/behavior'
 import { subscribeChannels } from '../lib/channels'
 import { rankFuerDich } from '../lib/fuerDich'
-import { formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
+import { NewsStrip } from '../components/home/NewsStrip'
+import { consumeAssistTurn, formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
+import { isDemo } from '../lib/flags'
+import { getResume, subscribeResume } from '../lib/resume'
+import { rankHomeNews } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
 import { canListen, listenOnce } from '../lib/speech'
 import { cn } from '../lib/utils'
@@ -37,6 +38,7 @@ export function HomePage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const askRef = useRef<HTMLTextAreaElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
   const [prefs, setPrefs] = useState(getPrefs)
   const [company, setCompany] = useState(getCompany)
   const [behaviorTick, setBehaviorTick] = useState(0)
@@ -46,6 +48,10 @@ export function HomePage() {
   const [busy, setBusy] = useState(false)
   const [listening, setListening] = useState(false)
   const [warm, setWarm] = useState<WarmChip>('seek')
+  const [pendingSide, setPendingSide] = useState<PrefsSide | null>(null)
+  const [othersOpen, setOthersOpen] = useState(false)
+  const [resume, setResume] = useState(getResume)
+  const [assistNote, setAssistNote] = useState<string | null>(null)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const { listings: raw } = useListings({})
 
@@ -56,6 +62,7 @@ export function HomePage() {
     const u4 = subscribeCompany(() => setCompany(getCompany()))
     const u5 = subscribeAssist(() => setPlan(getLastPlan()))
     const u6 = subscribeChannels(() => setBehaviorTick((n) => n + 1))
+    const u7 = subscribeResume(() => setResume(getResume()))
     return () => {
       u1()
       u2()
@@ -63,6 +70,8 @@ export function HomePage() {
       u4()
       u5()
       u6()
+      u7()
+      abortRef.current?.abort()
     }
   }, [])
 
@@ -70,6 +79,7 @@ export function HomePage() {
     () => rankFuerDich(raw, prefs, resolved, 8),
     [raw, prefs, behaviorTick, resolved],
   )
+  const newsItems = useMemo(() => rankHomeNews(prefs, resolved, 2), [prefs, behaviorTick, resolved])
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
   const greeting = first ? `${t('home.hello')}, ${first}.` : `${t('home.hello')}.`
@@ -91,9 +101,7 @@ export function HomePage() {
 
   const pickWarm = (id: WarmChip) => {
     setWarm(id)
-    if (id === 'seek' && prefs.side !== 'seeker') savePrefs({ side: 'seeker' })
-    if (id === 'offer' && prefs.side !== 'employer') savePrefs({ side: 'employer' })
-    if (id === 'think' && prefs.side !== 'both') savePrefs({ side: 'both' })
+    setPendingSide(id === 'seek' ? 'seeker' : id === 'offer' ? 'employer' : 'both')
     setAsk((prev) => {
       const trimmed = prev.trim()
       const wasStem = (Object.values(stems) as string[]).some(
@@ -113,11 +121,23 @@ export function HomePage() {
   const submitAsk = async (text: string) => {
     const q = text.trim()
     if (!q || busy) return
+    const gate = consumeAssistTurn()
+    if (gate === 'need_credits') {
+      setAssistNote(t('home.assistNeedCredits'))
+      return
+    }
+    if (gate === 'paid') setAssistNote(t('home.assistPaid'))
+    else setAssistNote(null)
+    abortRef.current?.abort()
+    const ac = new AbortController()
+    abortRef.current = ac
     setBusy(true)
     try {
-      const next = await buildAssistPlan(q, resolved)
-      setPlan(next)
-      setAsk('')
+      const next = await buildAssistPlan(q, resolved, ac.signal)
+      if (next) {
+        setPlan(next)
+        if (pendingSide) savePrefs({ side: pendingSide })
+      }
     } finally {
       setBusy(false)
     }
@@ -134,25 +154,27 @@ export function HomePage() {
     }
   }
 
-  const matches = plan ? listingsForPlan(plan) : []
-  const travelHits = plan ? travelForPlan(plan) : []
-
-  const warmChips: { id: WarmChip; label: string }[] = [
-    { id: 'seek', label: t('home.warmSeek') },
-    { id: 'offer', label: t('home.warmOffer') },
-    { id: 'think', label: t('home.warmThink') },
+  const assistAction = plan ? primaryAssistAction(plan) : null
+  const assistHit = plan ? listingsForPlan(plan)[0] || travelForPlan(plan)[0] : null
+  const chips: { id: WarmChip; title: string }[] = [
+    { id: 'seek', title: t('home.tileNeed') },
+    { id: 'offer', title: t('home.tileOffer') },
+    { id: 'think', title: t('home.tileResume') },
   ]
 
   return (
-    <div className="mx-auto max-w-lg space-y-6 pb-scroll-chrome pt-6 md:pt-12">
+    <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome pt-6 md:pt-10">
       <header className="space-y-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Orbit</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">
+            Orbit{isDemo ? ` · ${t('home.demoBadge')}` : ''}
+          </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-[2rem]">{greeting}</h1>
+          <p className="mt-1 max-w-sm text-sm text-muted">{t('home.value')}</p>
         </div>
 
         <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-2">
-          {warmChips.map((chip) => (
+          {chips.map((chip) => (
             <button
               key={chip.id}
               type="button"
@@ -160,15 +182,14 @@ export function HomePage() {
               className={cn(
                 'rounded-full border px-3.5 py-2 text-sm',
                 warm === chip.id
-                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-white'
+                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/10 text-white'
                   : 'border-border text-neutral-300 hover:text-white',
               )}
             >
-              {chip.label}
+              {chip.title}
             </button>
           ))}
         </nav>
-        <p className="max-w-sm text-sm leading-relaxed text-muted">{t('home.value')}</p>
 
         <form
           className="space-y-2"
@@ -188,6 +209,7 @@ export function HomePage() {
               className="w-full resize-none rounded-2xl border border-border bg-surface-2 px-3 py-3 text-base text-white placeholder:text-neutral-600 outline-none focus:border-cyan/50"
             />
           </label>
+          {assistNote && <p className="text-[11px] text-amber-200">{assistNote}</p>}
           <div className="flex items-center gap-2">
             {canListen() && (
               <button
@@ -209,124 +231,101 @@ export function HomePage() {
         </form>
       </header>
 
-      {plan && (
-        <section className="space-y-3" aria-labelledby="assist-plan">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
-                {t('assist.planKicker')}
-              </p>
-              <h2 id="assist-plan" className="text-base font-semibold text-white">
-                {plan.summary}
-              </h2>
-            </div>
-            <button type="button" className="text-xs text-muted hover:underline" onClick={() => clearPlan()}>
+      {plan && assistAction && (
+        <section className="rounded-2xl border border-border/80 bg-surface-2/40 p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">{t('assist.planKicker')}</p>
+            <button type="button" className="text-[11px] text-muted hover:underline" onClick={() => clearPlan()}>
               {t('assist.clear')}
             </button>
           </div>
-          <ol className="space-y-2">
-            {plan.steps.slice(0, 3).map((s, i) => (
-              <li
-                key={s.id}
-                className={cn(
-                  'rounded-2xl border border-border/80 bg-surface-2/50 px-3 py-3',
-                  s.done && 'opacity-60',
-                )}
-              >
-                <div className="flex items-start gap-2">
-                  <button
-                    type="button"
-                    onClick={() => togglePlanStep(s.id)}
-                    className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-[11px]"
-                    aria-pressed={s.done}
-                  >
-                    {s.done ? '✓' : i + 1}
-                  </button>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-white">{s.title}</p>
-                    {s.actionTo && (
-                      <Link to={s.actionTo} className="mt-1 inline-block text-xs text-[var(--theme-accent)] hover:underline">
-                        {s.actionLabel} →
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ol>
-          {travelHits.length > 0 && (
-            <ul className="space-y-2">
-              {travelHits.slice(0, 2).map((o) => (
-                <li key={o.id}>
-                  <TravelCard offer={o} cheapest={o.cheapest} compact />
-                </li>
-              ))}
-            </ul>
-          )}
-          {matches.length > 0 && (
-            <ul className="space-y-2">
-              {matches.slice(0, 2).map((l) => (
-                <li key={l.id}>
-                  <WorldRow listing={l} />
-                </li>
-              ))}
-            </ul>
+          <h2 className="mt-1 text-base font-semibold text-white">{plan.summary}</h2>
+          <p className="mt-1 text-sm text-neutral-300">{assistAction.title}</p>
+          {assistAction.actionTo && (
+            <Link
+              to={assistAction.actionTo}
+              className="mt-2 inline-flex text-sm text-[var(--theme-accent)] hover:underline"
+            >
+              {assistAction.actionLabel || t('home.next')} →
+            </Link>
           )}
         </section>
       )}
 
-      <section className="rounded-2xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/8 p-4">
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
-          {t('home.swipeKicker')}
-        </p>
-        <h2 className="mt-1 text-lg font-semibold text-white">
-          {prefs.completed ? t('home.swipePrompt') : t('home.ctaPrefs')}
-        </h2>
-        <Button className="mt-3 w-full" size="lg" onClick={() => navigate(matchTo)}>
-          {matchLabel} <ArrowRight size={18} />
-        </Button>
-      </section>
-
-      <section className="space-y-2" aria-labelledby="fuer-dich">
-        <div>
-          <h2 id="fuer-dich" className="text-base font-semibold text-white">
-            {t('home.fuerDich')}
+      {plan && !assistAction && assistHit && (
+        <section className="rounded-2xl border border-border/80 bg-surface-2/40 p-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">{t('assist.planKicker')}</p>
+          <h2 className="mt-1 text-base font-semibold text-white">
+            {'title' in assistHit ? assistHit.title : plan.summary}
           </h2>
-          <p className="mt-0.5 text-[11px] text-muted">{t('home.fuerDichHint')}</p>
-        </div>
-        {fuerDich.length === 0 ? (
-          <Empty
-            emoji="✨"
-            title={t('home.dealsEmpty')}
-            hint={t('home.dealsEmptyHint')}
-            actionLabel={matchLabel}
-            onAction={() => navigate(matchTo)}
-            className="py-6"
-          />
-        ) : (
-          <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:thin]">
-            <ul className="flex snap-x snap-mandatory gap-2">
-              {fuerDich.map((item) => (
-                <li key={item.id}>
-                  <FuerDichCard item={item} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </section>
+          <Link
+            to={'provider' in assistHit ? `/reise/${assistHit.id}` : `/listings/${assistHit.id}`}
+            className="mt-2 inline-flex text-sm text-[var(--theme-accent)] hover:underline"
+          >
+            {'provider' in assistHit ? t('home.action.book') : t('home.action.contact')} →
+          </Link>
+        </section>
+      )}
 
-      <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
-        <Link to="/wallet" className="inline-flex items-center gap-2 hover:text-[var(--theme-accent)]">
-          <span className="tabular-nums text-white">{credits.balance} Credits</span>
-          <LaneBadge lane="credits" />
+      <NewsStrip items={newsItems} />
+
+      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+        <Link to={matchTo} className="text-neutral-300 hover:text-white hover:underline">
+          {matchLabel}
         </Link>
-        <span className="tabular-nums text-neutral-400">{formatSupplyLine()}</span>
-        {getSignupIdentity()?.earlyTester && (
-          <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
+        {resume && (
+          <Link to={resume.path} className="text-neutral-400 hover:underline">
+            {t('home.tileResume')}: {resume.title}
+          </Link>
         )}
-        <span className="text-neutral-600">· {t('home.creditsPeek')}</span>
       </p>
+
+      <details
+        className="rounded-2xl border border-border/70 bg-surface-2/40 p-3"
+        open={othersOpen}
+        onToggle={(e) => setOthersOpen((e.target as HTMLDetailsElement).open)}
+      >
+        <summary className="cursor-pointer list-none text-sm font-medium text-neutral-200 marker:content-none">
+          {t('home.otherOptions')}
+        </summary>
+        <div className="mt-3 space-y-3">
+          {fuerDich.length === 0 ? (
+            <Empty
+              emoji="✨"
+              title={t('home.dealsEmpty')}
+              hint={t('home.dealsEmptyHint')}
+              actionLabel={matchLabel}
+              onAction={() => navigate(matchTo)}
+              className="py-6"
+            />
+          ) : (
+            <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
+              <ul className="flex snap-x snap-mandatory gap-2">
+                {(fuerDich).map((item) => (
+                  <li key={item.id}>
+                    <FuerDichCard item={item} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {prefs.completed && (
+            <Link to="/match" className="inline-flex text-sm text-[var(--theme-accent)] hover:underline">
+              {t('home.ctaMatch')} →
+            </Link>
+          )}
+          <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
+            <Link to="/wallet" className="tabular-nums text-white hover:text-[var(--theme-accent)]">
+              {credits.balance} Credits
+            </Link>
+            <span>{formatSupplyLine()}</span>
+            {getSignupIdentity()?.earlyTester && (
+              <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
+            )}
+            <span>· {t('home.creditsPeek')}</span>
+          </p>
+        </div>
+      </details>
     </div>
   )
 }

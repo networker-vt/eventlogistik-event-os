@@ -10,6 +10,7 @@ import {
   ensureSignupIdentity,
   holdFromUser,
   isPackMarketP2P,
+  getProtocol,
   mintFromPool,
   packsRemain,
   peerTransferOut,
@@ -39,6 +40,7 @@ export {
   remainingReserve,
   supplyMeterPct,
   wertIndex,
+  P2P_TAKE_RATE,
   type ProtocolState,
   type SignupIdentity,
   type P2POrder,
@@ -67,6 +69,7 @@ export type CreditSpendKind =
   | 'sponsor_fee'
   | 'look_tryon'
   | 'look_shop'
+  | 'assist_priority'
 
 export type CreditTxType = 'earn' | 'spend' | 'exchange_in' | 'exchange_out' | 'purchase' | 'gift' | 'p2p' | 'welcome'
 
@@ -87,6 +90,11 @@ export interface CreditsState {
   extraSwipes: number
   travelScanDay?: string
   lookTryOnDay?: string
+  assistDay?: string
+  assistUsed?: number
+  boostMonth?: string
+  freeBoostUsed?: boolean
+  meaningfulAt?: string
 }
 
 export interface CreditPack {
@@ -130,6 +138,11 @@ function normalize(raw: Partial<CreditsState> & { balance: number; txs: CreditTx
     extraSwipes: rolled ? 0 : Math.max(0, raw.extraSwipes ?? 0),
     travelScanDay: raw.travelScanDay,
     lookTryOnDay: raw.lookTryOnDay,
+    assistDay: raw.assistDay,
+    assistUsed: raw.assistDay === day ? Math.max(0, raw.assistUsed ?? 0) : 0,
+    boostMonth: raw.boostMonth,
+    freeBoostUsed: raw.boostMonth === day.slice(0, 7) ? Boolean(raw.freeBoostUsed) : false,
+    meaningfulAt: raw.meaningfulAt,
   }
 }
 
@@ -161,6 +174,12 @@ function get(): CreditsState {
   return cache
 }
 function commit(next: CreditsState) {
+  const seen = new Set<string>()
+  next.txs = next.txs.filter((tx) => {
+    if (seen.has(tx.id)) return false
+    seen.add(tx.id)
+    return true
+  })
   cache = next
   localStorage.setItem(KEY, JSON.stringify(next))
   window.dispatchEvent(new CustomEvent(EVT))
@@ -180,6 +199,12 @@ export function getCredits(): CreditsState {
   return structuredClone(get())
 }
 
+/** Test helper — not used in UI. */
+export function __resetCreditsForTests() {
+  cache = null
+  localStorage.removeItem(KEY)
+}
+
 export function creditsToEur(credits: number) {
   return credits / CREDITS_PER_EUR
 }
@@ -188,17 +213,25 @@ export function eurToCredits(eur: number) {
   return Math.round(eur * CREDITS_PER_EUR)
 }
 
+/**
+ * Local wallet credit only. Never call except after a successful protocol
+ * mutation (mintFromPool / takeFromP2P). Client cap is a UX guardrail — it is
+ * not a source of supply; P0 server ledger replaces this.
+ */
 function creditWallet(
   amount: number,
   type: CreditTxType,
   label: string,
   kind?: CreditSpendKind,
+  opId?: string,
 ): CreditsState {
   const next = structuredClone(get())
+  const id = opId || uid('cr')
+  if (next.txs.some((t) => t.id === id)) return next
   const amt = Math.max(0, Math.round(amount))
   next.balance += amt
   next.txs.unshift({
-    id: uid('cr'),
+    id,
     type,
     amount: amt,
     label,
@@ -209,7 +242,12 @@ function creditWallet(
   return next
 }
 
-/** Debit a protocol pool then credit this device. Fails closed at cap / empty pool. */
+/**
+ * Debit a protocol pool then credit this device.
+ * TODO(P0 server ledger): mintFromPool + creditWallet are not atomic. If the
+ * wallet write fails after mint, circulating has moved without a user credit.
+ * Production must apply both in one server/chain transaction with rollback.
+ */
 export function mintFromPoolToWallet(
   pool: CreditPoolId,
   amount: number,
@@ -230,7 +268,14 @@ export function earnCredits(amount: number, label: string): CreditsState | null 
 export function grantWelcomeAllocation(): CreditsState | null {
   const identity = ensureSignupIdentity()
   const grant = welcomeGrantFor(identity)
-  const minted = mintFromPoolToWallet(grant.pool, grant.amount, grant.label, 'welcome')
+  const op = `welcome:${identity.ordinal}`
+  // Already applied (protocol op or wallet tx) — never creditWallet without a new mint.
+  if (get().txs.some((t) => t.id === op) || getProtocol().seenOpIds.includes(op)) {
+    return getCredits()
+  }
+  const minted = mintFromPool(grant.pool, grant.amount, op)
+    ? creditWallet(grant.amount, 'welcome', grant.label, undefined, op)
+    : null
   if (minted) return minted
   if (grant.pool === 'early') {
     return mintFromPoolToWallet(
@@ -273,6 +318,7 @@ export function spendCredits(
     label,
     createdAt: new Date().toISOString(),
   })
+  if (!next.meaningfulAt) next.meaningfulAt = new Date().toISOString()
   applySpendSideEffects(next, kind)
   try {
     spendFeaturedCredits(Math.min(amt, getReferral().featuredCredits))
@@ -345,8 +391,9 @@ export function exchangeCreditsToEur(credits: number): CreditsState | null {
 }
 
 export function claimReferralCreditsDemo() {
+  if (!get().meaningfulAt) return null
   simulateReferralSignup()
-  return earnCredits(40, 'Referral-Bonus (Demo) — aus Rewards-Pool')
+  return earnCredits(40, 'Referral-Bonus (Demo) — nach erster sinnvoller Aktion, Rewards-Pool')
 }
 
 /** Demo checkout — credits appear only if the packs pool still has room. */
@@ -405,6 +452,7 @@ export function consumeSwipe(): boolean {
   const remaining = FREE_SWIPES_PER_DAY + next.extraSwipes - next.swipesUsed
   if (remaining <= 0) return false
   next.swipesUsed += 1
+  if (!next.meaningfulAt) next.meaningfulAt = new Date().toISOString()
   commit(next)
   return true
 }
@@ -414,6 +462,7 @@ export function hasTravelDeepScan(): boolean {
 }
 
 export function buyBoost(kind: CreditSpendKind): CreditsState | null {
+  if (consumeFreeMonthlyBoost(kind)) return getCredits()
   const meta = CREDITS_COSTS[kind]
   return spendCredits(meta.credits, kind, meta.label)
 }
@@ -429,6 +478,69 @@ export const CREDITS_BOOST_KINDS: CreditSpendKind[] = [
   'look_shop',
 ]
 
+export const FREE_ASSIST_PER_DAY = 8
+
+export function markMeaningfulAction() {
+  const next = structuredClone(get())
+  if (next.meaningfulAt) return
+  next.meaningfulAt = new Date().toISOString()
+  commit(next)
+}
+
+export function hasMeaningfulAction() {
+  return Boolean(get().meaningfulAt)
+}
+
+/** Extra Assist after the free daily lane — money moment, not while scrolling. */
+export function consumeAssistTurn(): 'ok' | 'paid' | 'need_credits' {
+  const next = structuredClone(get())
+  const day = todayKey()
+  if (next.assistDay !== day) {
+    next.assistDay = day
+    next.assistUsed = 0
+  }
+  if ((next.assistUsed ?? 0) < FREE_ASSIST_PER_DAY) {
+    next.assistUsed = (next.assistUsed ?? 0) + 1
+    commit(next)
+    return 'ok'
+  }
+  const paid = spendCredits(
+    CREDITS_COSTS.assist_priority.credits,
+    'assist_priority',
+    CREDITS_COSTS.assist_priority.label,
+  )
+  return paid ? 'paid' : 'need_credits'
+}
+
+function monthKey() {
+  return todayKey().slice(0, 7)
+}
+
+function consumeFreeMonthlyBoost(kind: CreditSpendKind): boolean {
+  if (!CREDITS_BOOST_KINDS.includes(kind)) return false
+  const next = structuredClone(get())
+  const month = monthKey()
+  if (next.boostMonth !== month) {
+    next.boostMonth = month
+    next.freeBoostUsed = false
+  }
+  if (next.freeBoostUsed) return false
+  applySpendSideEffects(next, kind)
+  next.freeBoostUsed = true
+  next.boostMonth = month
+  if (!next.meaningfulAt) next.meaningfulAt = new Date().toISOString()
+  next.txs.unshift({
+    id: uid('cr'),
+    type: 'spend',
+    amount: 0,
+    kind,
+    label: `${CREDITS_COSTS[kind].label} · 1. Boost/Monat frei`,
+    createdAt: new Date().toISOString(),
+  })
+  commit(next)
+  return true
+}
+
 export const CREDITS_COSTS: Record<CreditSpendKind, { credits: number; label: string }> = {
   featured: { credits: 40, label: 'Listing boosten (7 Tage Demo)' },
   extra_swipes: { credits: 25, label: `+${EXTRA_SWIPES_PACK} Extra-Swipes (heute)` },
@@ -441,6 +553,7 @@ export const CREDITS_COSTS: Record<CreditSpendKind, { credits: number; label: st
   sponsor_fee: { credits: 1, label: 'Sponsoring-Gebühr (Burn)' },
   look_tryon: { credits: 15, label: 'Look: Extra-Varianten (heute)' },
   look_shop: { credits: 20, label: 'Look: Nearby-Shop featuren (Demo)' },
+  assist_priority: { credits: 8, label: 'Assist extra (nach 8 frei/Tag)' },
 }
 
 export const CREDITS_FREE_DE = [

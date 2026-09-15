@@ -167,6 +167,11 @@ export function LookPage() {
         onChange={(e) => onFile(e.target.files?.[0], 'video')}
       />
 
+      {!media && (
+        <p className="rounded-2xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted">
+          {t('look.emptyHint')}
+        </p>
+      )}
       {media && (
         <div className="relative overflow-hidden rounded-2xl border border-border bg-black">
           {media.kind === 'video' ? (

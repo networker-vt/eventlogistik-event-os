@@ -18,7 +18,9 @@ Invariant: `circulating + remainingReserve + burned === 21_000_000`. Every grant
 
 Signup ordinal is stored in `localStorage` (`orbit_signup_ordinal_v1`) on this device.
 
-When **remainingReserve = 0**: no system minting. Users can (1) **earn** from whatever is left in the pre-allocated rewards pool, or (2) **buy/P2P** from other users (order-book stub). Gift / sponsoring is a **peer transfer** (1 Credit burned as fee) — never a new mint.
+When **remainingReserve = 0**: no system minting. Users can (1) **earn** from whatever is left in the pre-allocated rewards pool, or (2) **buy/P2P** from other users (order-book stub). Gift / sponsoring is a **peer transfer** (~2% / min 1 Credit burned as fee) — never a new mint.
+
+The client `assertCap` / invariant in `creditProtocol.ts` is a **UX guardrail**, not a production ledger. **P0:** a server or chain ledger must apply mint + wallet credit atomically (`mintFromPoolToWallet` is two steps today).
 
 ## Always free
 

@@ -155,5 +155,33 @@ export function sendGift(input: {
     createdAt: new Date().toISOString(),
   }
   commitHistory([rec, ...history()])
+  bumpSponsor('clicks')
   return rec
+}
+
+const STATS_KEY = 'orbit_sponsor_stats_v1'
+
+export function getSponsorStats(): { impressions: number; clicks: number } {
+  try {
+    const raw = localStorage.getItem(STATS_KEY)
+    if (!raw) return { impressions: 0, clicks: 0 }
+    const p = JSON.parse(raw) as { impressions?: number; clicks?: number }
+    return { impressions: Math.max(0, p.impressions ?? 0), clicks: Math.max(0, p.clicks ?? 0) }
+  } catch {
+    return { impressions: 0, clicks: 0 }
+  }
+}
+
+function bumpSponsor(field: 'impressions' | 'clicks') {
+  const cur = getSponsorStats()
+  cur[field] += 1
+  localStorage.setItem(STATS_KEY, JSON.stringify(cur))
+}
+
+export function recordSponsorImpression() {
+  bumpSponsor('impressions')
+}
+
+export function recordSponsorClick() {
+  bumpSponsor('clicks')
 }

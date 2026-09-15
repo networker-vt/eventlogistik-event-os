@@ -19,6 +19,7 @@ export interface FuerDichItem {
   href?: string
   percent?: number
   gift?: GiftTarget
+  action: 'contact' | 'book' | 'look' | 'match' | 'read'
 }
 
 /** One mixed rail — deals, match picks, news, Look — so Home stays a single glance. */
@@ -40,17 +41,7 @@ export function rankFuerDich(
   )
   const news = rankHomeNews(prefs, locale, 2)
 
-  const items: FuerDichItem[] = [
-    {
-      id: 'look-cta',
-      lane: 'look',
-      title: de ? 'Neuer Look?' : 'New look?',
-      kicker: de ? 'Style · Demo' : 'Style · demo',
-      reason: de ? 'Foto oder Video — Orbit schlägt Varianten + Shops vor.' : 'Photo or video — Orbit suggests variants + shops.',
-      emoji: '🪞',
-      to: '/look',
-    },
-  ]
+  const items: FuerDichItem[] = []
 
   for (const d of deals) {
     if (d.kind === 'travel' && d.offer) {
@@ -58,10 +49,11 @@ export function rankFuerDich(
         id: `deal-${d.id}`,
         lane: 'deal',
         title: d.offer.title,
-        kicker: de ? 'Top Deal' : 'Top deal',
+        kicker: de ? 'Top Deal · Demo' : 'Top deal · demo',
         reason: d.reason,
         emoji: d.offer.imageEmoji,
         to: `/reise/${d.offer.id}`,
+        action: 'book',
       })
     } else if (d.listing) {
       items.push({
@@ -72,6 +64,7 @@ export function rankFuerDich(
         reason: d.reason,
         emoji: d.listing.imageEmoji || '💼',
         to: `/listings/${d.listing.id}`,
+        action: 'contact',
         gift: {
           kind: 'listing',
           id: d.listing.id,
@@ -93,6 +86,7 @@ export function rankFuerDich(
       emoji: s.emoji,
       to: s.to,
       percent: s.percent,
+      action: s.to.startsWith('/reise/') ? 'book' : 'contact',
       gift: s.to.startsWith('/listings/')
         ? { kind: 'listing', id: s.id, label: s.title, to: s.to }
         : s.to.startsWith('/profiles/')
@@ -115,8 +109,22 @@ export function rankFuerDich(
       reason: de ? 'Kuratiert / Demo' : 'Curated / demo',
       emoji: '📰',
       href: n.href,
+      action: 'read',
     })
   }
+
+  items.push({
+    id: 'look-cta',
+    lane: 'look',
+    title: de ? 'Neuer Look?' : 'New look?',
+    kicker: de ? 'Style · Demo' : 'Style · demo',
+    reason: de
+      ? 'Foto oder Video — Orbit schlägt Varianten + Shops vor.'
+      : 'Photo or video — Orbit suggests variants + shops.',
+    emoji: '🪞',
+    to: '/look',
+    action: 'look',
+  })
 
   return items.slice(0, limit)
 }

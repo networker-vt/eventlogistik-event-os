@@ -12,7 +12,8 @@ export const MAX_SUPPLY = 21_000_000
 export const EARLY_TESTER_CAP = 50
 export const EARLY_TESTER_GRANT = 1_500
 export const WELCOME_GRANT = 25
-/** Tiny fee on gift/sponsoring — burned, not reminted. */
+export const P2P_TAKE_RATE = 0.02
+/** Tiny fee on gift/sponsoring — burned, not reminted. Min 1, else ~2%. */
 export const SPONSOR_FEE = 1
 
 /** Pre-issued to simulated peers so P2P can settle without minting. */
@@ -92,6 +93,7 @@ export interface ProtocolState {
   p2pFloat: number
   signupCount: number
   filledOrderIds: string[]
+  seenOpIds: string[]
   pools: Record<CreditPoolId, CreditPool>
 }
 
@@ -135,6 +137,7 @@ function genesis(): ProtocolState {
     p2pFloat: GENESIS_P2P_FLOAT,
     signupCount: 0,
     filledOrderIds: [],
+    seenOpIds: [],
     pools,
   }
 }
@@ -176,6 +179,7 @@ function normalize(raw: Partial<ProtocolState>): ProtocolState | null {
     p2pFloat: Math.max(0, Math.round(raw.p2pFloat ?? GENESIS_P2P_FLOAT)),
     signupCount: Math.max(0, Math.round(raw.signupCount ?? 0)),
     filledOrderIds: Array.isArray(raw.filledOrderIds) ? raw.filledOrderIds : [],
+    seenOpIds: Array.isArray(raw.seenOpIds) ? raw.seenOpIds.slice(0, 80) : [],
     pools,
   }
   return protocolInvariantHolds(next) ? next : null
@@ -200,6 +204,7 @@ function get(): ProtocolState {
 }
 
 function commit(next: ProtocolState) {
+  // assertCap: client invariant is a UX guardrail. P0 server/chain ledger is the source of truth.
   if (!protocolInvariantHolds(next)) {
     console.error('[orbit credits] invariant failed — refusing commit', next)
     return false
@@ -234,15 +239,17 @@ export function isPackMarketP2P(): boolean {
  * Mint from a pre-allocated pool into circulating. Fails if the pool or cap is exhausted.
  * Caller credits the user wallet by the same amount.
  */
-export function mintFromPool(pool: CreditPoolId, amount: number): boolean {
+export function mintFromPool(pool: CreditPoolId, amount: number, opId?: string): boolean {
   const amt = Math.max(0, Math.round(amount))
   if (amt === 0) return true
   const next = structuredClone(get())
+  if (opId && next.seenOpIds.includes(opId)) return true
   if (next.pools[pool].remaining < amt) return false
   if (next.circulating + amt + next.burned > MAX_SUPPLY) return false
   next.pools[pool].remaining -= amt
   next.remainingReserve -= amt
   next.circulating += amt
+  if (opId) next.seenOpIds = [opId, ...next.seenOpIds].slice(0, 80)
   return commit(next)
 }
 
@@ -259,7 +266,7 @@ export function holdFromUser(amount: number): boolean {
 export function peerTransferOut(amount: number): { net: number; burned: number } | null {
   const amt = Math.max(0, Math.round(amount))
   if (amt <= 0) return null
-  const burned = Math.min(SPONSOR_FEE, amt)
+  const burned = Math.min(amt, Math.max(SPONSOR_FEE, Math.round(amt * P2P_TAKE_RATE)))
   const net = amt - burned
   const next = structuredClone(get())
   next.p2pFloat += net

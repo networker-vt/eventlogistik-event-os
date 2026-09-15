@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Briefcase,
@@ -17,6 +17,8 @@ import { CreateSheet } from './CreateSheet'
 import { BrandIcon, BrandMark } from '../brand/BrandMark'
 import { SkipLink } from '../a11y/SkipLink'
 import { copyrightLine } from '../../lib/legal'
+import { getPrefs, subscribePrefs } from '../../lib/prefs'
+import { touchResume } from '../../lib/resume'
 
 export function AppShell() {
   const { user } = useAuth()
@@ -24,11 +26,19 @@ export function AppShell() {
   const navigate = useNavigate()
   const location = useLocation()
   const [createOpen, setCreateOpen] = useState(false)
+  const [prefs, setPrefs] = useState(getPrefs)
   const theme = themeForPath(location.pathname)
+  const matchTo = prefs.completed ? '/match' : '/prefs'
+
+  useEffect(() => subscribePrefs(() => setPrefs(getPrefs())), [])
+  useEffect(() => {
+    const title = document.title || location.pathname
+    touchResume(`${location.pathname}${location.hash}`, title)
+  }, [location.pathname, location.hash])
 
   const mobileNav = [
     { to: '/', label: t('nav.home'), icon: Home, end: true },
-    { to: '/match', label: t('nav.match'), icon: Briefcase },
+    { to: matchTo, label: t('nav.match'), icon: Briefcase },
     { to: '/messages', label: t('nav.inbox'), icon: MessageSquare },
     { to: '/wallet', label: t('nav.wallet'), icon: Wallet },
     { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal },
@@ -36,7 +46,7 @@ export function AppShell() {
 
   const desktopPrimary = [
     { to: '/', label: t('nav.home'), end: true },
-    { to: '/match', label: t('nav.match') },
+    { to: matchTo, label: t('nav.match') },
     { to: '/messages', label: t('nav.inbox') },
     { to: '/wallet', label: t('nav.wallet') },
     { to: '/mehr', label: t('nav.mehr') },
