@@ -15,7 +15,7 @@ Global all-industry job matching OS (v2.1.0). Prefs first, then Tinder-style Mat
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Home — **Deine Welt** feed (prefs + local behaviour) |
+| `/` | Start — greeting, one CTA (Match or Prefs), 4-card Deine Welt |
 | `/match` | Match Finder — swipe; 1-tap Interesse shares profile pack |
 | `/mein` | Personal hub — radius, prefs, skill stars, docs, language, favorites |
 | `/messages` | Inbox |

@@ -48,7 +48,7 @@ export function AppShell() {
       className="theme-shell mx-auto flex min-h-dvh max-w-6xl flex-col overflow-x-hidden"
     >
       <SkipLink />
-      {stub && (
+      {stub && location.pathname !== '/' && (
         <p className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-100">
           {t('stub.banner')}
         </p>
@@ -156,8 +156,8 @@ export function AppShell() {
           <div key={location.pathname + location.search} className="page-enter">
             <Outlet />
           </div>
-          <footer className="mt-10 space-y-3 border-t border-border pt-4 text-xs text-muted">
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
+          <footer className="mt-16 space-y-2 border-t border-border/80 pt-6 text-xs text-muted">
+            <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Legal">
               <Link to="/impressum" className="hover:text-[var(--theme-accent)]">
                 {t('footer.impressum')}
               </Link>
@@ -167,22 +167,7 @@ export function AppShell() {
               <Link to="/agb" className="hover:text-[var(--theme-accent)]">
                 {t('footer.terms')}
               </Link>
-              <Link to="/mein" className="hover:text-[var(--theme-accent)]">
-                {t('nav.mein')}
-              </Link>
-              <Link to="/interview" className="hover:text-[var(--theme-accent)]">
-                {t('interview.title')}
-              </Link>
-              <Link to="/foto" className="hover:text-[var(--theme-accent)]">
-                {t('photo.title')}
-              </Link>
-              <Link to="/erfahrungen" className="hover:text-[var(--theme-accent)]">
-                {t('reviews.title')}
-              </Link>
-              <Link to="/wallet" className="hover:text-[var(--theme-accent)]">
-                Wallet
-              </Link>
-            </div>
+            </nav>
             <p>{copyrightLine()}</p>
           </footer>
         </main>

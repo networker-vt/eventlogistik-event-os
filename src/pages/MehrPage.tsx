@@ -10,7 +10,6 @@ import {
   GraduationCap,
   Library,
   Lightbulb,
-  MessageSquare,
   Plus,
   Scale,
   Sparkles,
@@ -69,7 +68,6 @@ export function MehrPage() {
         { to: '/ideen', label: 'Ideen-Box', hint: 'Feedback an den Operator', icon: Lightbulb },
         { to: '/empfehlen', label: 'Empfehlen', hint: 'Referral-Bonus zum Teilen', icon: Gift },
         { to: '/wallet', label: 'Wallet & Credits', hint: 'Demo-Ledger', icon: Wallet },
-        { to: '/messages', label: t('nav.inbox'), icon: MessageSquare },
       ],
     },
     {

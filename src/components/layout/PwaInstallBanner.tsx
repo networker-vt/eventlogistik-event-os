@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Download, X } from 'lucide-react'
 import { Button } from '../ui/Button'
 
@@ -24,6 +25,7 @@ function isStandalone() {
 }
 
 export function PwaInstallBanner() {
+  const { pathname } = useLocation()
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
   const [showIos, setShowIos] = useState(false)
   const [hidden, setHidden] = useState(true)
@@ -60,7 +62,7 @@ export function PwaInstallBanner() {
     dismiss()
   }
 
-  if (hidden || (!deferred && !showIos)) return null
+  if (pathname === '/' || hidden || (!deferred && !showIos)) return null
 
   return (
     <div className="bottom-above-nav fixed inset-x-0 z-40 mx-auto max-w-lg px-3 md:bottom-4">
