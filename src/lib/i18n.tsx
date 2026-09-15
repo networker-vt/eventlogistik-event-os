@@ -129,9 +129,10 @@ const deDict: Dict = {
   'footer.privacy': 'Datenschutz',
   'footer.terms': 'AGB',
   'mehr.title': 'Mehr',
-  'mehr.lead': 'Quellen, Interviews, Foto-Jobs, Event-Sektor (archiviert), Ideen, Wallet, Legal.',
-  'mehr.event': 'Archiv · Event/DE',
-  'mehr.eventHint': 'Nicht primär — Katalog, Locations, Freelancer VT, Material, Transporter, Innovation.',
+  'mehr.lead': 'Quellen, Interviews, Foto-Jobs, Event/DE & Wissen (archiviert), Ideen, Wallet, Legal.',
+  'mehr.event': 'Archiv · Event/DE & Wissen',
+  'mehr.eventHint':
+    'Nicht primär — Katalog, Locations, Freelancer VT, Material, Transporter, Innovation, Medien, Fortbildung.',
 }
 
 const enDict: Dict = {
@@ -234,9 +235,10 @@ const enDict: Dict = {
   'footer.privacy': 'Privacy',
   'footer.terms': 'Terms',
   'mehr.title': 'More',
-  'mehr.lead': 'Sources, interviews, photo jobs, Event sector (archived), ideas, wallet, legal.',
-  'mehr.event': 'Archive · Event/DE',
-  'mehr.eventHint': 'Not primary — catalogue, locations, Freelancer VT, material, transporters, innovation.',
+  'mehr.lead': 'Sources, interviews, photo jobs, Event/DE & Wissen (archived), ideas, wallet, legal.',
+  'mehr.event': 'Archive · Event/DE & Wissen',
+  'mehr.eventHint':
+    'Not primary — catalogue, locations, Freelancer VT, material, transporters, innovation, media, training.',
 }
 
 const dicts: Record<'de' | 'en', Dict> = { de: deDict, en: enDict }
