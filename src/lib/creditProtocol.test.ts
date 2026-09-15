@@ -23,7 +23,7 @@ describe('Orbit Credits protocol', () => {
     __resetCreditsForTests()
   })
 
-  it('refuses a mint that would exceed the 21M cap / empty pool', () => {
+  it('add-at-cap: refuses a mint that would exceed the 21M cap / empty pool', () => {
     const p = getProtocol()
     expect(mintFromPool('packs', p.pools.packs.remaining + 1)).toBe(false)
     expect(mintFromPool('rewards', MAX_SUPPLY)).toBe(false)
@@ -33,13 +33,27 @@ describe('Orbit Credits protocol', () => {
     )
   })
 
-  it('refuses a gift when the wallet is empty', () => {
+  it('gift-at-cap: refuses oversize gifts and never mints', () => {
     expect(getCredits().balance).toBe(0)
     expect(giftCredits(25, 'Demo')).toBeNull()
-    expect(protocolInvariantHolds(getProtocol())).toBe(true)
+
+    expect(grantWelcomeAllocation()).not.toBeNull()
+    const bal = getCredits().balance
+    const circulatingBefore = getProtocol().circulating
+    expect(giftCredits(bal + 1, 'Over cap')).toBeNull()
+    expect(getCredits().balance).toBe(bal)
+    expect(getProtocol().circulating).toBe(circulatingBefore)
+
+    const sent = Math.min(25, bal)
+    expect(giftCredits(sent, 'Peer')).not.toBeNull()
+    const after = getProtocol()
+    expect(after.circulating).toBeLessThan(circulatingBefore)
+    expect(after.burned).toBeGreaterThan(0)
+    expect(protocolInvariantHolds(after)).toBe(true)
+    expect(after.circulating + after.remainingReserve + after.burned).toBe(MAX_SUPPLY)
   })
 
-  it('blocks a second welcome grant (idempotent op id)', () => {
+  it('double-apply: blocks a second welcome grant (idempotent op id)', () => {
     const first = grantWelcomeAllocation()
     expect(first).not.toBeNull()
     const bal = getCredits().balance
