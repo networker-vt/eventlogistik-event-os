@@ -7,7 +7,7 @@ import './index.css'
 registerSW({
   immediate: true,
   onOfflineReady() {
-    console.info('[LoadIn] Offline-Shell bereit')
+    console.info('[Orbit] Offline-Shell bereit')
   },
 })
 

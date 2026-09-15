@@ -1,132 +1,83 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
-  Briefcase,
-  Building2,
-  Search,
-  ShieldCheck,
+  Heart,
+  SlidersHorizontal,
   Sparkles,
-  Users,
+  ShieldCheck,
   Zap,
-  Library,
-  GraduationCap,
-  Package,
 } from 'lucide-react'
-import { FilterBar } from '../components/listings/FilterBar'
 import { ListingCard } from '../components/listings/ListingCard'
 import { Button } from '../components/ui/Button'
-import { Empty } from '../components/ui/Empty'
 import { useListings } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
-import type { ListingFilters, Role } from '../types'
-import { CATALOG_COMPANY_COUNT, CATALOG_VENUE_COUNT } from '../data/catalog'
-import { INNOVATION_COUNT } from '../data/innovation'
-import { FORTBILDUNG_COUNT, MEDIEN_COUNT } from '../data/wissen'
-
-function isSeekerRole(role?: Role) {
-  return role === 'freelancer' || role === 'courier' || role === 'transporter'
-}
-
-const QUICK_CHIPS = [
-  { label: 'Jobs', to: '/jobs?side=seek' },
-  { label: 'Crew suchen', to: '/jobs?side=hire' },
-  { label: 'Freelancer', to: '/freelancer' },
-  { label: 'Material', to: '/material' },
-  { label: 'Katalog', to: '/katalog/firmen' },
-  { label: 'Favoriten', to: '/mein' },
-  { label: 'Wallet', to: '/wallet' },
-  { label: 'Ideen-Box', to: '/ideen' },
-  { label: 'Empfehlen', to: '/empfehlen' },
-  { label: 'Integrationen', to: '/integrationen' },
-  { label: 'Mehr', to: '/mehr' },
-]
+import { getPrefs } from '../lib/prefs'
+import { filterListingsByPrefs } from '../lib/prefs'
+import { ORBIT_TAGLINE_DE } from '../data/industries'
 
 export function HomePage() {
-  const { user, loginDemo, profile } = useAuth()
+  const { user, loginDemo } = useAuth()
   const navigate = useNavigate()
-  const seekerBias = user ? isSeekerRole(user.role) : null
-
-  const [filters, setFilters] = useState<ListingFilters>({
-    kind: 'all',
-    vertical: seekerBias ? 'job' : 'all',
-  })
-  const { listings } = useListings(filters)
-  const stats = useMemo(() => store.stats(), [listings])
-  const featuredJobs = useMemo(
-    () => store.listListings({ vertical: 'job', kind: 'offer' }).slice(0, 3),
-    [listings],
-  )
+  const prefs = getPrefs()
+  const { listings: raw } = useListings({ vertical: 'job', kind: 'offer' })
+  const filtered = useMemo(() => filterListingsByPrefs(raw, prefs).slice(0, 6), [raw, prefs])
+  const stats = useMemo(() => store.stats(), [raw])
 
   return (
     <div className="space-y-8 pb-scroll-chrome">
       <section className="relative overflow-hidden rounded-3xl border border-border surface-shine p-5 md:p-10 motion-fade-up">
         <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-cyan/25 blur-3xl motion-orb" />
         <div className="pointer-events-none absolute -bottom-16 left-6 h-44 w-44 rounded-full bg-teal/15 blur-3xl motion-orb-delay" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan/50 to-transparent" />
 
         <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan/35 bg-cyan/10 px-3 py-1 text-xs font-medium text-cyan glow-cyan-soft">
-          <Sparkles size={14} /> LoadIn · Event-OS für Crew, Gigs & Gear
+          <Sparkles size={14} /> Orbit · Job Matching OS
         </p>
         <h1 className="max-w-2xl text-[1.75rem] font-bold leading-[1.15] tracking-tight md:text-4xl">
-          {seekerBias === true ? (
-            <>
-              Deine nächsten <span className="text-shimmer">Gigs</span> — Rate klar. Bewerbung in
-              Minuten.
-            </>
-          ) : seekerBias === false ? (
-            <>
-              Crew & Jobs <span className="text-shimmer">schneller</span> als jede WhatsApp-Liste.
-            </>
-          ) : (
-            <>
-              Jedes <span className="text-shimmer">Gesuch</span> findet jedes{' '}
-              <span className="text-shimmer">Angebot</span>.
-            </>
-          )}
+          {ORBIT_TAGLINE_DE.split('—')[0].trim()} —{' '}
+          <span className="text-shimmer">Matching statt Spam</span>
         </h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-neutral-300 md:text-base">
-          Load in. Crew raus. Show läuft. Marketplace & Matching für Agenturen, Technikfirmen,
-          Freelancer, Hotels, Transport und Material — mit klaren Tagessätzen, Spesen/ÜN und Trust.
+          Global, branchenübergreifend: IT, Pflege, Retail, Logistik, Gastronomie, Admin, Minijobs —
+          und Event/VT als ein Sektor unter vielen. Prefs zuerst, dann swipen.
         </p>
 
-        {/* Hero fork — Jobs finden vs Jobs/Crew finden */}
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <button
             type="button"
-            onClick={() => navigate('/jobs?side=seek')}
-            className="group relative overflow-hidden rounded-2xl border border-cyan/45 bg-cyan/10 p-4 text-left transition hover:border-cyan hover:bg-cyan/15 hover:shadow-[0_0_28px_rgba(0,240,255,0.15)]"
+            onClick={() => navigate(prefs.completed ? '/match' : '/prefs')}
+            className="group relative overflow-hidden rounded-2xl border border-cyan/45 bg-cyan/10 p-4 text-left transition hover:border-cyan hover:bg-cyan/15"
           >
-            <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-cyan/20 blur-2xl opacity-0 transition group-hover:opacity-100" />
             <div className="mb-2 flex items-center gap-2 text-cyan">
-              <Search size={20} />
-              <span className="text-xs font-semibold uppercase tracking-wider">Jobsuche</span>
+              <Heart size={20} />
+              <span className="text-xs font-semibold uppercase tracking-wider">Match</span>
             </div>
-            <div className="text-lg font-bold text-white">Ich suche Jobs / Gigs</div>
+            <div className="text-lg font-bold text-white">Match Finder öffnen</div>
             <p className="mt-1 text-sm text-neutral-300">
-              Tagessatz · Spesen · Anfahrt · ÜN — alles sichtbar. 1-Tap bewerben.
+              Tinder-Style Karten mit erklärbarem Match-Rating %.
             </p>
             <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan">
-              Jobs öffnen <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
+              Los swipen <ArrowRight size={14} />
             </span>
           </button>
           <button
             type="button"
-            onClick={() => navigate('/jobs?side=hire')}
-            className="group relative overflow-hidden rounded-2xl border border-teal/45 bg-teal/10 p-4 text-left transition hover:border-teal hover:bg-teal/15 hover:shadow-[0_0_28px_rgba(20,184,166,0.15)]"
+            onClick={() => navigate('/prefs')}
+            className="group relative overflow-hidden rounded-2xl border border-teal/45 bg-teal/10 p-4 text-left transition hover:border-teal hover:bg-teal/15"
           >
-            <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-teal/20 blur-2xl opacity-0 transition group-hover:opacity-100" />
             <div className="mb-2 flex items-center gap-2 text-teal">
-              <Users size={20} />
-              <span className="text-xs font-semibold uppercase tracking-wider">Besetzung</span>
+              <SlidersHorizontal size={20} />
+              <span className="text-xs font-semibold uppercase tracking-wider">Prefs</span>
             </div>
-            <div className="text-lg font-bold text-white">Ich biete Jobs / suche Crew</div>
+            <div className="text-lg font-bold text-white">
+              {prefs.completed ? 'Prefs anpassen' : 'Prefs einrichten'}
+            </div>
             <p className="mt-1 text-sm text-neutral-300">
-              Structured Post · Pipeline · Vergleich · Chat — wie ein Pro-Tool.
+              Länder, Sprachen, Branchen, Typ, Remote, Gehalt, Skills — Hard-Filter vor dem Feed.
             </p>
             <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-teal">
-              Crew finden <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
+              Wizard starten <ArrowRight size={14} />
             </span>
           </button>
         </div>
@@ -136,40 +87,30 @@ export function HomePage() {
             <Button
               onClick={() => {
                 loginDemo()
-                navigate('/dashboard')
+                navigate('/match')
               }}
             >
-              Demo als Agentur starten
+              Demo starten
             </Button>
           ) : (
             <Button variant="secondary" onClick={() => navigate('/dashboard')}>
-              Zum Dashboard
+              Dashboard
             </Button>
           )}
-          <Button variant="ghost" onClick={() => navigate('/listings/new')}>
-            Inserat erstellen
+          <Button variant="ghost" onClick={() => navigate('/quellen')}>
+            Quellen
           </Button>
-        </div>
-
-        {/* Quick chips */}
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {QUICK_CHIPS.map((chip) => (
-            <Link
-              key={chip.to}
-              to={chip.to}
-              className="shrink-0 rounded-full border border-border bg-black/30 px-3 py-1.5 text-xs font-medium text-neutral-300 hover:border-cyan/40 hover:text-cyan"
-            >
-              {chip.label}
-            </Link>
-          ))}
+          <Button variant="ghost" onClick={() => navigate('/listings/new?vertical=job')}>
+            Job posten
+          </Button>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { label: 'Angebote live', value: stats.offers },
-            { label: 'Gesuche live', value: stats.requests },
+            { label: 'Jobs live', value: stats.offers },
+            { label: 'Gesuche', value: stats.requests },
             { label: 'Buchungen', value: stats.bookings },
-            { label: 'Projekte', value: stats.projects },
+            { label: 'Prefs', value: prefs.completed ? '✓' : '—' },
           ].map((s) => (
             <div
               key={s.label}
@@ -182,125 +123,30 @@ export function HomePage() {
         </div>
       </section>
 
-      {featuredJobs.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <Briefcase size={18} className="text-cyan" /> Hot Jobs — Rate, Spesen, Zeitraum
-            </h2>
-            <Link
-              to="/jobs?side=seek"
-              className="text-sm font-medium text-cyan hover:underline underline-offset-2"
-            >
-              Alle Jobs →
-            </Link>
-          </div>
-          <div className="stagger-in grid gap-3 sm:grid-cols-3">
-            {featuredJobs.map((l) => (
-              <ListingCard key={l.id} listing={l} highlightRate />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Section cards — not 12 competing CTAs */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Bereiche</h2>
-          <Link to="/mehr" className="text-xs font-medium text-cyan hover:underline underline-offset-2">
-            Alles unter Mehr →
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold">Ruhige Entdeckung</h2>
+          <Link to="/match" className="text-sm font-medium text-cyan hover:underline">
+            Zum Match →
           </Link>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <Link
-            to="/jobs"
-            className="card-hover rounded-2xl border border-cyan/40 bg-cyan/10 p-4 lg:col-span-1"
-          >
-            <div className="mb-2 flex items-center gap-2 text-cyan">
-              <Briefcase size={18} />
-              <span className="text-xs font-semibold uppercase tracking-wider">Jobs</span>
-            </div>
-            <div className="font-semibold text-white">Seek & Hire</div>
-            <p className="mt-1 text-xs text-neutral-300">Core Money Loop — Gigs finden oder Crew besetzen.</p>
-          </Link>
-          <Link
-            to="/mehr#marktplatz"
-            className="card-hover rounded-2xl border border-teal/35 bg-teal/10 p-4"
-          >
-            <div className="mb-2 flex items-center gap-2 text-teal">
-              <Package size={18} />
-              <span className="text-xs font-semibold uppercase tracking-wider">Marktplatz</span>
-            </div>
-            <div className="font-semibold text-white">6 Verticals</div>
-            <p className="mt-1 text-xs text-neutral-300">Freelancer, Firmen, Material, Transport, Kuriere, Hotels.</p>
-          </Link>
-          <Link
-            to="/katalog/firmen"
-            className="card-hover rounded-2xl border border-teal/25 bg-surface-2 p-4"
-          >
-            <div className="mb-2 flex items-center gap-2 text-teal">
-              <Library size={18} />
-              <span className="text-xs font-semibold uppercase tracking-wider">Katalog</span>
-            </div>
-            <div className="font-semibold text-white">Branchendaten</div>
-            <p className="mt-1 text-xs text-neutral-300">
-              {CATALOG_COMPANY_COUNT}+ Firmen · {CATALOG_VENUE_COUNT} Locations
-            </p>
-          </Link>
-          <Link
-            to="/innovation"
-            className="card-hover rounded-2xl border border-violet-500/35 bg-violet-500/10 p-4"
-          >
-            <div className="mb-2 flex items-center gap-2 text-violet-300">
-              <Sparkles size={18} />
-              <span className="text-xs font-semibold uppercase tracking-wider">Innovation</span>
-            </div>
-            <div className="font-semibold text-white">KI · XR · LED</div>
-            <p className="mt-1 text-xs text-neutral-300">{INNOVATION_COUNT} kuratierte News-Karten</p>
-          </Link>
-          <Link
-            to="/wissen/fortbildung"
-            className="card-hover rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4"
-          >
-            <div className="mb-2 flex items-center gap-2 text-amber-300">
-              <GraduationCap size={18} />
-              <span className="text-xs font-semibold uppercase tracking-wider">Wissen</span>
-            </div>
-            <div className="font-semibold text-white">Medien & Lehrgänge</div>
-            <p className="mt-1 text-xs text-neutral-300">
-              {MEDIEN_COUNT} Medien · {FORTBILDUNG_COUNT} Fortbildungen
-            </p>
-          </Link>
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Entdecken</h2>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setFilters({ kind: 'all', vertical: 'all' })}
-          >
-            Filter zurücksetzen
-          </Button>
-        </div>
-        <div className="sticky-filters -mx-4 bg-surface/95 px-4 py-2 backdrop-blur md:mx-0 md:bg-transparent md:px-0 md:py-0">
-          <FilterBar value={filters} onChange={setFilters} sticky />
-        </div>
-        <div className="stagger-in grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {listings.map((l) => (
-            <ListingCard key={l.id} listing={l} />
+        <p className="text-xs text-muted">
+          {prefs.completed
+            ? 'Bereits nach deinen Prefs gefiltert.'
+            : 'Ohne Prefs: unfilterter Preview — richte Prefs ein für Hard-Filter.'}
+        </p>
+        <div className="stagger-in grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((l) => (
+            <ListingCard key={l.id} listing={l} highlightRate />
           ))}
         </div>
-        {listings.length === 0 && (
-          <Empty
-            emoji="🔭"
-            title="Noch nichts in diesem Filter"
-            hint="Filter lockern — oder als Erste:r ein Inserat live schalten und den Markt setzen."
-            actionLabel="Inserat erstellen"
-            onAction={() => navigate('/listings/new')}
-          />
+        {filtered.length === 0 && (
+          <p className="rounded-2xl border border-border bg-surface-2 p-6 text-center text-sm text-muted">
+            Keine Treffer für aktuelle Prefs.{' '}
+            <button type="button" className="text-cyan" onClick={() => navigate('/prefs')}>
+              Prefs lockern
+            </button>
+          </p>
         )}
       </section>
 
@@ -308,18 +154,18 @@ export function HomePage() {
         {[
           {
             icon: Zap,
-            title: 'Matching statt Chaos',
-            text: 'Stadt, Gewerk, Datum und Tagessatz — sofort filterbar. Klar, warum ein Match gezeigt wird.',
+            title: 'Preference-first',
+            text: 'Hard-Filter vor jeder Karte — Land, Sprache, Branche, Typ, Gehalt, Skills.',
+          },
+          {
+            icon: Heart,
+            title: 'Explainable Match %',
+            text: 'Skills / Land / Sprache / Gehalt / Typ — transparent, kein Black-Box-Spam.',
           },
           {
             icon: ShieldCheck,
-            title: 'Trust Layer',
-            text: 'Verifizierungs-Badges, Ratings und nachvollziehbare Booking-Historie — keine Bait-Rates.',
-          },
-          {
-            icon: Building2,
-            title: 'Ops Lite',
-            text: 'Anfrage → Angebot → Buchung inkl. Messaging und Event-Projekten in einem Flow.',
+            title: 'Ehrliche Quellen',
+            text: 'Keine inoffiziellen Scrapes. Aggregatoren nur als API/Partner-Stubs.',
           },
         ].map((f) => (
           <div key={f.title} className="card-elevated rounded-2xl border border-border p-5">
@@ -329,13 +175,6 @@ export function HomePage() {
           </div>
         ))}
       </section>
-
-      {profile && (
-        <p className="text-center text-xs text-muted">
-          Angemeldet als {profile.name} ({profile.role === 'agency' ? 'Agentur' : profile.role}) — Home
-          ist rollenbewusst ausgerichtet.
-        </p>
-      )}
     </div>
   )
 }

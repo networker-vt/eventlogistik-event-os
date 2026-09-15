@@ -23,7 +23,7 @@ function defaultState(): ReferralState {
 
 function makeCode() {
   const raw = Math.random().toString(36).slice(2, 8).toUpperCase()
-  return `LI-${raw}`
+  return `OR-${raw}`
 }
 
 function load(): ReferralState {

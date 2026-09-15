@@ -1,4 +1,5 @@
 import { cn } from '../../lib/utils'
+import { ORBIT_BRAND, ORBIT_TAGLINE_DE } from '../../data/industries'
 
 const base = () => import.meta.env.BASE_URL
 
@@ -9,37 +10,50 @@ export function BrandMark({
   compact?: boolean
   className?: string
 }) {
-  const src = compact ? `${base()}icons/icon-192.png` : `${base()}icons/loadin-wordmark.png`
+  const logo = `${base()}icons/orbit-logo.png`
   if (compact) {
     return (
       <span className={cn('flex items-center gap-2', className)}>
-        <img src={src} alt="" className="h-8 w-8 rounded-lg border border-cyan/25 object-cover" />
+        <img
+          src={logo}
+          alt=""
+          className="h-8 w-8 rounded-lg border border-cyan/25 object-cover"
+        />
         <span className="leading-tight">
-          <span className="block font-bold tracking-tight text-white">LoadIn</span>
+          <span className="block font-bold tracking-tight text-white">{ORBIT_BRAND}</span>
           <span className="hidden text-[10px] uppercase tracking-wider text-cyan sm:block">
-            Crew · Gigs · Gear
+            Matching statt Spam
           </span>
         </span>
       </span>
     )
   }
   return (
-    <img
-      src={src}
-      alt="LoadIn"
-      className={cn('h-9 w-auto max-w-[9.5rem] object-contain object-left md:h-10 md:max-w-[11rem]', className)}
-    />
+    <span className={cn('flex items-center gap-2', className)}>
+      <img
+        src={logo}
+        alt={ORBIT_BRAND}
+        className="h-9 w-9 rounded-xl border border-cyan/25 object-cover md:h-10 md:w-10"
+      />
+      <span className="leading-tight">
+        <span className="block font-bold tracking-tight text-white">{ORBIT_BRAND}</span>
+        <span className="block max-w-[11rem] truncate text-[10px] text-cyan">{ORBIT_TAGLINE_DE}</span>
+      </span>
+    </span>
   )
 }
 
 export function BrandIcon({ className, size = 36 }: { className?: string; size?: number }) {
   return (
     <img
-      src={`${base()}icons/icon-192.png`}
-      alt="LoadIn"
+      src={`${base()}icons/orbit-logo.png`}
+      alt={ORBIT_BRAND}
       width={size}
       height={size}
-      className={cn('rounded-xl border border-cyan/25 object-cover shadow-[0_0_18px_rgba(0,240,255,0.18)]', className)}
+      className={cn(
+        'rounded-xl border border-cyan/25 object-cover shadow-[0_0_18px_rgba(0,240,255,0.18)]',
+        className,
+      )}
     />
   )
 }

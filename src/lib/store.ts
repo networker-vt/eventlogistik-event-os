@@ -27,7 +27,7 @@ import {
 import { uid } from './utils'
 
 const KEY = 'el_store_v4'
-const SEED_REV = 5
+const SEED_REV = 6
 const REVIEWS_KEY = 'el_reviews_v1'
 
 interface StoreData {
@@ -134,7 +134,7 @@ export async function initStore(): Promise<StoreMode> {
   if (!snap) {
     mode = 'local'
     console.info(
-      '[LoadIn] VITE_SUPABASE_* gesetzt, aber kein nutzbarer Snapshot — Demo-Store aktiv',
+      '[Orbit] VITE_SUPABASE_* gesetzt, aber kein nutzbarer Snapshot — Demo-Store aktiv',
     )
     return mode
   }
@@ -149,7 +149,7 @@ export async function initStore(): Promise<StoreMode> {
   }
   save(cache)
   mode = 'supabase'
-  console.info('[LoadIn] Store: Supabase live (%d listings)', snap.listings.length)
+  console.info('[Orbit] Store: Supabase live (%d listings)', snap.listings.length)
   return mode
 }
 
@@ -233,6 +233,10 @@ export const store = {
     })
     void pushListingToSupabase(item)
     return item
+  },
+
+  listProfiles(): Profile[] {
+    return [...getData().profiles]
   },
 
   getProfile(id: string): Profile | undefined {

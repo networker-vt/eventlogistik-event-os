@@ -34,6 +34,9 @@ import { WalletPage } from './pages/WalletPage'
 import { IdeenPage } from './pages/IdeenPage'
 import { IntegrationenPage } from './pages/IntegrationenPage'
 import { EmpfehlenPage } from './pages/EmpfehlenPage'
+import { PrefsPage } from './pages/PrefsPage'
+import { MatchPage } from './pages/MatchPage'
+import { QuellenPage } from './pages/QuellenPage'
 import { captureRefFromSearch } from './lib/referral'
 import { hydrateSafeTweaks } from './lib/ideas'
 
@@ -54,7 +57,7 @@ export default function App() {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-surface">
         <div className="h-10 w-10 rounded-2xl border border-cyan/30 bg-cyan/10 skeleton-shimmer" />
-        <p className="text-sm text-muted">LoadIn wird geladen…</p>
+        <p className="text-sm text-muted">Orbit wird geladen…</p>
       </div>
     )
   }
@@ -72,6 +75,9 @@ export default function App() {
             <Route path="kuriere" element={<V vertical="courier" />} />
             <Route path="hotels" element={<V vertical="hotel" />} />
             <Route path="jobs" element={<JobsPage />} />
+            <Route path="prefs" element={<PrefsPage />} />
+            <Route path="match" element={<MatchPage />} />
+            <Route path="quellen" element={<QuellenPage />} />
             <Route path="jobs/compare/:listingId" element={<CompareOffersPage />} />
             <Route path="listings/new" element={<CreateListingPage />} />
             <Route path="listings/:id" element={<ListingDetailPage />} />

@@ -1,155 +1,54 @@
-# LoadIn
+# Orbit
 
-**Das Event-OS für Crew, Gigs, Gear & Transport** — Marketplace + Matching + Ops Lite + Trust. Load-in-Energie, nicht Spedition.
+**Dein Orbit für Arbeit — Matching statt Spam.**
 
-Dual Marketplace (Angebot ↔ Gesuch) für Freelancer, Firmen, Material, Transporter, Kuriere, Hotels und Jobs. Mobil-first **PWA** mit dunklem Premium-UI (#0a0a0a + Cyan/Teal).
+Global all-industry job matching OS (v2.0.0). Prefs first, then Tinder-style Match Finder with explainable Match %. Event/VT remains one sector module under **Mehr**, not the only focus.
 
 - **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
 - **Repo:** https://github.com/networker-vt/eventlogistik-event-os
-- **Releases / ZIP-Download:** https://github.com/networker-vt/eventlogistik-event-os/releases
+- **License:** MIT — forks welcome if they improve Orbit (see [CONTRIBUTING.md](./CONTRIBUTING.md))
 
-> Vite `base` ist fest `/eventlogistik-event-os/` (GitHub Pages Projektseite). Nicht ändern, solange unter diesem Pfad gehostet wird.
+> Vite `base` **MUST** stay `/eventlogistik-event-os/` for GitHub Pages.
 
-## Quick Start
+## Core routes
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Home — Prefs CTA + Match CTA + quiet discovery |
+| `/prefs` | Preference-first onboarding (seeker + employer) |
+| `/match` | Match Finder — swipe jobs / candidates, Match % |
+| `/quellen` | Aggregator stubs (LinkedIn, StepStone, Indeed, Xing, AA, Reed, Seek) |
+| `/jobs` | Classic job list |
+| `/wallet` | Wallet + **Orbit Credits** (EUR ↔ Credits demo) |
+| `/mehr` | Quellen, Sektor Event/VT, Ideen, Empfehlen, Wallet, Wissen, Legal |
+| `/mein` | Favoriten + lokaler Kalender |
+| `/impressum` | Mirco Küßner |
+
+Bottom nav: **Home · Match · + · Inbox · Mehr**
+
+## Honest limits
+
+- **No unofficial scrapes** of LinkedIn / StepStone / Indeed / Xing / etc. Quellen shows status stubs + sample cards tagged with `source`. API/Partner import planned.
+- Orbit Credits and Wallet fiat/crypto are **demo** until Stripe/PayPal/Banking + KYC are live.
+- Matching and mutual chat/booking seeds run locally (localStorage) unless Supabase is configured.
+
+## Quick start
 
 ```bash
 npm install
-cp .env.example .env   # Keys optional — ohne Keys läuft die Demo
+cp .env.example .env   # optional
 npm run dev
 ```
 
-Build & Preview:
-
 ```bash
 npm run build
-npm run preview
-```
-
-Deploy Pages:
-
-```bash
 ./scripts/deploy-pages.sh
 ```
 
-Die App startet mit **Seed-Daten** und lokalem Store, wenn keine gültigen Supabase-Keys gesetzt sind. Mit `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` versucht sie, Supabase zu hydratisieren (graceful Fallback).
+## Open Source
 
-## Production Upload
-
-1. `.env` aus `.env.example` befüllen (Supabase-Projekt + Anon-Key)
-2. Migration: `supabase/migrations/20260912_init.sql`
-3. `npm run build` — Artefakt in `dist/`
-4. `./scripts/deploy-pages.sh` **oder** ZIP aus Release hochladen/entpacken
-5. Rechtstexte unter `/impressum`, `/datenschutz`, `/agb` sind mit Operator-Daten gefüllt (Privatperson). AGB vor Marktplatz-Live anwaltlich prüfen.
-6. Checkliste: [`LAUNCH.md`](./LAUNCH.md) · Store später: [`STORE_READY.md`](./STORE_READY.md)
-
-### Downloadbarer Build
-
-GitHub Release-Asset **`eventlogistik-event-os-web.zip`** = Inhalt von `dist/` (statisches Hosting). Nach dem Entpacken auf beliebigen Static Host legen — Base-Path `/eventlogistik-event-os/` beachten, oder neu mit anderem `base` bauen.
-
-## PWA installieren
-
-- **Android:** Banner oder Chrome-Menü → App installieren  
-- **iOS Safari:** Teilen → Zum Home-Bildschirm  
-- Offline-Shell via Service Worker (Workbox)
-
-
-
-## Öffentlicher Katalog · Datenschutz (GDPR)
-
-LoadIn führt einen **öffentlichen Business-Katalog** (`src/data/catalog/`):
-
-- **Quellen:** dry-hire.com Deutschland-Verzeichnis, Firmen-Impressumsseiten, allgemein veröffentlichte Venue-Adressen.
-- **Felder:** nur öffentlich gelistete Firmendaten (Name, Straße, PLZ, Ort, Geschäfts-Telefon, Geschäfts-E-Mail, Website).
-- **Nicht enthalten:** private Freelancer-Handynummern, private E-Mails oder Profile von Instaff/Facebook/WhatsApp o. Ä. Freelancer in der Seed-Demo sind fiktiv/anonymisiert.
-- Jeder Eintrag hat `source` und `dataClass: 'public_business'`.
-- UI-Hinweis: „Öffentliche Firmendaten · Angaben ohne Gewähr · Korrekturen: …“
-- **Innovation / Wissen:** redaktionell kuratierte Outbound-Links (News, Branchenmedien, Fortbildungen) — keine Buchungen, keine gescrapten Nutzer-DBs.
-
-Routes: `/katalog/firmen`, `/katalog/locations`, `/katalog/transporteure`, `/katalog/plattformen`, `/katalog/fahrzeuggroessen`, `/innovation`, `/wissen/medien`, `/wissen/fortbildung`.
-
-## Navigation (IA)
-
-**Mobile (Bottom, max 5):** Home · Jobs · + (Erstellen) · Inbox · Mehr  
-**Desktop (Top):** Home · Jobs · Marktplatz ▾ · Katalog · Innovation · Wissen · Messages · Profil  
-
-Sekundäre Bereiche (Marktplatz-Verticals, Katalog, Innovation, Wissen, Dashboard/Profil/Legal, **Mein Bereich / Favoriten**, **Wallet**, **Ideen-Box**, **Integrationen**, **Empfehlen**) liegen unter **`/mehr`**. Alle bisherigen URLs bleiben erreichbar.
+MIT. Fork welcome if it improves Orbit. Keep operator impressum (Mirco Küßner) unless ownership changes.
 
 ## Stack
 
-- React 19 + TypeScript + Vite 8
-- Tailwind CSS v4
-- React Router 7
-- Lucide Icons
-- Supabase JS (optional live)
-- **vite-plugin-pwa** / Workbox
-
-## Architektur
-
-```
-src/
-  components/   # layout, ui, listings, bookings
-  data/         # seed.ts, constants
-  hooks/        # useStore
-  lib/          # store (local + Supabase prefer), auth, supabase, supabaseSync
-  pages/        # Feature-Screens + legal/
-supabase/
-  migrations/   # SQL Schema + RLS Starter
-scripts/
-  deploy-pages.sh
-```
-
-### Store
-
-`src/lib/store.ts` — sync Repository für UI. Beim Start: `initStore()` lädt bei konfiguriertem Supabase einen Snapshot; sonst Seed + `localStorage`. Mutationen schreiben lokal und best-effort nach Supabase.
-
-### Features (Auswahl)
-
-- Jobs-Marketplace (Seek / Hire) mit DE-2026-Tagessatz-Orientierung (Fachkraft 400–500 € · Specialist 600–800 €, 10h-Tag) — Anfahrt, Übernachtung, Spesen Pflichtfelder
-- Bewerber-Pipeline
-- **Angebote vergleichen** (`/jobs/compare/:listingId`)
-- Booking-Flow inkl. **Rating-Prompt** nach `completed`
-- Messaging, Projekte, Verifizierungs-Badges
-- Legal-Routen mit echten Kontaktdaten (natürliche Person, kein Handelsregister)
-- **Favoriten** (`/mein`) — Jobs, Listings, Katalog-Einträge, localStorage
-- **Wallet** (`/wallet`) — Demo-Guthaben, FX (EUR/USD/GBP/CHF/USDT), IBAN- + Krypto-Withdraw-Stubs, Pay-Sheet. **Kein echtes Geld**
-- **Ideen-Box** (`/ideen`) — Feedback lokal, Analyzer-Tags, Inbox in Mein Bereich
-- **Integrationen** (`/integrationen`) — easyjob, Eventworx, Crewbrain, Rentman, u. a. (Mock-Connect)
-- **Empfehlen** (`/empfehlen`) — Referral-Code `?ref=`, Featured-Credits (Demo)
-
-## Routen
-
-| Route | Beschreibung |
-|-------|----------------|
-| `/` | Unified Discovery |
-| `/jobs` | Jobs finden / posten |
-| `/jobs/compare/:listingId` | Bewerber side-by-side |
-| `/listings/:id` · `/listings/new` | Detail / erstellen |
-| `/bookings/:id` | Pipeline + Rating |
-| `/messages` | Chat |
-| `/dashboard` · `/projects/*` · `/profile` | Ops & Profil |
-| `/mein` | Mein Bereich · Favoriten |
-| `/wallet` | Demo-Wallet · FX · Auszahlung (Mock) |
-| `/ideen` | Ideen-Box · Feedback |
-| `/integrationen` | ERP/Rental-Connect (Stub) |
-| `/empfehlen` | Referral-Programm |
-| `/mehr` | Hub: Marktplatz, Katalog, Innovation, Wissen, Account |
-| `/impressum` · `/datenschutz` · `/agb` | Legal (Operator-Daten) |
-
-## Design
-
-- Hintergrund `#0a0a0a`, Accent `#00F0FF` / Teal `#14b8a6`
-- Mobile Bottom-Nav (5 Tabs) + Desktop Top-Nav
-- Deutsche UI-Texte
-
-## Docs
-
-- [`LAUNCH.md`](./LAUNCH.md) — Go-Live-Checkliste
-- [`STORE_READY.md`](./STORE_READY.md) — PWA jetzt, TWA/Capacitor später
-
-## Out of Scope (aktuell)
-
-Echte Zahlungen (PayPal / Stripe / On-Chain) — Wallet ist Mock. Native Store-Binaries, schweres ERP
-
-## Lizenz
-
-Privat / Projektrepo — © 2026 Mirco Küßner / LoadIn · Repo: networker-vt
+React 19 · TypeScript · Vite 8 · Tailwind 4 · PWA · optional Supabase

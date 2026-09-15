@@ -11,6 +11,7 @@ import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
 import type { BookingStatus } from '../types'
 import { formatDate, formatPrice } from '../lib/utils'
+import { CalendarExport } from '../components/calendar/CalendarExport'
 
 const FLOW: BookingStatus[] = ['inquiry', 'offer', 'accepted', 'booked', 'completed']
 
@@ -80,6 +81,18 @@ export function BookingPage() {
           <p className="mt-2 text-lg font-semibold text-cyan">{formatPrice(booking.offerAmount)}</p>
         )}
       </div>
+
+      {booking.dateFrom && (
+        <CalendarExport
+          kind={booking.status === 'booked' || booking.status === 'accepted' ? 'start' : 'interview'}
+          event={{
+            title: `Orbit: ${booking.listingTitle}`,
+            description: `${booking.requesterName} ↔ ${booking.providerName}\nStatus: ${booking.status}`,
+            startIso: `${booking.dateFrom}T09:00:00.000Z`,
+            endIso: booking.dateTo ? `${booking.dateTo}T17:00:00.000Z` : undefined,
+          }}
+        />
+      )}
 
       {booking.status === 'completed' && (
         <RatingPrompt booking={booking} userId={user.id} userName={user.name} />

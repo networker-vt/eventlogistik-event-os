@@ -91,7 +91,16 @@ export interface Listing {
   dayHours?: number
   /** Warum dieses Angebot gerankt / empfohlen wird */
   matchReason?: string
+  /** Orbit global job fields */
+  industry?: string
+  jobType?: string
+  workMode?: 'remote' | 'hybrid' | 'onsite'
+  country?: string
+  languages?: string[]
+  source?: string
+  salaryPeriod?: 'hour' | 'day' | 'month' | 'year'
 }
+
 
 export type TravelCover = 'included' | 'per_km' | 'self' | 'tbd'
 export type OvernightCover = 'provided' | 'hotel' | 'none' | 'tbd'

@@ -107,7 +107,7 @@ export const fortbildungen: FortbildungCourse[] = [
     url: 'https://www.buehnenwerk.de',
     tags: ['VT', 'Praxis', 'Fortbildung'],
     blurbDe:
-      'Praxisnahe Angebote rund um Bühne und Veranstaltungstechnik. Outbound-Link, keine Buchung über LoadIn.',
+      'Praxisnahe Angebote rund um Bühne und Veranstaltungstechnik. Outbound-Link, keine Buchung über Orbit.',
     source: 'buehnenwerk.de',
   },
 ]

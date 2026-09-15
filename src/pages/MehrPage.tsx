@@ -1,26 +1,19 @@
 import { useEffect, type ComponentType } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Bike,
   BookOpen,
   Briefcase,
-  Building2,
-  FileText,
-  GraduationCap,
-  Hotel,
-  LayoutDashboard,
-  Library,
-  Package,
-  Scale,
-  Sparkles,
-  Truck,
-  UserRound,
-  FolderKanban,
-  Heart,
-  Wallet,
-  Lightbulb,
   Cable,
+  FileText,
   Gift,
+  GraduationCap,
+  Heart,
+  Library,
+  Lightbulb,
+  Scale,
+  SlidersHorizontal,
+  Sparkles,
+  Wallet,
 } from 'lucide-react'
 
 type HubLink = {
@@ -40,64 +33,59 @@ type HubSection = {
 
 const sections: HubSection[] = [
   {
-    id: 'marktplatz',
-    title: 'Marktplatz',
-    subtitle: 'Angebot & Gesuch in allen Verticals',
+    id: 'quellen',
+    title: 'Quellen',
+    subtitle: 'Aggregatoren & Partner — keine inoffiziellen Scrapes',
     accent: 'border-cyan/35 bg-cyan/5',
     links: [
-      { to: '/freelancer', label: 'Freelancer', hint: 'Crew & Technik', icon: UserRound },
-      { to: '/firmen', label: 'Firmen', hint: 'Technikfirmen', icon: Building2 },
-      { to: '/material', label: 'Material', hint: 'Gear & Rental', icon: Package },
-      { to: '/transporter', label: 'Transporter', hint: 'LKW & Trailer', icon: Truck },
-      { to: '/kuriere', label: 'Kuriere', hint: 'Schnell & lokal', icon: Bike },
-      { to: '/hotels', label: 'Hotels', hint: 'Crew-Unterkunft', icon: Hotel },
+      { to: '/quellen', label: 'Quellen / Aggregatoren', hint: 'LinkedIn, StepStone, Indeed…', icon: Cable },
+      { to: '/prefs', label: 'Prefs', hint: 'Hard-Filter Wizard', icon: SlidersHorizontal },
+      { to: '/match', label: 'Match Finder', hint: 'Swipe Jobs & Kandidaten', icon: Heart },
+      { to: '/jobs', label: 'Jobs Liste', hint: 'Klassische Liste', icon: Briefcase },
     ],
   },
   {
-    id: 'katalog',
-    title: 'Katalog',
-    subtitle: 'Öffentliche Branchendaten — recherchieren, nicht buchen',
+    id: 'sektor-event',
+    title: 'Sektor Event / VT',
+    subtitle: 'Alter Katalog & Marketplace — eine Branche unter vielen',
     accent: 'border-teal/35 bg-teal/5',
     links: [
-      { to: '/katalog/firmen', label: 'Firmenverzeichnis', icon: Library },
-      { to: '/katalog/locations', label: 'Locations', icon: Building2 },
-      { to: '/katalog/transporteure', label: 'Transporteure', icon: Truck },
-      { to: '/katalog/fahrzeuggroessen', label: 'Größen', hint: 'Fahrzeugklassen', icon: Package },
-      { to: '/katalog/plattformen', label: 'Plattformen', icon: Sparkles },
+      { to: '/katalog/firmen', label: 'Katalog Firmen', hint: 'Branchendaten VT', icon: Library },
+      { to: '/katalog/locations', label: 'Locations', icon: Library },
+      { to: '/freelancer', label: 'Freelancer VT', icon: Briefcase },
+      { to: '/material', label: 'Material / Gear', icon: Briefcase },
+      { to: '/transporter', label: 'Transporter', icon: Briefcase },
+      { to: '/innovation', label: 'Innovation', hint: 'KI · XR · LED', icon: Sparkles },
     ],
   },
   {
-    id: 'innovation',
-    title: 'Innovation',
-    subtitle: 'KI · XR · LED · Audio — kuratierte Fachnews',
+    id: 'ideen',
+    title: 'Ideen & Wachstum',
+    subtitle: 'Feedback, Referral, Credits',
     accent: 'border-violet-500/35 bg-violet-500/5',
-    links: [{ to: '/innovation', label: 'Innovation Hub', hint: 'News & Trends', icon: Sparkles }],
+    links: [
+      { to: '/ideen', label: 'Ideen-Box', hint: 'Feedback an den Operator', icon: Lightbulb },
+      { to: '/empfehlen', label: 'Empfehlen', hint: 'Orbit Credits verdienen', icon: Gift },
+      { to: '/wallet', label: 'Wallet & Credits', hint: 'Credits ↔ EUR Demo', icon: Wallet },
+    ],
   },
   {
     id: 'wissen',
     title: 'Wissen',
-    subtitle: 'Medien & Fortbildung für die Branche',
+    subtitle: 'Medien & Fortbildung',
     accent: 'border-amber-500/35 bg-amber-500/5',
     links: [
-      { to: '/wissen/medien', label: 'Medien', hint: 'Fachpresse', icon: BookOpen },
-      { to: '/wissen/fortbildung', label: 'Fortbildung', hint: 'Lehrgänge', icon: GraduationCap },
+      { to: '/wissen/medien', label: 'Medien', icon: BookOpen },
+      { to: '/wissen/fortbildung', label: 'Fortbildung', icon: GraduationCap },
     ],
   },
   {
-    id: 'account',
-    title: 'Account & Ops',
-    subtitle: 'Dashboard, Projekte, Profil, Legal',
+    id: 'legal',
+    title: 'Legal & Account',
+    subtitle: 'Impressum Mirco Küßner · Datenschutz · AGB',
     accent: 'border-border bg-surface-2/60',
     links: [
-      { to: '/mein', label: 'Mein Bereich', hint: 'Favoriten', icon: Heart },
-      { to: '/wallet', label: 'Wallet', hint: 'Zahlungen · Demo', icon: Wallet },
-      { to: '/ideen', label: 'Ideen-Box', hint: 'Feedback an den Operator', icon: Lightbulb },
-      { to: '/integrationen', label: 'Integrationen', hint: 'easyjob, Crewbrain, Rentman', icon: Cable },
-      { to: '/empfehlen', label: 'Empfehlen', hint: 'Referral-Credits', icon: Gift },
-      { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { to: '/projects/new', label: 'Projekte', hint: 'Neues Event-Projekt', icon: FolderKanban },
-      { to: '/jobs', label: 'Jobs', hint: 'Seek & Hire', icon: Briefcase },
-      { to: '/profile', label: 'Profil', icon: UserRound },
+      { to: '/mein', label: 'Mein Bereich', hint: 'Favoriten & Kalender', icon: Heart },
       { to: '/impressum', label: 'Impressum', icon: FileText },
       { to: '/datenschutz', label: 'Datenschutz', icon: Scale },
       { to: '/agb', label: 'AGB', icon: FileText },
@@ -119,7 +107,7 @@ export function MehrPage() {
       <header className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Mehr</h1>
         <p className="text-sm text-muted">
-          Marktplatz, Katalog, Innovation, Wissen & Account — alles an einem Ort.
+          Quellen, Sektor Event/VT, Ideen, Empfehlen, Wallet, Wissen, Legal.
         </p>
       </header>
 

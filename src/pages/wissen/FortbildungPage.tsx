@@ -19,7 +19,7 @@ export function FortbildungPage() {
         <p className="text-sm font-medium text-cyan">🎓 Lehrgänge & Fortbildungen</p>
         <h1 className="text-2xl font-bold tracking-tight">Meister · SQQ · AEVO</h1>
         <p className="mt-1 max-w-2xl text-sm text-neutral-300">
-          {FORTBILDUNG_COUNT} öffentliche Kurs-Hinweise mit Outbound-Links. LoadIn vermittelt nicht und
+          {FORTBILDUNG_COUNT} öffentliche Kurs-Hinweise mit Outbound-Links. Orbit vermittelt nicht und
           nimmt keine Anmeldungen entgegen — Termine immer beim Anbieter prüfen.
         </p>
       </div>

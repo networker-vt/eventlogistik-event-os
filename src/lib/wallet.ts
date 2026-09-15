@@ -81,13 +81,13 @@ export const WALLET_METHODS: {
 ]
 
 export const WALLET_DISCLAIMER_DE =
-  'Demo bis Stripe, PayPal und ein Banking-Partner inkl. KYC angebunden sind. Es findet keine echte Zahlungsbewegung statt. PayPal, Karte, SEPA/IBAN und Krypto (BTC, USDC, USDT) sind UI-Stubs. Ohne Provider-Keys und Live-Schalter bewegt LoadIn kein Geld und ruft keine Zahlungs-APIs auf.'
+  'Demo bis Stripe, PayPal und ein Banking-Partner inkl. KYC angebunden sind. Es findet keine echte Zahlungsbewegung statt. PayPal, Karte, SEPA/IBAN und Krypto (BTC, USDC, USDT) sind UI-Stubs. Ohne Provider-Keys und Live-Schalter bewegt Orbit kein Geld und ruft keine Zahlungs-APIs auf.'
 
 const DEMO_DISPLAY: Record<WalletMethodId, string> = {
-  paypal: 'demo@loadin.event',
+  paypal: 'demo@orbit.jobs',
   card: '•••• 4242',
   sepa: 'DE•• •••• •••• •••• 8901',
-  btc: 'bc1q…loadin (Demo)',
+  btc: 'bc1q…orbit (Demo)',
   usdc: '0xLOAD…USDC (Demo)',
   usdt: 'TLoad…USDT (Demo)',
 }

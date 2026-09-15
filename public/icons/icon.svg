@@ -6,7 +6,8 @@
       <stop offset="1" stop-color="#14b8a6"/>
     </linearGradient>
   </defs>
-  <path d="M72 150 L200 256 L72 362 V308 L128 256 L72 204 Z" fill="url(#g)"/>
-  <rect x="248" y="150" width="192" height="212" rx="22" stroke="url(#g)" stroke-width="34"/>
-  <path d="M292 256 H396 M360 220 L396 256 L360 292" stroke="url(#g)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="256" r="48" fill="url(#g)"/>
+  <ellipse cx="256" cy="256" rx="140" ry="56" stroke="url(#g)" stroke-width="22" transform="rotate(-28 256 256)"/>
+  <ellipse cx="256" cy="256" rx="180" ry="72" stroke="url(#g)" stroke-width="14" opacity="0.55" transform="rotate(18 256 256)"/>
+  <circle cx="380" cy="210" r="18" fill="#00F0FF"/>
 </svg>

@@ -6,7 +6,7 @@ export const LEGAL = {
   city: 'Köln',
   country: 'Deutschland',
   email: 'mirco.kuessner@gmail.com',
-  brand: 'LoadIn',
+  brand: 'Orbit',
   form: 'natürliche Person / Privatperson',
   register: null as string | null,
   vatId: null as string | null,

@@ -1,4 +1,4 @@
-# Store-Ready — LoadIn als installierbare App
+# Store-Ready — Orbit als installierbare App
 
 Kurzüberblick (Deutsch): Was **jetzt** bereit ist, was **ihr** noch klicken müsst, und warum wir **nicht** einreichen können.
 
@@ -12,7 +12,7 @@ https://networker-vt.github.io/eventlogistik-event-os/impressum
 
 - Service Worker (Workbox via `vite-plugin-pwa`)
 - Offline-Shell
-- Manifest: Name **LoadIn**, Icons (192 / 512 / 1024), Wordmark, Splash (`public/icons/`)
+- Manifest: Name **Orbit**, Icons (192 / 512 / 1024), Wordmark, Splash (`public/icons/`)
 - Install-Prompt (Android/Chrome) + iOS „Zum Home-Bildschirm“
 - Apple-Touch-Icon + Startup-Images
 

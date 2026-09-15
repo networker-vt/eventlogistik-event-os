@@ -27,7 +27,7 @@ export function EmpfehlenPage() {
       <header className="space-y-2">
         <p className="text-xs font-medium uppercase tracking-wider text-cyan">Netzwerk</p>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <Gift size={22} className="text-cyan" /> LoadIn empfehlen
+          <Gift size={22} className="text-cyan" /> Orbit empfehlen
         </h1>
         <p className="text-sm text-muted">
           Persönlicher Code, Share-Link, Credits für Featured-Listings — alles Demo, lokal auf
@@ -49,7 +49,7 @@ export function EmpfehlenPage() {
               variant="secondary"
               onClick={() =>
                 void navigator.share?.({
-                  title: 'LoadIn',
+                  title: 'Orbit',
                   text: 'Event-OS für Crew, Gigs & Gear',
                   url,
                 })

@@ -69,11 +69,11 @@ export function PwaInstallBanner() {
           <Download size={18} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">LoadIn installieren</p>
+          <p className="text-sm font-semibold">Orbit installieren</p>
           <p className="mt-0.5 text-xs text-muted">
             {showIos && !deferred
               ? 'iPhone/iPad: Teilen-Symbol → „Zum Home-Bildschirm“ → Hinzufügen. Danach wie eine App öffnen (Offline-Shell).'
-              : 'LoadIn als App auf den Homescreen — Offline-Shell, schneller Start, kein Store nötig.'}
+              : 'Orbit als App auf den Homescreen — Offline-Shell, schneller Start, kein Store nötig.'}
           </p>
           {deferred && (
             <Button size="sm" className="mt-2" onClick={install}>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowDownLeft,
@@ -17,6 +17,18 @@ import { WalletDisclaimer } from '../components/wallet/WalletDisclaimer'
 import { useFx } from '../hooks/useFx'
 import { useWallet } from '../hooks/useWallet'
 import { convertFx, FX_CODES, formatFx, type FxCode } from '../lib/fx'
+import {
+  CREDITS_COSTS,
+  CREDITS_DISCLAIMER_DE,
+  CREDITS_PER_EUR,
+  claimReferralCreditsDemo,
+  creditsToEur,
+  exchangeCreditsToEur,
+  exchangeEurToCredits,
+  getCredits,
+  spendCredits,
+  subscribeCredits,
+} from '../lib/credits'
 import {
   WALLET_METHODS,
   connectMethod,
@@ -46,6 +58,10 @@ export function WalletPage() {
   const [cryptoAddr, setCryptoAddr] = useState('')
   const [cryptoAsset, setCryptoAsset] = useState<'btc' | 'usdc' | 'usdt'>('usdt')
   const [cryptoAmt, setCryptoAmt] = useState('50')
+  const [credits, setCredits] = useState(getCredits)
+  const [creditAmt, setCreditAmt] = useState('50')
+
+  useEffect(() => subscribeCredits(() => setCredits(getCredits())), [])
 
   const connectedCount = WALLET_METHODS.filter((m) => wallet.methods[m.id]?.connected).length
   const eur = Number(fxAmount) || 0
@@ -122,6 +138,83 @@ export function WalletPage() {
             Zu Favoriten
           </Link>
         </div>
+      </section>
+
+
+      <section className="rounded-2xl border border-violet-500/35 bg-violet-500/10 p-5 space-y-3">
+        <h2 className="text-lg font-semibold text-violet-200">Orbit Credits</h2>
+        <p className="text-3xl font-bold tabular-nums text-white">
+          {credits.balance}{' '}
+          <span className="text-sm font-normal text-muted">
+            ≈ {creditsToEur(credits.balance).toFixed(2)} € indikativ ({CREDITS_PER_EUR} Cr / €)
+          </span>
+        </p>
+        <p className="text-xs text-violet-100/80">{CREDITS_DISCLAIMER_DE}</p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              claimReferralCreditsDemo()
+              note('+25 Credits Referral-Demo')
+            }}
+          >
+            Referral verdienen
+          </Button>
+          {Object.entries(CREDITS_COSTS).map(([kind, meta]) => (
+            <Button
+              key={kind}
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                const ok = spendCredits(meta.credits, kind as 'featured' | 'unlock_message' | 'demo_gig', meta.label)
+                note(ok ? `−${meta.credits} Credits: ${meta.label}` : 'Nicht genug Credits')
+              }}
+            >
+              {meta.label} (−{meta.credits})
+            </Button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-end gap-2 border-t border-violet-500/20 pt-3">
+          <Input
+            label="Umtausch Betrag"
+            type="number"
+            value={creditAmt}
+            onChange={(e) => setCreditAmt(e.target.value)}
+          />
+          <Button
+            size="sm"
+            onClick={() => {
+              const n = Number(creditAmt) || 0
+              const ok = exchangeEurToCredits(n)
+              note(ok ? `EUR→Credits: ${n} €` : 'Wallet-EUR reicht nicht')
+            }}
+          >
+            € → Credits
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              const n = Number(creditAmt) || 0
+              const ok = exchangeCreditsToEur(n)
+              note(ok ? `Credits→€: ${n} Cr` : 'Credits reichen nicht')
+            }}
+          >
+            Credits → €
+          </Button>
+        </div>
+        <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-neutral-300">
+          {credits.txs.slice(0, 8).map((tx) => (
+            <li key={tx.id} className="flex justify-between gap-2">
+              <span className="truncate">{tx.label}</span>
+              <span className="tabular-nums shrink-0">
+                {tx.type === 'spend' || tx.type === 'exchange_out' ? '−' : '+'}
+                {tx.amount}
+              </span>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {sheet && (

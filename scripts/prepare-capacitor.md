@@ -1,4 +1,4 @@
-# Capacitor — iOS & Android (LoadIn)
+# Capacitor — iOS & Android (Orbit)
 
 Die Web-App bleibt die Quelle. Native Hüllen entstehen **lokal auf eurem Rechner** — nicht in diesem Repo-Build. GitHub Pages nutzt weiter `base: /eventlogistik-event-os/`. Store-Builds brauchen `base: /`.
 
@@ -12,14 +12,14 @@ Die Web-App bleibt die Quelle. Native Hüllen entstehen **lokal auf eurem Rechne
 2. **Enroll** → Apple-ID von Mirco Küßner (oder später Firma)
 3. Zahlung (~99 USD/Jahr) abschließen, Identitätsprüfung
 4. Im [App Store Connect](https://appstoreconnect.apple.com/) **Meine Apps → + → Neue App**
-5. Bundle-ID `de.loadin.app` reservieren (exakt wie `capacitor.config.json`)
+5. Bundle-ID `de.orbit.app` reservieren (exakt wie `capacitor.config.json`)
 
 ### Google (Android)
 
 1. https://play.google.com/console/signup
 2. Einmalige Registrierung (~25 USD)
 3. Entwicklerprofil + D-U-N-S später, falls GmbH
-4. **App erstellen** → Name `LoadIn` → App (nicht nur Spiel)
+4. **App erstellen** → Name `Orbit` → App (nicht nur Spiel)
 5. Datenschutz-URL eintragen:  
    `https://networker-vt.github.io/eventlogistik-event-os/datenschutz`
 
@@ -38,7 +38,7 @@ npx vite build --base=/
 
 ```bash
 npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android
-npx cap init LoadIn de.loadin.app --web-dir dist
+npx cap init Orbit de.orbit.app --web-dir dist
 # capacitor.config.json liegt schon im Repo — bei Nachfrage nicht überschreiben
 npx cap add android
 npx cap add ios          # nur auf macOS
@@ -63,7 +63,7 @@ npx cap sync
 
 1. macOS + Xcode (aktuell) + bezahlter Developer-Account
 2. `npx cap open ios`
-3. Signing & Capabilities: Team = euer Apple-Team, Bundle `de.loadin.app`
+3. Signing & Capabilities: Team = euer Apple-Team, Bundle `de.orbit.app`
 4. **Product → Archive** → Organizer → **Distribute App → App Store Connect**
 5. App Store Connect → die neue Version wählen → Screenshots, Privacy Nutrition Label
 6. Privacy Policy URL: dieselbe wie oben

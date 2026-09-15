@@ -187,10 +187,10 @@ export const innovationNews: InnovationCard[] = [
     summaryDe:
       'Marktplätze experimentieren mit Matching nach Skills, Radius und Verfügbarkeit — Transparenz bei Rates und Zertifikaten bleibt entscheidender als Black-Box-Scores.',
     tags: ['KI'],
-    company: 'LoadIn / Plattform-Trend',
+    company: 'Orbit / Plattform-Trend',
     date: '2026-01-10',
     sourceUrl: 'https://networker-vt.github.io/eventlogistik-event-os/',
-    sourceName: 'LoadIn editorial',
+    sourceName: 'Orbit editorial',
     imageEmoji: '⚡',
     editorial: true,
   },

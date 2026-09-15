@@ -13,6 +13,7 @@ import { useAuth } from '../lib/auth'
 import { store } from '../lib/store'
 import { useStoreVersion } from '../hooks/useStore'
 import { formatDate, formatPriceRange, verificationLabel } from '../lib/utils'
+import { CalendarExport } from '../components/calendar/CalendarExport'
 
 export function ListingDetailPage() {
   const { id } = useParams()
@@ -161,7 +162,20 @@ export function ListingDetailPage() {
           </div>
         )}
 
-        <JobConditions listing={listing} />
+        {listing.dateFrom && (
+        <CalendarExport
+          compact
+          kind="application"
+          event={{
+            title: `Orbit Bewerbung: ${listing.title}`,
+            description: listing.description.slice(0, 280),
+            location: [listing.city, listing.venue].filter(Boolean).join(' · '),
+            startIso: `${listing.dateFrom}T09:00:00.000Z`,
+            endIso: listing.dateTo ? `${listing.dateTo}T17:00:00.000Z` : undefined,
+          }}
+        />
+      )}
+      <JobConditions listing={listing} />
 
         <p className="mt-5 whitespace-pre-wrap text-neutral-300">{listing.description}</p>
 

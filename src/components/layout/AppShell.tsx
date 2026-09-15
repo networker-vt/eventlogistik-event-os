@@ -24,7 +24,7 @@ import { copyrightLine } from '../../lib/legal'
 
 const mobileNav = [
   { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/jobs', label: 'Jobs', icon: Briefcase },
+  { to: '/match', label: 'Match', icon: Briefcase },
   { to: '__create__', label: 'Erstellen', icon: Plus, create: true },
   { to: '/messages', label: 'Inbox', icon: MessageSquare },
   { to: '/mehr', label: 'Mehr', icon: MoreHorizontal },
@@ -41,14 +41,15 @@ const marketplaceLinks = [
 
 const desktopPrimary = [
   { to: '/', label: 'Home', end: true },
-  { to: '/jobs', label: 'Jobs' },
+  { to: '/match', label: 'Match' },
+  { to: '/prefs', label: 'Prefs' },
 ]
 
 const desktopSecondary = [
-  { to: '/katalog/firmen', label: 'Katalog' },
-  { to: '/innovation', label: 'Innovation' },
-  { to: '/wissen/medien', label: 'Wissen' },
-  { to: '/messages', label: 'Messages' },
+  { to: '/quellen', label: 'Quellen' },
+  { to: '/katalog/firmen', label: 'Sektor Event' },
+  { to: '/messages', label: 'Inbox' },
+  { to: '/mehr', label: 'Mehr' },
 ]
 
 export function AppShell() {
@@ -69,12 +70,12 @@ export function AppShell() {
             type="button"
             onClick={() => navigate('/')}
             className="mr-2 flex shrink-0 items-center gap-2 text-left"
-            aria-label="LoadIn Start"
+            aria-label="Orbit Start"
           >
             <BrandIcon size={36} />
             <div className="leading-tight">
-              <div className="font-bold tracking-tight text-white">LoadIn</div>
-              <div className="text-[10px] uppercase tracking-wider text-cyan">Crew · Gigs · Gear</div>
+              <div className="font-bold tracking-tight text-white">Orbit</div>
+              <div className="text-[10px] uppercase tracking-wider text-cyan">Matching statt Spam</div>
             </div>
           </button>
 
@@ -234,6 +235,15 @@ export function AppShell() {
               </Link>
               <Link to="/ideen" className="hover:text-cyan">
                 Ideen-Box
+              </Link>
+              <Link to="/quellen" className="hover:text-cyan">
+                Quellen
+              </Link>
+              <Link to="/prefs" className="hover:text-cyan">
+                Prefs
+              </Link>
+              <Link to="/match" className="hover:text-cyan">
+                Match
               </Link>
               <Link to="/integrationen" className="hover:text-cyan">
                 Integrationen
