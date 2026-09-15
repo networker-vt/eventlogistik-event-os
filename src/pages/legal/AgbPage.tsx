@@ -5,9 +5,9 @@ export function AgbPage() {
   return (
     <LegalLayout title="Allgemeine Geschäftsbedingungen (AGB)">
       <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-        <strong>Startklar, aber nicht anwaltlich geprüft.</strong> Für einen Marktplatz
-        (Vermittlung von Crew, Material, Transport, Bookings) braucht es vor kommerziellem Betrieb
-        eine fachliche AGB-Prüfung — Haftungs-, Vermittlungs- und Provisionsregeln sind hier bewusst
+        <strong>Startklar, aber nicht anwaltlich geprüft.</strong> Für Job-Matching
+        (Vermittlung zwischen Suchenden und Anbietenden) braucht es vor kommerziellem Betrieb
+        eine fachliche AGB-Prüfung — Haftungs-, Vermittlungs- und Entgeltregeln sind hier bewusst
         vorsichtig formuliert und können sich ändern.
       </p>
 
@@ -20,10 +20,10 @@ export function AgbPage() {
 
       <h2>§ 2 Leistungsbeschreibung</h2>
       <p>
-        {LEGAL.brand} stellt ein Event-OS bereit: Marktplatz (Angebot/Gesuch), Jobs, Katalog,
-        Messaging, Booking-Pipeline, Demo-Wallet, Integrationen-Stubs und Community-Funktionen
-        (Ideen-Box, Empfehlen). Die aktuelle öffentliche Version ist eine funktionsfähige Demo mit
-        lokalem Speicher. Verbindliche Verfügbarkeit, SLA oder Live-Zahlungen sind nicht geschuldet.
+        {LEGAL.brand} stellt eine Demo-PWA für Job-Matching bereit: zuerst Präferenzen
+        (preference-first), dann der Match Finder für passende Jobs und Minijobs. Die aktuelle
+        öffentliche Version ist eine funktionsfähige Demo mit lokalem Speicher. Verbindliche
+        Verfügbarkeit, SLA oder Live-Zahlungen sind nicht geschuldet.
       </p>
 
       <h2>§ 3 Registrierung</h2>
@@ -33,12 +33,12 @@ export function AgbPage() {
         Täuschung. Nutzung ab 18 Jahren.
       </p>
 
-      <h2>§ 4 Inserate, Bookings, Vermittlerrolle</h2>
+      <h2>§ 4 Inserate und Vermittlerrolle</h2>
       <p>
-        Nutzer stellen Inhalte selbst ein. Verträge über Crew-, Miet- oder Transportleistungen kommen
+        Nutzer stellen Inhalte selbst ein. Arbeitsverhältnisse oder ähnliche Vereinbarungen kommen
         — soweit überhaupt — zwischen den jeweiligen Parteien zustande. {LEGAL.brand} ist
-        Plattformbetreiber und nicht automatisch Vertragspartner der vermittelten Leistung. Für einen
-        echten Marktplatz muss diese Rolle anwaltlich geschärft werden (inkl. Haftung für fremde
+        Plattformbetreiber und nicht automatisch Vertragspartner einer vermittelten Stelle. Vor einem
+        kommerziellen Betrieb muss diese Rolle anwaltlich geschärft werden (inkl. Haftung für fremde
         Inhalte, § 7 ff. DDG).
       </p>
 
