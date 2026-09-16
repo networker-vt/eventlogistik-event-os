@@ -19,6 +19,7 @@ import { cn, formatPrice } from '../lib/utils'
 import { getCompany, subscribeCompany } from '../lib/company'
 import { deriveMarketType, isSeekerFeedListing } from '../lib/market'
 import {
+  completePrefs,
   filterCandidatesByEmployerPrefs,
   getPrefs,
   subscribePrefs,
@@ -79,10 +80,16 @@ export function MatchPage() {
   const deck = useMemo((): DeckCard[] => {
     if (useSeekerDeck) {
       const done = swipedIds(['job', 'company'])
-      const jobs = rankForWorld(
-        store.listListings({}).filter((l) => isSeekerFeedListing(l) && l.kind === 'offer'),
-        prefs,
-      ).filter((l) => !done.has(l.id) && l.status === 'active')
+      const pool = store
+        .listListings({})
+        .filter((l) => isSeekerFeedListing(l) && l.kind === 'offer' && l.status === 'active' && !done.has(l.id))
+      const ranked = rankForWorld(pool, prefs)
+      const jobs = ranked.length
+        ? ranked
+        : rankForWorld(pool, {
+            ...prefs,
+            seeker: { ...prefs.seeker, industries: [], cities: [], mustHaveSkills: [], salaryMin: 0 },
+          })
       return jobs.map((l) => {
         const lane = deriveMarketType(l)
         if (lane === 'service') {
@@ -98,9 +105,9 @@ export function MatchPage() {
       prefs,
     ).filter((p) => !donePeople.has(p.id) && p.id !== user?.id)
     const listings = rankForCompanyWorld(
-      store.listListings({}).filter((l) => l.ownerId !== user?.id),
+      store.listListings({}).filter((l) => l.ownerId !== user?.id && l.status === 'active' && !doneListings.has(l.id)),
       prefs,
-    ).filter((l) => !doneListings.has(l.id))
+    )
     const peopleCards: DeckCard[] = candidates.map((p) => ({
       kind: 'candidate',
       profile: p,
@@ -111,7 +118,17 @@ export function MatchPage() {
       listing: l,
       score: scoreB2bMatch(l, prefs, company),
     }))
-    return [...listingCards, ...peopleCards].sort((a, b) => b.score.percent - a.score.percent)
+    const mixed = [...listingCards, ...peopleCards].sort((a, b) => b.score.percent - a.score.percent)
+    if (mixed.length) return mixed
+    const loosePeople = store
+      .listProfiles()
+      .filter((p) => (p.role === 'freelancer' || p.role === 'courier') && !donePeople.has(p.id) && p.id !== user?.id)
+      .map((p) => ({
+        kind: 'candidate' as const,
+        profile: p,
+        score: scoreCandidateMatch(p, prefs, company),
+      }))
+    return loosePeople
   }, [prefs, company, useSeekerDeck, toast, user?.id])
 
   const current = deck[0]
@@ -212,7 +229,7 @@ export function MatchPage() {
 
   if (!prefs.completed) {
     return (
-      <div className="mx-auto max-w-md pb-scroll-chrome pt-8">
+      <div className="mx-auto max-w-md space-y-3 pb-scroll-chrome pt-8">
         <Empty
           emoji="🛰️"
           title={t('match.needPrefs')}
@@ -220,6 +237,22 @@ export function MatchPage() {
           actionLabel={t('match.openPrefs')}
           onAction={() => navigate('/prefs')}
         />
+        <div className="flex flex-wrap justify-center gap-3 text-sm">
+          <button
+            type="button"
+            className="text-neutral-300 hover:text-white hover:underline"
+            onClick={() => completePrefs(prefs.side)}
+          >
+            {t('match.anyway')}
+          </button>
+          <button
+            type="button"
+            className="text-muted hover:text-white hover:underline"
+            onClick={() => navigate('/')}
+          >
+            {t('match.askOrbit')}
+          </button>
+        </div>
       </div>
     )
   }
@@ -268,15 +301,22 @@ export function MatchPage() {
       )}
 
       {!current ? (
-        <div className="flex flex-1 flex-col items-center justify-center">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3">
           <Empty
             emoji="🛰️"
             title={t('match.empty')}
-            hint={t('match.emptyHint')}
+            hint={t('match.emptyHintHome')}
             actionLabel={t('match.tweakPrefs')}
             onAction={() => navigate('/prefs')}
             className="w-full"
           />
+          <button
+            type="button"
+            className="text-sm text-[var(--theme-accent)] hover:underline"
+            onClick={() => navigate('/')}
+          >
+            {t('match.askOrbit')} →
+          </button>
         </div>
       ) : current.kind === 'candidate' ? (
         <CandidateCard

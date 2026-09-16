@@ -2,24 +2,24 @@
 
 **Dein Orbit für Arbeit — Matching statt Spam.**
 
-Global all-industry marketplace OS (v2.5.0): 90-day focus **DE Freelancer/KMU — Jobs finden oder anbieten**. Dual-sided plus Orbit Assist. Look / Gift / Channels stay stubs. Event/VT catalog is not in the primary IA.
+Global all-industry marketplace OS (v2.5.1): 90-day focus **DE Freelancer/KMU — Jobs finden oder anbieten**. Dual-sided plus Orbit Assist. Look / Gift / Channels stay stubs. Event/VT catalog is not in the primary IA.
 
 - **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
 - **Repo:** https://github.com/networker-vt/eventlogistik-event-os
 - **License:** MIT — forks welcome if they improve Orbit (see [CONTRIBUTING.md](./CONTRIBUTING.md))
-- **A11y notes:** [A11Y.md](./A11Y.md) · **2.5.0:** [RELEASE_NOTES_2.5.0.md](./RELEASE_NOTES_2.5.0.md) · **Credits:** [CREDITS.md](./CREDITS.md) · **2.4.0:** [RELEASE_NOTES_2.4.0.md](./RELEASE_NOTES_2.4.0.md)
+- **A11y notes:** [A11Y.md](./A11Y.md) · **2.5.1:** [RELEASE_NOTES_2.5.1.md](./RELEASE_NOTES_2.5.1.md) · **2.5.0:** [RELEASE_NOTES_2.5.0.md](./RELEASE_NOTES_2.5.0.md) · **Credits:** [CREDITS.md](./CREDITS.md) · **2.4.0:** [RELEASE_NOTES_2.4.0.md](./RELEASE_NOTES_2.4.0.md)
 
 > Vite `base` **MUST** stay `/eventlogistik-event-os/` for GitHub Pages.
 
-## IA (v2.5)
+## IA (v2.5.1)
 
-**Start · Match · Chat · Wallet · Mehr** — Create in the header (not on Home). Mein via avatar / Mehr. Home: greeting → **Suchen / Anbieten / Weitermachen** → Assist (one filled CTA) → Match as text link.
+**Start · Match · Chat · Wallet · Mehr** — Create in the header (not on Home). Mein via avatar / Mehr. Home: robot + greeting + **Was brauchst du?** → quiet **Suchen / Anbieten / Weitermachen** → one filled **Orbit fragen** → **one Tageskarte** (plan merged in) → Match as text link.
 
 ## Core routes (v2.4)
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Start — Assist-first; Suchen / Anbieten / Weitermachen |
+| `/` | Start — robot + Was brauchst du?, quiet Suchen / Anbieten / Weitermachen, one Tageskarte, one filled Orbit fragen |
 | `/match` | Match Finder — jobs/services **or** candidates + B2B/partners |
 | `/look` | Orbit Look / Style — photo/video, demo try-on, shops, nearby |
 | `/messages` | Chat hub — Match / Booking / Support / Social DM |
