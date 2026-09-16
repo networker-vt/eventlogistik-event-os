@@ -367,9 +367,10 @@ export function MatchPage() {
           hint={t('match.swipesCapHint')}
           cost={boostCost('extra_swipes')}
           onBuy={() => {
-            const ok = buyBoost('extra_swipes')
-            setBudget(getSwipeBudget())
-            if (ok) setCapOpen(false)
+            void buyBoost('extra_swipes').then((ok) => {
+              setBudget(getSwipeBudget())
+              if (ok) setCapOpen(false)
+            })
           }}
           onClose={() => setCapOpen(false)}
         />

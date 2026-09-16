@@ -10,8 +10,10 @@
  */
 export const MAX_SUPPLY = 21_000_000
 export const EARLY_TESTER_CAP = 50
-export const EARLY_TESTER_GRANT = 1_500
-export const WELCOME_GRANT = 25
+export const EARLY_TESTER_GRANT = 2_000
+export const WELCOME_GRANT = 200
+/** Signup 51+ seats funded by the welcome pool (17_000 × 200). */
+export const WELCOME_SEATS = 17_000
 export const P2P_TAKE_RATE = 0.02
 /** Tiny fee on gift/sponsoring — burned, not reminted. Min 1, else ~2%. */
 export const SPONSOR_FEE = 1
@@ -21,7 +23,7 @@ export const GENESIS_P2P_FLOAT = 100_000
 
 export const DEMO_BASE_ACTIVE_USERS = 1_280
 
-const PROTOCOL_KEY = 'orbit_credit_protocol_v1'
+const PROTOCOL_KEY = 'orbit_credit_protocol_v2'
 const IDENTITY_KEY = 'orbit_signup_ordinal_v1'
 const EVT = 'orbit-credits-changed'
 
@@ -29,10 +31,11 @@ export type CreditPoolId = 'early' | 'welcome' | 'rewards' | 'packs' | 'treasury
 
 /** Genesis allocation — sums to MAX_SUPPLY with GENESIS_P2P_FLOAT. */
 export const POOL_ALLOCATION: Record<CreditPoolId, number> = {
-  early: EARLY_TESTER_CAP * EARLY_TESTER_GRANT, // 75_000
-  welcome: 425_000, // 17_000 × 25
+  early: EARLY_TESTER_CAP * EARLY_TESTER_GRANT, // 100_000
+  welcome: WELCOME_SEATS * WELCOME_GRANT, // 3_400_000
   rewards: 4_500_000,
-  packs: 14_000_000,
+  // 3_000_000 moved from packs: +25_000 early + 2_975_000 welcome. Treasury unchanged.
+  packs: 11_000_000,
   treasury: 1_900_000,
 }
 
@@ -46,13 +49,13 @@ export const ALLOCATION_TABLE: {
     id: 'early',
     labelDe: 'Early Testers (Signup 1–50)',
     amount: POOL_ALLOCATION.early,
-    noteDe: '1.500 Credits je Person',
+    noteDe: '2.000 Credits je Person, −20 % Boost für immer',
   },
   {
     id: 'welcome',
     labelDe: 'Welcome später (Signup 51+)',
     amount: POOL_ALLOCATION.welcome,
-    noteDe: '25 Credits je Person, 17.000 Plätze',
+    noteDe: '200 Credits je Person, 17.000 Plätze',
   },
   {
     id: 'rewards',
@@ -235,9 +238,30 @@ export function isPackMarketP2P(): boolean {
   return get().pools.packs.remaining <= 0 || get().remainingReserve <= 0
 }
 
+/** Point-in-time copy for atomic mint rollback (see restoreProtocolSnapshot). */
+export function snapshotProtocol(): ProtocolState {
+  return structuredClone(get())
+}
+
+/**
+ * ATOMIC MINT / rollback (R3): restore circulating + pools after a failed wallet credit.
+ * `mintFromPool` + `creditWallet` are not a DB transaction on the client. Callers
+ * snapshot, debit the pool, then credit the wallet/ledger; if that credit fails
+ * they MUST call this so the protocol debit does not leak. Production mint+user
+ * credit is one SQL transaction in `apply_credit_intent` (server is source of truth).
+ */
+export function restoreProtocolSnapshot(snap: ProtocolState): boolean {
+  if (!protocolInvariantHolds(snap)) {
+    console.error('[orbit credits] refuse restore — invariant failed', snap)
+    return false
+  }
+  return commit(structuredClone(snap))
+}
+
 /**
  * Mint from a pre-allocated pool into circulating. Fails if the pool or cap is exhausted.
- * Caller credits the user wallet by the same amount.
+ * Caller credits the user wallet by the same amount — wrap with snapshot + restore
+ * so a failed wallet/ledger write cannot leave circulating moved (R3).
  */
 export function mintFromPool(pool: CreditPoolId, amount: number, opId?: string): boolean {
   const amt = Math.max(0, Math.round(amount))

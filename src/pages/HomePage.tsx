@@ -125,7 +125,7 @@ export function HomePage() {
   const submitAsk = async (text: string) => {
     const q = text.trim()
     if (!q || busy) return
-    const gate = consumeAssistTurn()
+    const gate = await consumeAssistTurn()
     if (gate === 'need_credits') {
       setAssistNote(t('home.assistNeedCredits'))
       return

@@ -78,14 +78,14 @@ function alreadyWelcomed(): boolean {
 }
 
 /** Call once on app boot. Grants early-tester or later welcome from the 21M reserve. */
-export function initRewards() {
+export async function initRewards() {
   const flags = structuredClone(get())
   if (flags.welcome || alreadyWelcomed()) {
     flags.welcome = true
     commit(flags)
     return flags
   }
-  const granted = grantWelcomeAllocation()
+  const granted = await grantWelcomeAllocation()
   if (granted) {
     flags.welcome = true
     commit(flags)
@@ -93,27 +93,27 @@ export function initRewards() {
   return flags
 }
 
-export function grantWelcomeOnSignup() {
+export async function grantWelcomeOnSignup() {
   const flags = structuredClone(get())
   if (flags.signup) return
   flags.signup = true
   if (!flags.welcome && !alreadyWelcomed()) {
-    const granted = grantWelcomeAllocation()
+    const granted = await grantWelcomeAllocation()
     if (granted) flags.welcome = true
   }
   commit(flags)
 }
 
-export function maybeGrantPrefsComplete() {
+export async function maybeGrantPrefsComplete() {
   const flags = structuredClone(get())
   if (flags.prefs) return
   if (!getPrefs().completed) return
-  if (!earnCredits(20, 'Prefs vollständig (Demo) — Rewards-Pool')) return
+  if (!(await earnCredits(20, 'Prefs vollständig (Demo) — Rewards-Pool'))) return
   flags.prefs = true
   commit(flags)
 }
 
-export function maybeGrantProfileComplete() {
+export async function maybeGrantProfileComplete() {
   const flags = structuredClone(get())
   if (flags.profileComplete) return
   try {
@@ -126,7 +126,7 @@ export function maybeGrantProfileComplete() {
       (hub.docs?.length ?? 0) >= 1 &&
       prefs.seeker.radiusKm > 0
     if (!ok) return
-    if (!earnCredits(30, 'Profil weitgehend vollständig (Demo) — Rewards-Pool')) return
+    if (!(await earnCredits(30, 'Profil weitgehend vollständig (Demo) — Rewards-Pool'))) return
     flags.profileComplete = true
     commit(flags)
   } catch {
@@ -134,30 +134,30 @@ export function maybeGrantProfileComplete() {
   }
 }
 
-export function grantSuccessfulMatch() {
+export async function grantSuccessfulMatch() {
   const flags = structuredClone(get())
   if (flags.successfulMatch) return null
-  const next = earnCredits(15, 'Erfolgreiches Match (Demo) — Rewards-Pool')
+  const next = await earnCredits(15, 'Erfolgreiches Match (Demo) — Rewards-Pool')
   if (!next) return null
   flags.successfulMatch = true
   commit(flags)
   return next
 }
 
-export function grantIdeaReward() {
+export async function grantIdeaReward() {
   const flags = structuredClone(get())
   if (flags.ideas >= 3) return null
-  const next = earnCredits(8, `Feedback / Ideen-Box (${flags.ideas + 1}/3, Demo) — Rewards-Pool`)
+  const next = await earnCredits(8, `Feedback / Ideen-Box (${flags.ideas + 1}/3, Demo) — Rewards-Pool`)
   if (!next) return null
   flags.ideas += 1
   commit(flags)
   return next
 }
 
-export function grantReviewReward() {
+export async function grantReviewReward() {
   const flags = structuredClone(get())
   if (flags.reviews >= 5) return null
-  const next = earnCredits(10, `Erfahrungs-Review (${flags.reviews + 1}/5, Demo) — Rewards-Pool`)
+  const next = await earnCredits(10, `Erfahrungs-Review (${flags.reviews + 1}/5, Demo) — Rewards-Pool`)
   if (!next) return null
   flags.reviews += 1
   commit(flags)
@@ -165,23 +165,23 @@ export function grantReviewReward() {
 }
 
 /** Small daily bonus for actually searching / swiping — capped, not spammy. */
-export function grantSearchActivity() {
+export async function grantSearchActivity() {
   const flags = structuredClone(get())
   const day = todayKey()
   if (flags.searchDays.includes(day)) return null
   if (flags.searchDays.length >= 7) return null
-  const next = earnCredits(5, 'Aktive Suche / Match (Tagesbonus, Demo) — Rewards-Pool')
+  const next = await earnCredits(5, 'Aktive Suche / Match (Tagesbonus, Demo) — Rewards-Pool')
   if (!next) return null
   flags.searchDays = [...flags.searchDays, day].slice(-14)
   commit(flags)
   return next
 }
 
-export function grantJobCompleted(bookingId: string) {
+export async function grantJobCompleted(bookingId: string) {
   const flags = structuredClone(get())
   if (flags.completedJobs.includes(bookingId)) return null
   if (flags.completedJobs.length >= 5) return null
-  const next = earnCredits(25, 'Job abgeschlossen (Demo) — Rewards-Pool')
+  const next = await earnCredits(25, 'Job abgeschlossen (Demo) — Rewards-Pool')
   if (!next) return null
   flags.completedJobs.push(bookingId)
   commit(flags)
@@ -189,7 +189,7 @@ export function grantJobCompleted(bookingId: string) {
 }
 
 export const REWARD_RULES_DE = [
-  'Early Testers (Signup 1–50): 1.500 Credits aus dem Early-Pool. Danach 25 Welcome — beides aus der 21M-Reserve, kein Extra-Mint.',
+  'Early Testers (Signup 1–50): 2.000 Credits aus dem Early-Pool plus −20 % Boost für immer. Danach 200 Welcome (17.000 Plätze) — beides aus der 21M-Reserve, kein Extra-Mint.',
   'Prefs + Profil (Skills, Radius, mind. 1 Nachweis): einmalige Boni aus dem Rewards-Pool.',
   'Erstes erfolgreiches Match: 15 Credits, einmalig.',
   'Empfehlen: 40 Credits pro Demo-Signup aus dem Rewards-Pool — nicht fürs Leerspammen.',

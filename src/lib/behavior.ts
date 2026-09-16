@@ -76,7 +76,7 @@ export function trackBehavior(partial: Omit<BehaviorEvent, 'at'>) {
     partial.kind === 'search' ||
     partial.kind === 'assist'
   ) {
-    grantSearchActivity()
+    void grantSearchActivity()
   }
 }
 

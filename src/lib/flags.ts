@@ -18,3 +18,23 @@ export const ORBIT_MODE = APP_MODE
 export const isDemo = APP_MODE !== 'prod'
 export const isProd = APP_MODE === 'prod'
 export const useMock = import.meta.env.VITE_USE_MOCK !== 'false'
+
+/** Test override — never used in UI. Null = env `APP_MODE`. */
+let testOverride: AppMode | null = null
+
+/** Runtime mode (env, unless tests override). Ledger/credits must use this, not the module const. */
+export function getAppMode(): AppMode {
+  return testOverride ?? APP_MODE
+}
+
+export function isProdMode(): boolean {
+  return getAppMode() === 'prod'
+}
+
+export function isDemoMode(): boolean {
+  return getAppMode() !== 'prod'
+}
+
+export function __setAppModeForTests(mode: AppMode | null) {
+  testOverride = mode
+}

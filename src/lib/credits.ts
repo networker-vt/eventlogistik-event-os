@@ -15,19 +15,25 @@ import {
   mintFromPool,
   packsRemain,
   peerTransferOut,
+  restoreProtocolSnapshot,
   simulatePacksSoldOut as protocolSimulatePacksSoldOut,
+  snapshotProtocol,
   takeFromP2P,
   welcomeGrantFor,
   type CreditPoolId,
 } from './creditProtocol'
+import { __setAppModeForTests, isProdMode } from './flags'
 import { getReferral, spendFeaturedCredits, simulateReferralSignup } from './referral'
 import { getWallet, mockAdjustBalance } from './wallet'
 import { uid } from './utils'
 import {
+  applyHydratedEvents,
   hydrateLedgerFromSupabase,
   ledgerBalance,
+  listLedgerEvents,
   reconstructFromSignedTxs,
   submitCreditIntent,
+  type LedgerEvent,
   __resetLedgerForTests,
 } from './creditLedger'
 
@@ -36,6 +42,7 @@ export {
   EARLY_TESTER_CAP,
   EARLY_TESTER_GRANT,
   WELCOME_GRANT,
+  WELCOME_SEATS,
   SPONSOR_FEE,
   ALLOCATION_TABLE,
   P2P_ORDERS,
@@ -156,6 +163,56 @@ function normalize(raw: Partial<CreditsState> & { balance: number; txs: CreditTx
   }
 }
 
+const SPEND_KIND_SET = new Set<CreditSpendKind>([
+  'featured',
+  'extra_swipes',
+  'travel_scan',
+  'social_boost',
+  'interview_slot',
+  'booking',
+  'unlock_message',
+  'demo_gig',
+  'sponsor_fee',
+  'look_tryon',
+  'look_shop',
+  'assist_priority',
+])
+
+function txTypeFromEvent(e: LedgerEvent): CreditTxType {
+  if (e.kind === 'welcome') return 'welcome'
+  if (e.kind === 'purchase') return 'purchase'
+  if (e.kind === 'gift' || e.kind === 'sponsor_fee') return 'gift'
+  if (e.kind === 'p2p') return 'p2p'
+  if (e.kind === 'exchange_in') return 'exchange_in'
+  if (e.kind === 'exchange_out') return 'exchange_out'
+  if (e.delta < 0) return 'spend'
+  return 'earn'
+}
+
+function eventToTx(e: LedgerEvent): CreditTx {
+  const kind = SPEND_KIND_SET.has(e.kind as CreditSpendKind) ? (e.kind as CreditSpendKind) : undefined
+  return {
+    id: e.txn_id,
+    type: txTypeFromEvent(e),
+    amount: Math.abs(e.delta),
+    label: e.label,
+    kind,
+    createdAt: e.created_at,
+  }
+}
+
+/** R2: wallet cache tracks ledger sum. Prod always reads balance from events. */
+export function syncCreditsWalletFromLedger() {
+  const next = structuredClone(get())
+  const events = listLedgerEvents()
+  next.balance = Math.max(0, ledgerBalance())
+  if (events.length) {
+    next.txs = events.map(eventToTx)
+  }
+  commit(next)
+  return next
+}
+
 function load(): CreditsState {
   try {
     const raw = localStorage.getItem(KEY)
@@ -163,7 +220,12 @@ function load(): CreditsState {
     const parsed = JSON.parse(raw) as Partial<CreditsState>
     if (typeof parsed.balance !== 'number') return defaultState()
     const state = normalize({ ...parsed, balance: parsed.balance, txs: parsed.txs ?? [] })
-    reconstructFromSignedTxs(state.txs)
+    if (!isProdMode()) {
+      reconstructFromSignedTxs(state.txs)
+    }
+    if (listLedgerEvents().length) {
+      state.balance = Math.max(0, ledgerBalance())
+    }
     return state
   } catch {
     return defaultState()
@@ -182,6 +244,9 @@ function get(): CreditsState {
       extraSwipes: 0,
     }
     localStorage.setItem(KEY, JSON.stringify(cache))
+  }
+  if (isProdMode()) {
+    cache.balance = Math.max(0, ledgerBalance())
   }
   return cache
 }
@@ -216,11 +281,21 @@ export function __resetCreditsForTests() {
   cache = null
   localStorage.removeItem(KEY)
   __resetLedgerForTests()
+  __setAppModeForTests(null)
 }
 
-export function hydrateCreditsLedger(userId?: string) {
-  if (!userId) return Promise.resolve(null)
-  return hydrateLedgerFromSupabase(userId)
+export async function hydrateCreditsLedger(userId?: string) {
+  if (!userId) return null
+  const bal = await hydrateLedgerFromSupabase(userId)
+  if (bal == null) return null
+  syncCreditsWalletFromLedger()
+  return bal
+}
+
+/** Test/helper: replace ledger then sync wallet cache (R2). */
+export function applyHydratedLedgerForTests(remote: LedgerEvent[], userId?: string) {
+  applyHydratedEvents(remote, userId)
+  return syncCreditsWalletFromLedger()
 }
 
 export function creditsLedgerSum(): number {
@@ -236,22 +311,31 @@ export function eurToCredits(eur: number) {
 }
 
 /**
- * Local wallet credit only. Never call except after a successful protocol
- * mutation (mintFromPool / takeFromP2P). Client cap is a UX guardrail — it is
- * not a source of supply; P0 server ledger replaces this.
+ * Local wallet credit only after a successful ledger intent.
+ * Demo: submitCreditIntent appends locally first (optimistic).
+ * Prod: submitCreditIntent hits RPC/Edge first; this function never commits
+ * a balance bump unless the intent returns ok:true (R1).
  */
-function creditWallet(
+async function creditWallet(
   amount: number,
   type: CreditTxType,
   label: string,
   kind?: CreditSpendKind,
   opId?: string,
-): CreditsState {
+): Promise<CreditsState | null> {
   const next = structuredClone(get())
   const id = opId || uid('cr')
   if (next.txs.some((t) => t.id === id)) return next
   const amt = Math.max(0, Math.round(amount))
-  next.balance += amt
+  const intent = await submitCreditIntent({
+    txn_id: id,
+    delta: amt,
+    kind: kind || type,
+    label,
+    pool: type === 'welcome' ? undefined : type === 'purchase' ? 'packs' : type === 'p2p' ? 'p2p' : 'rewards',
+  })
+  if (!intent.ok) return null
+  next.balance = Math.max(0, ledgerBalance())
   next.txs.unshift({
     id,
     type,
@@ -260,41 +344,45 @@ function creditWallet(
     kind,
     createdAt: new Date().toISOString(),
   })
-  submitCreditIntent({
-    txn_id: id,
-    delta: amt,
-    kind: kind || type,
-    label,
-    pool: type === 'welcome' ? undefined : type === 'purchase' ? 'packs' : 'rewards',
-  })
   commit(next)
   return next
 }
 
 /**
- * Debit a protocol pool then credit this device.
- * TODO(P0 server ledger): mintFromPool + creditWallet are not atomic. If the
- * wallet write fails after mint, circulating has moved without a user credit.
- * Production must apply both in one server/chain transaction with rollback.
+ * ATOMIC MINT (R3):
+ * 1. Snapshot protocol (circulating + pools).
+ * 2. Debit the pre-allocated pool (`mintFromPool`).
+ * 3. Credit the user via ledger intent (`creditWallet` → `submitCreditIntent`).
+ * 4. If the wallet/ledger write fails (prod RPC/cap/unconfigured, or demo kind reject),
+ *    `restoreProtocolSnapshot` so circulating never moves without a user credit.
+ *
+ * Prod server: `apply_credit_intent` is one SQL transaction (supply row + credit_events).
+ * The client protocol is a UX guardrail; the server ledger is the source of truth.
  */
-export function mintFromPoolToWallet(
+export async function mintFromPoolToWallet(
   pool: CreditPoolId,
   amount: number,
   label: string,
   type: CreditTxType = 'earn',
-): CreditsState | null {
+): Promise<CreditsState | null> {
   const amt = Math.max(0, Math.round(amount))
   if (amt === 0) return getCredits()
+  const snap = snapshotProtocol()
   if (!mintFromPool(pool, amt)) return null
-  return creditWallet(amt, type, label)
+  const credited = await creditWallet(amt, type, label)
+  if (!credited) {
+    restoreProtocolSnapshot(snap)
+    return null
+  }
+  return credited
 }
 
 /** Performance / contribution — always the pre-allocated rewards pool. */
-export function earnCredits(amount: number, label: string): CreditsState | null {
+export function earnCredits(amount: number, label: string): Promise<CreditsState | null> {
   return mintFromPoolToWallet('rewards', amount, label, 'earn')
 }
 
-export function grantWelcomeAllocation(): CreditsState | null {
+export async function grantWelcomeAllocation(): Promise<CreditsState | null> {
   const identity = ensureSignupIdentity()
   const grant = welcomeGrantFor(identity)
   const op = `welcome:${identity.ordinal}`
@@ -302,10 +390,12 @@ export function grantWelcomeAllocation(): CreditsState | null {
   if (get().txs.some((t) => t.id === op) || getProtocol().seenOpIds.includes(op)) {
     return getCredits()
   }
-  const minted = mintFromPool(grant.pool, grant.amount, op)
-    ? creditWallet(grant.amount, 'welcome', grant.label, undefined, op)
-    : null
-  if (minted) return minted
+  const snap = snapshotProtocol()
+  if (mintFromPool(grant.pool, grant.amount, op)) {
+    const credited = await creditWallet(grant.amount, 'welcome', grant.label, undefined, op)
+    if (credited) return credited
+    restoreProtocolSnapshot(snap)
+  }
   if (grant.pool === 'early') {
     return mintFromPoolToWallet(
       'welcome',
@@ -329,17 +419,33 @@ function applySpendSideEffects(next: CreditsState, kind: CreditSpendKind) {
   }
 }
 
-export function spendCredits(
+export async function spendCredits(
   amount: number,
   kind: CreditSpendKind,
   label: string,
-): CreditsState | null {
+): Promise<CreditsState | null> {
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(amount))
   if (next.balance < amt) return null
-  if (!holdFromUser(amt)) return null
-  next.balance -= amt
   const txn_id = uid('cr')
+  const snap = snapshotProtocol()
+
+  if (isProdMode()) {
+    const intent = await submitCreditIntent({ txn_id, delta: -amt, kind, label })
+    if (!intent.ok) return null
+    if (!holdFromUser(amt)) {
+      console.warn('[orbit] protocol hold failed after server spend — ledger is source of truth')
+    }
+  } else {
+    if (!holdFromUser(amt)) return null
+    const intent = await submitCreditIntent({ txn_id, delta: -amt, kind, label })
+    if (!intent.ok) {
+      restoreProtocolSnapshot(snap)
+      return null
+    }
+  }
+
+  next.balance = Math.max(0, ledgerBalance())
   next.txs.unshift({
     id: txn_id,
     type: 'spend',
@@ -355,21 +461,26 @@ export function spendCredits(
   } catch {
     /* ignore */
   }
-  submitCreditIntent({ txn_id, delta: -amt, kind, label })
   commit(next)
   return next
 }
 
 /** Gift / sponsoring: peer transfer, no mint. Tiny fee burned. */
-export function giftCredits(amount: number, toLabel = 'Orbit-Nutzer (Demo)'): CreditsState | null {
+export async function giftCredits(amount: number, toLabel = 'Orbit-Nutzer (Demo)'): Promise<CreditsState | null> {
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(amount))
   if (amt <= 0 || next.balance < amt) return null
+  const snap = snapshotProtocol()
   const moved = peerTransferOut(amt)
   if (!moved) return null
-  next.balance -= amt
   const txn_id = uid('cr')
   const label = `Geschenk / Sponsoring an ${toLabel} · ${moved.net} an Peer, ${moved.burned} gebbrannt`
+  const intent = await submitCreditIntent({ txn_id, delta: -amt, kind: 'gift', label })
+  if (!intent.ok) {
+    restoreProtocolSnapshot(snap)
+    return null
+  }
+  next.balance = Math.max(0, ledgerBalance())
   next.txs.unshift({
     id: txn_id,
     type: 'gift',
@@ -378,13 +489,12 @@ export function giftCredits(amount: number, toLabel = 'Orbit-Nutzer (Demo)'): Cr
     label,
     createdAt: new Date().toISOString(),
   })
-  submitCreditIntent({ txn_id, delta: -amt, kind: 'sponsor_fee', label })
   commit(next)
   return next
 }
 
 /** Mock exchange: Wallet EUR → Credits. Draws from the packs pool (system mint) or fails. */
-export function exchangeEurToCredits(eur: number): CreditsState | null {
+export async function exchangeEurToCredits(eur: number): Promise<CreditsState | null> {
   const wallet = getWallet()
   const amt = Math.max(0, eur)
   if (wallet.balanceEur < amt) return null
@@ -392,7 +502,7 @@ export function exchangeEurToCredits(eur: number): CreditsState | null {
   if (credits <= 0) return getCredits()
   if (!packsRemain(credits) || isPackMarketP2P()) return null
   mockAdjustBalance('payout', amt, 'sepa')
-  const minted = mintFromPoolToWallet(
+  const minted = await mintFromPoolToWallet(
     'packs',
     credits,
     `Umtausch ${amt.toFixed(2)} € → ${credits} Credits (Demo, aus Pack-Reserve)`,
@@ -405,43 +515,54 @@ export function exchangeEurToCredits(eur: number): CreditsState | null {
   return minted
 }
 
-export function exchangeCreditsToEur(credits: number): CreditsState | null {
+export async function exchangeCreditsToEur(credits: number): Promise<CreditsState | null> {
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(credits))
   if (next.balance < amt) return null
-  if (!holdFromUser(amt)) return null
-  next.balance -= amt
+  const snap = snapshotProtocol()
   const eur = creditsToEur(amt)
-  mockAdjustBalance('topup', eur, 'sepa')
   const txn_id = uid('cr')
+  const label = `Umtausch ${amt} Credits → ${eur.toFixed(2)} € (Demo, indikativ)`
+
+  if (isProdMode()) {
+    const intent = await submitCreditIntent({ txn_id, delta: -amt, kind: 'exchange_out', label })
+    if (!intent.ok) return null
+    if (!holdFromUser(amt)) {
+      console.warn('[orbit] protocol hold failed after server exchange — ledger is source of truth')
+    }
+  } else {
+    if (!holdFromUser(amt)) return null
+    const intent = await submitCreditIntent({ txn_id, delta: -amt, kind: 'exchange_out', label })
+    if (!intent.ok) {
+      restoreProtocolSnapshot(snap)
+      return null
+    }
+  }
+
+  mockAdjustBalance('topup', eur, 'sepa')
+  next.balance = Math.max(0, ledgerBalance())
   next.txs.unshift({
     id: txn_id,
     type: 'exchange_out',
     amount: amt,
-    label: `Umtausch ${amt} Credits → ${eur.toFixed(2)} € (Demo, indikativ)`,
+    label,
     createdAt: new Date().toISOString(),
-  })
-  submitCreditIntent({
-    txn_id,
-    delta: -amt,
-    kind: 'exchange_out',
-    label: `Umtausch ${amt} Credits → ${eur.toFixed(2)} € (Demo, indikativ)`,
   })
   commit(next)
   return next
 }
 
-export function claimReferralCreditsDemo() {
+export async function claimReferralCreditsDemo() {
   if (!get().meaningfulAt) return null
   simulateReferralSignup()
   return earnCredits(40, 'Referral-Bonus (Demo) — nach erster sinnvoller Aktion, Rewards-Pool')
 }
 
 /** Demo checkout — credits appear only if the packs pool still has room. */
-export function purchaseCreditPack(id: CreditPackId): CreditsState | null {
+export function purchaseCreditPack(id: CreditPackId): Promise<CreditsState | null> {
   const pack = CREDIT_PACKS.find((p) => p.id === id)
-  if (!pack) return null
-  if (!packsRemain(pack.credits) || isPackMarketP2P()) return null
+  if (!pack) return Promise.resolve(null)
+  if (!packsRemain(pack.credits) || isPackMarketP2P()) return Promise.resolve(null)
   return mintFromPoolToWallet(
     'packs',
     pack.credits,
@@ -450,15 +571,21 @@ export function purchaseCreditPack(id: CreditPackId): CreditsState | null {
   )
 }
 
-export function buyP2POrder(orderId: string): CreditsState | null {
+export async function buyP2POrder(orderId: string): Promise<CreditsState | null> {
   const order = P2P_ORDERS.find((o) => o.id === orderId)
   if (!order) return null
+  const snap = snapshotProtocol()
   if (!takeFromP2P(order.credits, order.id)) return null
-  return creditWallet(
+  const credited = await creditWallet(
     order.credits,
     'p2p',
     `P2P von ${order.seller} · ${order.credits} Credits · ${order.priceEur.toFixed(2)} € (kein Mint)`,
   )
+  if (!credited) {
+    restoreProtocolSnapshot(snap)
+    return null
+  }
+  return credited
 }
 
 export function simulatePacksSoldOut(): boolean {
@@ -513,7 +640,7 @@ export function boostCost(kind: CreditSpendKind): number {
   return Math.max(1, Math.round(base * (1 - EARLY_BOOST_DISCOUNT)))
 }
 
-export function buyBoost(kind: CreditSpendKind): CreditsState | null {
+export async function buyBoost(kind: CreditSpendKind): Promise<CreditsState | null> {
   if (consumeFreeMonthlyBoost(kind)) return getCredits()
   const meta = CREDITS_COSTS[kind]
   const cost = boostCost(kind)
@@ -547,7 +674,7 @@ export function hasMeaningfulAction() {
 }
 
 /** Extra Assist after the free daily lane — money moment, not while scrolling. */
-export function consumeAssistTurn(): 'ok' | 'paid' | 'need_credits' {
+export async function consumeAssistTurn(): Promise<'ok' | 'paid' | 'need_credits'> {
   const next = structuredClone(get())
   const day = todayKey()
   if (next.assistDay !== day) {
@@ -559,7 +686,7 @@ export function consumeAssistTurn(): 'ok' | 'paid' | 'need_credits' {
     commit(next)
     return 'ok'
   }
-  const paid = spendCredits(
+  const paid = await spendCredits(
     CREDITS_COSTS.assist_priority.credits,
     'assist_priority',
     CREDITS_COSTS.assist_priority.label,
@@ -630,9 +757,9 @@ export const CREDITS_FREE_EN = [
 ]
 
 export const CREDITS_DISCLAIMER_DE =
-  'Orbit Credits: hartes Cap 21.000.000. Demo nutzt localStorage (append-only credit_events, balance = Summe). Prod (VITE_APP_MODE=prod + Keys) schreibt Intents nach Supabase. Dieser Client mint nie über den Cap. Pack-Kauf ist ein Stub (kein Stripe/PayPal). Kern-Entdeckung bleibt kostenlos. Soft-Paywall nur an Geld-Momenten.'
+  'Orbit Credits: hartes Cap 21.000.000. Demo (VITE_APP_MODE=demo) nutzt localStorage (append-only, balance = Summe). Prod schreibt Intents erst nach Server-ok; ohne Supabase-Keys hard-fail (kein lokales Mint). Dieser Client mint nie über den Cap. Pack-Kauf ist ein Stub (kein Stripe/PayPal). Kern-Entdeckung bleibt kostenlos. Soft-Paywall nur an Geld-Momenten.'
 
 export const CREDITS_DISCLAIMER_EN =
-  'Orbit Credits: hard cap 21,000,000. Demo uses localStorage (append-only credit_events, balance = sum). Prod (VITE_APP_MODE=prod + keys) writes intents to Supabase. This client never mints above the cap. Pack purchase is a stub (no Stripe/PayPal). Core discovery stays free. Soft paywall only at money moments.'
+  'Orbit Credits: hard cap 21,000,000. Demo (VITE_APP_MODE=demo) uses localStorage (append-only, balance = sum). Prod writes intents only after server ok; missing Supabase keys hard-fail (no local mint). This client never mints above the cap. Pack purchase is a stub (no Stripe/PayPal). Core discovery stays free. Soft paywall only at money moments.'
 
-export const EARLY_TESTER_COPY_DE = `Die ersten 50 Signups sind Early Testers (${EARLY_TESTER_GRANT.toLocaleString('de-DE')} Credits, ≥2–3× Welcome) plus −${Math.round(EARLY_BOOST_DISCOUNT * 100)} % Boost-Preis für immer. Ab Signup 51: ${WELCOME_GRANT} Credits.`
+export const EARLY_TESTER_COPY_DE = `Die ersten 50 Signups sind Early Testers (${EARLY_TESTER_GRANT.toLocaleString('de-DE')} Credits, 10× Welcome) plus −${Math.round(EARLY_BOOST_DISCOUNT * 100)} % Boost-Preis für immer. Ab Signup 51: ${WELCOME_GRANT} Credits.`

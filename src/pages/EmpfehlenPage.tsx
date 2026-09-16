@@ -75,8 +75,9 @@ export function EmpfehlenPage() {
             size="sm"
             variant="secondary"
             onClick={() => {
-              const ok = claimReferralCreditsDemo()
-              setFlash(ok ? 'Freund geworben — +40 Credits aus dem Rewards-Pool.' : 'Rewards-Pool leer — kein Mint.')
+              void claimReferralCreditsDemo().then((ok) => {
+                setFlash(ok ? 'Freund geworben — +40 Credits aus dem Rewards-Pool.' : 'Rewards-Pool leer — kein Mint.')
+              })
             }}
           >
             Demo-Signup (+40)

@@ -113,7 +113,7 @@ export function addExperience(input: {
   }
   const next = [review, ...get().filter((r) => !(r.target === review.target && r.targetId === review.targetId && r.fromName === review.fromName))]
   commit(next)
-  grantReviewReward()
+  void grantReviewReward()
   return review
 }
 

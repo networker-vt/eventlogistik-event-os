@@ -226,8 +226,9 @@ export function LookPage() {
                   variant="secondary"
                   onClick={() => {
                     const meta = CREDITS_COSTS.look_tryon
-                    const ok = spendCredits(meta.credits, 'look_tryon', meta.label)
-                    note(ok ? t('look.tryonUnlocked') : t('credits.notEnough'))
+                    void spendCredits(meta.credits, 'look_tryon', meta.label).then((ok) => {
+                      note(ok ? t('look.tryonUnlocked') : t('credits.notEnough'))
+                    })
                   }}
                 >
                   {t('look.extraPack')} (−{CREDITS_COSTS.look_tryon.credits})
@@ -323,9 +324,10 @@ export function LookPage() {
                       disabled={look.boostedShopId === p.id}
                       onClick={() => {
                         const meta = CREDITS_COSTS.look_shop
-                        const ok = spendCredits(meta.credits, 'look_shop', `${meta.label}: ${p.name}`)
-                        if (ok) setBoostedShop(p.id)
-                        note(ok ? t('look.shopBoosted') : t('credits.notEnough'))
+                        void spendCredits(meta.credits, 'look_shop', `${meta.label}: ${p.name}`).then((ok) => {
+                          if (ok) setBoostedShop(p.id)
+                          note(ok ? t('look.shopBoosted') : t('credits.notEnough'))
+                        })
                       }}
                     >
                       Boost (−{CREDITS_COSTS.look_shop.credits})

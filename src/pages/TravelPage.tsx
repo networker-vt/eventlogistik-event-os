@@ -86,8 +86,9 @@ export function TravelPage() {
             size="sm"
             variant="secondary"
             onClick={() => {
-              buyBoost('travel_scan')
-              setScanTick((n) => n + 1)
+              void buyBoost('travel_scan').then(() => {
+                setScanTick((n) => n + 1)
+              })
             }}
           >
             {t('travel.deepScan')} · {CREDITS_COSTS.travel_scan.credits} Credits

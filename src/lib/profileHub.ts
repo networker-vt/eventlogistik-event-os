@@ -64,7 +64,7 @@ function commit(next: HubState) {
   cache = next
   localStorage.setItem(KEY, JSON.stringify(next))
   window.dispatchEvent(new CustomEvent(EVT))
-  maybeGrantProfileComplete()
+  void maybeGrantProfileComplete()
 }
 
 export function subscribeHub(cb: () => void) {
@@ -138,7 +138,7 @@ export function removeDoc(id: string) {
 export function setRadiusKm(km: number) {
   const n = Math.min(2000, Math.max(1, Math.round(km)))
   savePrefs({ seeker: { ...getPrefs().seeker, radiusKm: n } })
-  maybeGrantProfileComplete()
+  void maybeGrantProfileComplete()
   return n
 }
 
