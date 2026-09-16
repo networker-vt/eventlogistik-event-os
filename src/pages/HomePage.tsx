@@ -25,7 +25,7 @@ import { NewsStrip } from '../components/home/NewsStrip'
 import { consumeAssistTurn, formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
 import { isDemo } from '../lib/flags'
 import { getResume, subscribeResume } from '../lib/resume'
-import { dueReminders, subscribeReminders, tapReminder } from '../lib/reminders'
+import { dueReminders, enqueueReminder, subscribeReminders, tapReminder } from '../lib/reminders'
 import { rankHomeNews } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
 import { canListen, listenOnce } from '../lib/speech'
@@ -273,13 +273,11 @@ export function HomePage() {
               type="button"
               className="mt-2 ml-3 text-[11px] text-muted hover:underline"
               onClick={() => {
-                void import('../lib/reminders').then((m) =>
-                  m.enqueueReminder({
-                    title: plan.summary,
+                enqueueReminder({
+                  title: plan.summary,
                     actionTo: assistAction.actionTo!,
                     actionLabel: assistAction.actionLabel || t('home.next'),
-                  }),
-                )
+                  })
               }}
             >
               {t('assist.remind')}

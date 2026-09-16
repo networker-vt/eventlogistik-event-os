@@ -230,7 +230,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const requestMagicLink = useCallback(
-    async (email: string, name?: string) => {
+    async (email: string, name?: string): Promise<{ ok: boolean; backend: 'supabase' | 'demo' }> => {
       const trimmed = email.trim()
       if (!trimmed) return { ok: false, backend: authBackend }
       localStorage.setItem(MAGIC_PENDING_KEY, trimmed)
