@@ -2,6 +2,12 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   MAX_SUPPLY,
   __resetProtocolForTests,
+  EARLY_TESTER_CAP,
+  EARLY_TESTER_GRANT,
+  GENESIS_P2P_FLOAT,
+  POOL_ALLOCATION,
+  WELCOME_GRANT,
+  WELCOME_SEATS,
   getProtocol,
   isPackMarketP2P,
   mintFromPool,
@@ -91,6 +97,23 @@ describe('Orbit Credits protocol', () => {
     await grantWelcomeAllocation()
     expect(boostCost('featured')).toBe(Math.round(CREDITS_COSTS.featured.credits * 0.8))
     expect(boostCost('extra_swipes')).toBeLessThan(CREDITS_COSTS.extra_swipes.credits)
+  })
+
+  it('Money Boy grants: Early 2000 / Welcome 200, pools sum to 21M', async () => {
+    expect(EARLY_TESTER_GRANT).toBe(2_000)
+    expect(WELCOME_GRANT).toBe(200)
+    expect(POOL_ALLOCATION.early).toBe(EARLY_TESTER_CAP * EARLY_TESTER_GRANT)
+    expect(POOL_ALLOCATION.early).toBeGreaterThanOrEqual(50 * 2_000)
+    expect(POOL_ALLOCATION.welcome).toBe(WELCOME_SEATS * WELCOME_GRANT)
+    expect(POOL_ALLOCATION.welcome).toBe(3_400_000)
+    const allocated =
+      (Object.values(POOL_ALLOCATION) as number[]).reduce((n, v) => n + v, 0) + GENESIS_P2P_FLOAT
+    expect(allocated).toBe(MAX_SUPPLY)
+
+    const granted = await grantWelcomeAllocation()
+    expect(granted?.balance).toBe(EARLY_TESTER_GRANT)
+    expect(getCredits().balance).toBe(2_000)
+    expect(protocolInvariantHolds(getProtocol())).toBe(true)
   })
 
   it('restoreProtocolSnapshot undoes a pool debit (atomic mint rollback)', () => {

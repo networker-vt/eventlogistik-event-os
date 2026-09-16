@@ -42,6 +42,7 @@ export {
   EARLY_TESTER_CAP,
   EARLY_TESTER_GRANT,
   WELCOME_GRANT,
+  WELCOME_SEATS,
   SPONSOR_FEE,
   ALLOCATION_TABLE,
   P2P_ORDERS,
@@ -761,4 +762,4 @@ export const CREDITS_DISCLAIMER_DE =
 export const CREDITS_DISCLAIMER_EN =
   'Orbit Credits: hard cap 21,000,000. Demo (VITE_APP_MODE=demo) uses localStorage (append-only, balance = sum). Prod writes intents only after server ok; missing Supabase keys hard-fail (no local mint). This client never mints above the cap. Pack purchase is a stub (no Stripe/PayPal). Core discovery stays free. Soft paywall only at money moments.'
 
-export const EARLY_TESTER_COPY_DE = `Die ersten 50 Signups sind Early Testers (${EARLY_TESTER_GRANT.toLocaleString('de-DE')} Credits, ≥2–3× Welcome) plus −${Math.round(EARLY_BOOST_DISCOUNT * 100)} % Boost-Preis für immer. Ab Signup 51: ${WELCOME_GRANT} Credits.`
+export const EARLY_TESTER_COPY_DE = `Die ersten 50 Signups sind Early Testers (${EARLY_TESTER_GRANT.toLocaleString('de-DE')} Credits, 10× Welcome) plus −${Math.round(EARLY_BOOST_DISCOUNT * 100)} % Boost-Preis für immer. Ab Signup 51: ${WELCOME_GRANT} Credits.`

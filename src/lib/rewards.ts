@@ -189,7 +189,7 @@ export async function grantJobCompleted(bookingId: string) {
 }
 
 export const REWARD_RULES_DE = [
-  'Early Testers (Signup 1–50): 1.500 Credits aus dem Early-Pool. Danach 25 Welcome — beides aus der 21M-Reserve, kein Extra-Mint.',
+  'Early Testers (Signup 1–50): 2.000 Credits aus dem Early-Pool plus −20 % Boost für immer. Danach 200 Welcome (17.000 Plätze) — beides aus der 21M-Reserve, kein Extra-Mint.',
   'Prefs + Profil (Skills, Radius, mind. 1 Nachweis): einmalige Boni aus dem Rewards-Pool.',
   'Erstes erfolgreiches Match: 15 Credits, einmalig.',
   'Empfehlen: 40 Credits pro Demo-Signup aus dem Rewards-Pool — nicht fürs Leerspammen.',

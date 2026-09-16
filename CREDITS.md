@@ -46,15 +46,17 @@ Invariant: `circulating + remainingReserve + burned === 21_000_000`. Every grant
 
 | Pool | Amount | Rule |
 |------|--------|------|
-| Early Testers (signup **1–50**) | 75.000 | **1.500** Credits each (≥2–3× welcome) **plus −20% boost price forever** |
-| Welcome later (signup 51+) | 425.000 | **25** Credits each (17.000 seats) |
+| Early Testers (signup **1–50**) | 100.000 | **2.000** Credits each (10× welcome) **plus −20% boost price forever** |
+| Welcome later (signup 51+) | 3.400.000 | **200** Credits each (**17.000 seats**) |
 | Rewards (performance) | 4.500.000 | Prefs, profile, match, referral, reviews, jobs — transfer from this pool |
-| Packs (system mint) | 14.000.000 | While reserve remains. After 0: **P2P only** |
+| Packs (system mint) | 11.000.000 | While reserve remains. After 0: **P2P only**. **−3.000.000** vs prior split (moved to Early + Welcome) |
 | P2P float (genesis) | 100.000 | Already circulating with simulated peers |
 | Treasury (unissued) | 1.900.000 | Ops, no airdrop |
 | **Total** | **21.000.000** | |
 
-Signup ordinal is stored in `localStorage` (`orbit_signup_ordinal_v1`) on this device.
+Money Boy (2026-09-16): Early **2.000** / Welcome **200**. Welcome pool is **3.400.000** so **17.000 seats** stay funded. The extra **3.000.000** is taken from **Packs** (14M → 11M). Treasury stays 1.900.000. Cap unchanged.
+
+Signup ordinal is stored in `localStorage` (`orbit_signup_ordinal_v1`) on this device. Demo protocol cache is `orbit_credit_protocol_v2` (genesis reset after the pool split).
 
 When **remainingReserve = 0**: no system minting. Users can (1) **earn** from whatever is left in the pre-allocated rewards pool, or (2) **buy/P2P** from other users (order-book stub). Gift / sponsoring is a **peer transfer** (~2% / min 1 Credit burned as fee) — never a new mint.
 
@@ -73,8 +75,8 @@ Credits are required for: listing boosts, extra swipes, travel deep-scan, featur
 
 | Cohort | Each | Extra |
 |--------|------|-------|
-| Signup 1–50 | 1.500 | −20% on boost prices forever |
-| Signup 51+ | 25 | — |
+| Signup 1–50 | 2.000 | −20% on boost prices forever |
+| Signup 51+ | 200 | — |
 
 No extra +100 seed. If a pool is empty, the grant fails.
 
