@@ -67,13 +67,14 @@ export function GiftSheet({
       return
     }
     const n = Number(amount) || 0
-    const rec = sendGift({ target: picked, amount: n, message })
-    if (!rec) {
-      setFlash(t('credits.notEnough'))
-      return
-    }
-    setFlash(t('gift.ok'))
-    setMessage('')
+    void sendGift({ target: picked, amount: n, message }).then((rec) => {
+      if (!rec) {
+        setFlash(t('credits.notEnough'))
+        return
+      }
+      setFlash(t('gift.ok'))
+      setMessage('')
+    })
   }
 
   return (

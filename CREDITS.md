@@ -6,13 +6,39 @@ Bitcoin-style **hard cap: 21.000.000** Orbit Credits. **Balance = sum(`credit_ev
 
 | Mode | Ledger | Auth |
 |------|--------|------|
-| **demo** (default, GitHub Pages) | localStorage `orbit_credit_events_v1` + 21M protocol guardrail | Magic-link UI, no mail server — 1-tap demo link |
-| **prod** | Same local cache **plus** read/write intents: RPC `apply_credit_intent` / Edge Function `credit-intent` → table `credit_events` | Supabase `signInWithOtp` when URL + anon key are set |
-| prod **without keys** | Graceful fallback to demo localStorage | Graceful demo magic-link |
+| **demo** (default, GitHub Pages) | Optimistic localStorage `orbit_credit_events_v1`; balance = sum(delta) | Magic-link UI, no mail server — 1-tap demo link |
+| **prod** + Keys | **Server first.** RPC / Edge `credit-intent` must return `ok:true` before any local mirror. Hydrate **replaces** the local cache (no merge of leftover client mints). Wallet `CreditsState.balance` is a cache of `ledgerBalance()`. | Supabase `signInWithOtp` |
+| prod **without keys** | **Hard-fail** credit mutations (`prod_unconfigured`). No silent local mint. | Magic-link UI still degrades; credits do not. |
 
-SQL: `supabase/migrations/20260916_credit_events.sql`. Stub: `supabase/functions/credit-intent/index.ts`. Client: `src/lib/creditLedger.ts`. The 21M protocol in `creditProtocol.ts` remains a **UX guardrail**; prod RPC also refuses mints that would breach the supply row.
+SQL: `supabase/migrations/20260916_credit_events.sql` **and** `20260917_apply_credit_intent_allowlist.sql`. Edge: `supabase/functions/credit-intent/index.ts`. Client: `src/lib/creditLedger.ts`. The 21M protocol in `creditProtocol.ts` is a **UX guardrail**; prod RPC is the source of truth and refuses mints that would breach the supply row.
 
-`mintFromPoolToWallet` is still two local steps in demo. Prod intents are one RPC (`apply_credit_intent`) so mint + user credit share a `txn_id`.
+### R1 — Prod does not trust the client first
+
+`submitCreditIntent` in prod calls RPC/Edge **first**. Local append happens only on `ok:true`. `ok:false` / cap reject → **hard rollback**: no local event, no pending queue that later credits the wallet. Demo (`VITE_APP_MODE=demo` only) may still append optimistically.
+
+Mints (`delta > 0`) never go through the user-JWT RPC. They go to the Edge Function, which uses `service_role` + `p_user_id`.
+
+### R2 — One source of truth
+
+In prod, **balance = sum of ledger events** (server/hydrate). After hydrate, `CreditsState.balance` is synced from `ledgerBalance()`. The wallet is a cache.
+
+### R3 — Atomic mint
+
+Client `mintFromPoolToWallet`: snapshot protocol → `mintFromPool` → ledger/`creditWallet`. If the wallet/intent fails, `restoreProtocolSnapshot` rolls back the pool debit so circulating cannot move without a user credit.
+
+Prod server: `apply_credit_intent` is **one SQL transaction** (lock `credit_supply` + insert `credit_events`).
+
+### R4 — SECURITY DEFINER allowlist
+
+`apply_credit_intent` (`SECURITY DEFINER`):
+
+- `kind` must be in the allowlist: `welcome`, `earn`, `purchase`, `burn`, `gift`, `boost`, plus existing spend kinds (`featured`, `extra_swipes`, …). Arbitrary kinds are rejected (`kind_not_allowed`).
+- Authenticated users **cannot** apply `delta > 0` (`mint_forbidden`). Spend/burn/gift only.
+- Mints require `auth.role() = 'service_role'` and `p_user_id` (Edge Function).
+
+### Rate limit
+
+Edge Function `credit-intent`: **30 intents / user / rolling 60s** (in-memory per isolate — not durable across replicas). Put an API-gateway / Cloudflare / Supabase rate-limit in front for production. Do not expose `SUPABASE_SERVICE_ROLE_KEY` to the SPA (`VITE_*` is forbidden).
 
 Invariant: `circulating + remainingReserve + burned === 21_000_000`. Every grant (welcome, early tester, rewards, packs) **debits a pre-allocated pool** or fails.
 

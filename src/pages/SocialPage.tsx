@@ -49,12 +49,12 @@ export function SocialPage() {
     return user ?? { id: DEMO_USER_ID, name: 'Alex Müller' }
   }
 
-  const publish = () => {
+  const publish = async () => {
     const me = ensureUser()
     const listing = listings.find((l) => l.id === shareId)
     let featured = false
     if (feature) {
-      featured = Boolean(buyBoost('social_boost'))
+      featured = Boolean(await buyBoost('social_boost'))
     }
     addPost({
       authorId: me.id,

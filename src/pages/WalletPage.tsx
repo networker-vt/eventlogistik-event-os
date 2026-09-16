@@ -52,7 +52,7 @@ import {
   subscribeCredits,
   type CreditPackId,
 } from '../lib/credits'
-import { LEDGER_MODE_LINE } from '../lib/creditLedger'
+import { ledgerModeLine } from '../lib/creditLedger'
 import { canPayout, subscribeVerify } from '../lib/verify'
 import { REWARD_RULES_DE } from '../lib/rewards'
 import {
@@ -295,7 +295,7 @@ export function WalletPage() {
         <SupplyMeter />
 
         <p className="text-[11px] text-muted">
-          {t('credits.ledgerMode')}: {LEDGER_MODE_LINE}
+          {t('credits.ledgerMode')}: {ledgerModeLine()}
         </p>
 
         <BurnTable />
@@ -380,8 +380,9 @@ export function WalletPage() {
                       size="sm"
                       disabled={filled}
                       onClick={() => {
-                        const ok = buyP2POrder(order.id)
-                        note(ok ? t('credits.p2pBought') : t('credits.p2pFail'))
+                        void buyP2POrder(order.id).then((ok) => {
+                          note(ok ? t('credits.p2pBought') : t('credits.p2pFail'))
+                        })
                       }}
                     >
                       {filled ? t('credits.p2pFilled') : t('credits.p2pBuy')}
@@ -406,13 +407,14 @@ export function WalletPage() {
                 size="sm"
                 onClick={() => {
                   const pack = CREDIT_PACKS.find((p) => p.id === packPick)
-                  const ok = purchaseCreditPack(packPick)
-                  note(
-                    ok && pack
-                      ? `+${pack.credits} Credits (Demo, aus Reserve, kein Stripe/PayPal)`
-                      : t('credits.reserveEmpty'),
-                  )
-                  setPackPick(null)
+                  void purchaseCreditPack(packPick).then((ok) => {
+                    note(
+                      ok && pack
+                        ? `+${pack.credits} Credits (Demo, aus Reserve, kein Stripe/PayPal)`
+                        : t('credits.reserveEmpty'),
+                    )
+                    setPackPick(null)
+                  })
                 }}
               >
                 {t('credits.confirmPack')}
@@ -437,8 +439,11 @@ export function WalletPage() {
                   size="sm"
                   variant="ghost"
                   onClick={() => {
-                    const ok = spendCredits(cost, kind, cost < meta.credits ? `${meta.label} · Early −20%` : meta.label)
-                    note(ok ? `−${cost} Credits: ${meta.label}` : t('credits.notEnough'))
+                    void spendCredits(cost, kind, cost < meta.credits ? `${meta.label} · Early −20%` : meta.label).then(
+                      (ok) => {
+                        note(ok ? `−${cost} Credits: ${meta.label}` : t('credits.notEnough'))
+                      },
+                    )
                   }}
                 >
                   {meta.label} (−{cost}
@@ -454,8 +459,9 @@ export function WalletPage() {
             size="sm"
             variant="secondary"
             onClick={() => {
-              const ok = claimReferralCreditsDemo()
-              note(ok ? '+40 Credits Referral (Rewards-Pool)' : t('credits.reserveEmpty'))
+              void claimReferralCreditsDemo().then((ok) => {
+                note(ok ? '+40 Credits Referral (Rewards-Pool)' : t('credits.reserveEmpty'))
+              })
             }}
           >
             Referral verdienen
@@ -484,14 +490,15 @@ export function WalletPage() {
             size="sm"
             onClick={() => {
               const n = Number(creditAmt) || 0
-              const ok = exchangeEurToCredits(n)
-              note(
-                ok
-                  ? `EUR→Credits: ${n} €`
-                  : p2pOnly
-                    ? t('credits.p2pHint')
-                    : 'Wallet-EUR reicht nicht oder Reserve leer',
-              )
+              void exchangeEurToCredits(n).then((ok) => {
+                note(
+                  ok
+                    ? `EUR→Credits: ${n} €`
+                    : p2pOnly
+                      ? t('credits.p2pHint')
+                      : 'Wallet-EUR reicht nicht oder Reserve leer',
+                )
+              })
             }}
           >
             € → Credits
@@ -501,8 +508,9 @@ export function WalletPage() {
             variant="secondary"
             onClick={() => {
               const n = Number(creditAmt) || 0
-              const ok = exchangeCreditsToEur(n)
-              note(ok ? `Credits→€: ${n} Cr` : t('credits.notEnough'))
+              void exchangeCreditsToEur(n).then((ok) => {
+                note(ok ? `Credits→€: ${n} Cr` : t('credits.notEnough'))
+              })
             }}
           >
             Credits → €

@@ -5,9 +5,9 @@ Deutsche Go-Live-Checkliste. Haken setzen, bevor Traffic / Presse / Ads.
 ## 1. Supabase-Projekt
 
 - [ ] Projekt anlegen (EU-Region empfohlen, z. B. `eu-central-1`)
-- [ ] SQL aus `supabase/migrations/20260912_init.sql` **und** `20260916_credit_events.sql` ausführen
-- [ ] Auth: E-Mail-Provider / Magic Link aktivieren; Redirect-URLs = Pages-URL + Custom Domain
-- [ ] `VITE_APP_MODE=prod` nur mit gültigen Keys — sonst fällt die App auf Demo-localStorage zurück
+- [ ] SQL aus `supabase/migrations/20260912_init.sql`, `20260916_credit_events.sql` **und** `20260917_apply_credit_intent_allowlist.sql` ausführen
+- [ ] Edge Function `credit-intent` deployen; Secret `SUPABASE_SERVICE_ROLE_KEY` nur auf dem Function-Host (nie `VITE_*`)
+- [ ] `VITE_APP_MODE=prod` nur mit gültigen Keys — ohne Keys **hard-failen Credit-Mutationen** (kein stilles lokales Mint)
 - [ ] RLS Policies reviewen (Starter sind vorhanden)
 - [ ] Optional: Seed/Migration für Demo-Daten (nicht die lokalen Seed-IDs)
 
@@ -26,7 +26,7 @@ VITE_APP_URL=https://networker-vt.github.io/eventlogistik-event-os/
 - [ ] `.env` aus `.env.example` (nie committen)
 - [ ] Keys nur über sichere Secrets (GitHub Actions / Host)
 
-Die App fällt ohne gültige Keys **graceful** auf den localStorage-Demo-Store zurück.
+Die App fällt ohne gültige Keys beim **Store/Auth** weiterhin auf Demo zurück. **Credit-Mutationen in `VITE_APP_MODE=prod` ohne Keys hard-failen** — kein stilles lokales Mint. Siehe [CREDITS.md](./CREDITS.md).
 
 ## 3. Domain & DNS
 

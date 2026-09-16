@@ -134,18 +134,18 @@ export function giftWalletHref(target: GiftTarget) {
   return `/wallet?${p.toString()}#gift`
 }
 
-export function sendGift(input: {
+export async function sendGift(input: {
   target: GiftTarget
   amount: number
   message?: string
-}): GiftRecord | null {
+}): Promise<GiftRecord | null> {
   const amt = Math.max(0, Math.round(input.amount))
   if (amt <= 0) return null
   const msg = (input.message || '').trim()
   const label = msg
     ? `Sponsoring ${input.target.label}: ${msg}`
     : `Sponsoring ${input.target.label}`
-  const next = giftCredits(amt, label)
+  const next = await giftCredits(amt, label)
   if (!next) return null
   const rec: GiftRecord = {
     id: uid('gift'),

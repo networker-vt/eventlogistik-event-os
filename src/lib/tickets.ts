@@ -70,18 +70,18 @@ export function creditsNeeded(_priceEur?: number) {
   return CREDITS_COSTS.booking.credits
 }
 
-export function bookTravelOffer(input: {
+export async function bookTravelOffer(input: {
   offer: TravelOffer
   payerId: string
   payerName: string
   pay: TicketPay
   methodId?: WalletMethodId
-}): { ticket: OrbitTicket; ok: true } | { ok: false; reason: string } {
+}): Promise<{ ticket: OrbitTicket; ok: true } | { ok: false; reason: string }> {
   const offer = input.offer
   if (input.pay === 'credits') {
     const need = creditsNeeded(offer.priceEur)
     if (getCredits().balance < need) return { ok: false, reason: 'credits' }
-    const spent = spendCredits(need, 'booking', `Reise ${offer.title} (Demo)`)
+    const spent = await spendCredits(need, 'booking', `Reise ${offer.title} (Demo)`)
     if (!spent) return { ok: false, reason: 'credits' }
   } else {
     mockPayBooking({

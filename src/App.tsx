@@ -77,8 +77,7 @@ function AppReady() {
   useEffect(() => {
     hydrateSafeTweaks()
     captureRefFromSearch(window.location.search)
-    initRewards()
-    void initStore().finally(() => setReady(true))
+    void Promise.all([initRewards(), initStore()]).finally(() => setReady(true))
   }, [])
 
   if (!ready) return <BootScreen />

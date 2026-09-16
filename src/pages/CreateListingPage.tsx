@@ -96,7 +96,7 @@ function SimpleCreateListing() {
   const cost = { ...CREDITS_COSTS.featured, credits: boostCost('featured') }
   const canBoost = credits.balance >= cost.credits
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     let u = user
     let p = profile
@@ -112,7 +112,7 @@ function SimpleCreateListing() {
     const desc = description.trim() || `${trimmed}`
     let featured = false
     if (boost && canBoost) {
-      const spent = spendCredits(cost.credits, 'featured', `${cost.label}: ${trimmed}`)
+      const spent = await spendCredits(cost.credits, 'featured', `${cost.label}: ${trimmed}`)
       featured = Boolean(spent)
     }
     const ownerName = company.firmName || p.companyName || u.name

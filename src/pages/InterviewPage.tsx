@@ -192,8 +192,9 @@ function InterviewRoomView({ room }: { room: InterviewRoom }) {
                   type="button"
                   className="self-end text-[11px] text-violet-300 hover:underline"
                   onClick={() => {
-                    const ok = buyBoost('interview_slot')
-                    confirmInterviewSlot(room.id, s.id, { priority: Boolean(ok) })
+                    void buyBoost('interview_slot').then((ok) => {
+                      confirmInterviewSlot(room.id, s.id, { priority: Boolean(ok) })
+                    })
                   }}
                 >
                   {t('interview.priority')} · {CREDITS_COSTS.interview_slot.credits} Credits

@@ -40,13 +40,13 @@ export function TravelCheckoutPage() {
   const creditBal = getCredits().balance
   const disclaimer = resolved === 'de' ? TRAVEL_DISCLAIMER_DE : TRAVEL_DISCLAIMER_EN
 
-  const book = () => {
+  const book = async () => {
     setErr(null)
     setBusy(true)
     if (!user) loginDemo()
     const payerId = user?.id ?? DEMO_USER_ID
     const payerName = user?.name ?? 'Alex Müller'
-    const result = bookTravelOffer({
+    const result = await bookTravelOffer({
       offer,
       payerId,
       payerName,

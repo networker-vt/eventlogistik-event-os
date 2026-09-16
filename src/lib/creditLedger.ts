@@ -1,11 +1,15 @@
 /**
  * Credit ledger adapter.
  *
- * demo  — localStorage append-only events; balance = sum(delta); idempotent txn_id.
- * prod  — same local cache, plus read/write intents against Supabase RPC / Edge Function.
- *         Missing keys → graceful demo fallback (never throws).
+ * demo (`VITE_APP_MODE=demo`) — optimistic localStorage append; balance = sum(delta).
+ * prod + keys — RPC / Edge FIRST; local mirror only after ok:true (R1).
+ * prod without Supabase — HARD FAIL credit mutations (no silent local mint).
+ *
+ * Server source of truth: `credit_events`. Wallet `CreditsState.balance` is a cache
+ * of `ledgerBalance()` after hydrate / successful intents (R2).
  */
-import { APP_MODE, isProd } from './flags'
+import { isAllowedCreditKind } from './creditKinds'
+import { getAppMode, isDemoMode, isProdMode } from './flags'
 import { isSupabaseConfigured, supabase } from './supabase'
 
 const KEY = 'orbit_credit_events_v1'
@@ -35,6 +39,10 @@ export type IntentResult = {
   reason?: string
 }
 
+export type ProdCreditTransport = (intent: CreditIntent) => Promise<IntentResult>
+
+let prodTransport: ProdCreditTransport | null = null
+
 function loadEvents(): LedgerEvent[] {
   try {
     const raw = localStorage.getItem(KEY)
@@ -59,6 +67,18 @@ function persist(next: LedgerEvent[]) {
   window.dispatchEvent(new CustomEvent(EVT))
 }
 
+function fail(txn_id: string, reason: string): IntentResult {
+  return { ok: false, duplicate: false, balance: ledgerBalance(), txn_id, reason }
+}
+
+function discardPendingIntents() {
+  try {
+    localStorage.removeItem(PENDING_KEY)
+  } catch {
+    /* ignore */
+  }
+}
+
 export function listLedgerEvents(): LedgerEvent[] {
   return [...events()]
 }
@@ -73,15 +93,27 @@ export function findLedgerEvent(txn_id: string): LedgerEvent | undefined {
   return events().find((e) => e.txn_id === txn_id)
 }
 
+/** Prod write path is live (keys or test transport). Demo never uses this. */
 export function isProdLedgerEnabled(): boolean {
-  return isProd && isSupabaseConfigured && Boolean(supabase)
+  if (!isProdMode()) return false
+  if (prodTransport) return true
+  return isSupabaseConfigured && Boolean(supabase)
+}
+
+export function creditMutationsBlockedReason(): string | null {
+  if (isDemoMode()) return null
+  if (isProdLedgerEnabled()) return null
+  return 'prod_unconfigured'
 }
 
 /** Append-only. Duplicate txn_id is a no-op success. Never updates or deletes. */
-export function appendLocalIntent(intent: CreditIntent): IntentResult {
+export function appendLocalIntent(
+  intent: CreditIntent,
+  source: LedgerEvent['source'] = 'local',
+): IntentResult {
   const txn_id = intent.txn_id.trim()
   const delta = Math.round(intent.delta)
-  if (!txn_id) return { ok: false, duplicate: false, balance: ledgerBalance(), txn_id, reason: 'txn_id' }
+  if (!txn_id) return fail(txn_id, 'txn_id')
 
   const existing = findLedgerEvent(txn_id)
   if (existing) {
@@ -93,31 +125,68 @@ export function appendLocalIntent(intent: CreditIntent): IntentResult {
     txn_id,
     delta,
     created_at: new Date().toISOString(),
-    source: 'local',
+    source,
   }
   persist([next, ...events()].slice(0, 400))
   return { ok: true, duplicate: false, balance: ledgerBalance(), txn_id }
 }
 
-function pending(): CreditIntent[] {
-  try {
-    const raw = localStorage.getItem(PENDING_KEY)
-    return raw ? (JSON.parse(raw) as CreditIntent[]) : []
-  } catch {
-    return []
+function normalizeRemote(data: IntentResult, intent: CreditIntent): IntentResult {
+  return {
+    ok: Boolean(data.ok),
+    duplicate: Boolean(data.duplicate),
+    balance: Number(data.balance ?? ledgerBalance()),
+    txn_id: String(data.txn_id ?? intent.txn_id),
+    reason: data.reason,
   }
 }
 
-function savePending(list: CreditIntent[]) {
-  localStorage.setItem(PENDING_KEY, JSON.stringify(list.slice(0, 80)))
+async function invokeEdge(intent: CreditIntent): Promise<IntentResult> {
+  if (!supabase) return fail(intent.txn_id, 'prod_unconfigured')
+  const fn = await supabase.functions.invoke('credit-intent', {
+    body: {
+      txn_id: intent.txn_id,
+      delta: Math.round(intent.delta),
+      kind: intent.kind,
+      label: intent.label,
+      pool: intent.pool ?? null,
+      metadata: intent.metadata ?? {},
+    },
+  })
+  if (fn.error) {
+    return fail(intent.txn_id, fn.error.message || 'edge_failed')
+  }
+  const data = (fn.data ?? {}) as IntentResult
+  if (!data.ok) {
+    return {
+      ok: false,
+      duplicate: Boolean(data.duplicate),
+      balance: Number(data.balance ?? ledgerBalance()),
+      txn_id: String(data.txn_id ?? intent.txn_id),
+      reason: data.reason || 'edge_rejected',
+    }
+  }
+  return normalizeRemote(data, intent)
 }
 
-async function pushProdIntent(intent: CreditIntent): Promise<IntentResult | null> {
-  if (!isProdLedgerEnabled() || !supabase) return null
+/**
+ * Prod transport: mints (delta>0) go to Edge/service_role only.
+ * Spends may use the user JWT RPC, then Edge.
+ * Never falls back to a local append.
+ */
+async function pushProdIntent(intent: CreditIntent): Promise<IntentResult> {
+  if (prodTransport) return prodTransport(intent)
+  if (!isProdLedgerEnabled() || !supabase) return fail(intent.txn_id, 'prod_unconfigured')
+
+  const delta = Math.round(intent.delta)
   try {
+    if (delta > 0) {
+      return await invokeEdge(intent)
+    }
+
     const rpc = await supabase.rpc('apply_credit_intent', {
       p_txn_id: intent.txn_id,
-      p_delta: Math.round(intent.delta),
+      p_delta: delta,
       p_kind: intent.kind,
       p_label: intent.label,
       p_pool: intent.pool ?? null,
@@ -125,68 +194,81 @@ async function pushProdIntent(intent: CreditIntent): Promise<IntentResult | null
     })
     if (!rpc.error && rpc.data) {
       const data = rpc.data as IntentResult
-      return {
-        ok: Boolean(data.ok),
-        duplicate: Boolean(data.duplicate),
-        balance: Number(data.balance ?? ledgerBalance()),
-        txn_id: String(data.txn_id ?? intent.txn_id),
-        reason: data.reason,
-      }
+      if (!data.ok) return normalizeRemote(data, intent)
+      return normalizeRemote(data, intent)
     }
 
-    const fn = await supabase.functions.invoke('credit-intent', {
-      body: {
-        txn_id: intent.txn_id,
-        delta: Math.round(intent.delta),
-        kind: intent.kind,
-        label: intent.label,
-        pool: intent.pool ?? null,
-        metadata: intent.metadata ?? {},
-      },
-    })
-    if (fn.error) {
-      console.info('[orbit] credit-intent fallback local:', fn.error.message)
-      return null
-    }
-    const data = (fn.data ?? {}) as IntentResult
-    return {
-      ok: Boolean(data.ok),
-      duplicate: Boolean(data.duplicate),
-      balance: Number(data.balance ?? ledgerBalance()),
-      txn_id: String(data.txn_id ?? intent.txn_id),
-      reason: data.reason,
-    }
+    const edge = await invokeEdge(intent)
+    if (edge.ok) return edge
+    return fail(intent.txn_id, rpc.error?.message || edge.reason || 'rpc_failed')
   } catch (e) {
-    console.info('[orbit] credit intent skip:', e)
-    return null
+    const message = e instanceof Error ? e.message : 'rpc_failed'
+    return fail(intent.txn_id, message)
   }
 }
 
 /**
- * Write path: always append locally (demo source of truth).
- * Prod additionally posts the same txn_id to Supabase; unique violation = idempotent hit.
+ * Write path.
+ * Demo: optimistic local append (source of truth on this device).
+ * Prod: server first; local mirror only on ok:true. Cap / RPC / Edge reject → HARD
+ * fail with no local event and no pending queue that later credits the wallet (R1).
  */
-export function submitCreditIntent(intent: CreditIntent): IntentResult {
-  const local = appendLocalIntent(intent)
-  if (!local.ok) return local
-  if (isProdLedgerEnabled() && !local.duplicate) {
-    const queued = [...pending().filter((p) => p.txn_id !== intent.txn_id), intent]
-    savePending(queued)
-    void flushPendingIntents()
+export async function submitCreditIntent(intent: CreditIntent): Promise<IntentResult> {
+  const txn_id = intent.txn_id.trim()
+  const delta = Math.round(intent.delta)
+  const kind = intent.kind.trim()
+  const normalized: CreditIntent = { ...intent, txn_id, delta, kind }
+
+  if (!txn_id) return fail(txn_id, 'txn_id')
+  if (!isAllowedCreditKind(kind)) return fail(txn_id, 'kind_not_allowed')
+
+  discardPendingIntents()
+
+  if (isDemoMode()) {
+    return appendLocalIntent(normalized, 'local')
   }
-  return local
+
+  if (!isProdLedgerEnabled()) {
+    return fail(txn_id, 'prod_unconfigured')
+  }
+
+  const existing = findLedgerEvent(txn_id)
+  if (existing) {
+    return { ok: true, duplicate: true, balance: ledgerBalance(), txn_id }
+  }
+
+  const remote = await pushProdIntent(normalized)
+  if (!remote.ok) {
+    // HARD rollback: do not append, do not queue. Leftover pending mints are discarded.
+    discardPendingIntents()
+    return remote
+  }
+
+  const mirror = appendLocalIntent(normalized, 'supabase')
+  return {
+    ok: true,
+    duplicate: remote.duplicate || mirror.duplicate,
+    balance: remote.balance,
+    txn_id,
+    reason: remote.reason,
+  }
 }
 
+/** @deprecated Pending mint queue removed (R1). Kept as a discard no-op. */
 export async function flushPendingIntents() {
-  if (!isProdLedgerEnabled()) return
-  const list = pending()
-  if (!list.length) return
-  const remain: CreditIntent[] = []
-  for (const intent of list) {
-    const remote = await pushProdIntent(intent)
-    if (!remote || !remote.ok) remain.push(intent)
-  }
-  savePending(remain)
+  discardPendingIntents()
+}
+
+/**
+ * Replace the local cache with server rows (do not merge leftover client mints).
+ * Balance = sum(delta) of the hydrated events (R2).
+ */
+export function applyHydratedEvents(remote: LedgerEvent[], userId?: string): number {
+  persist(
+    [...remote].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)).slice(0, 400),
+  )
+  discardPendingIntents()
+  return ledgerBalance(userId)
 }
 
 export async function hydrateLedgerFromSupabase(userId: string): Promise<number | null> {
@@ -213,14 +295,9 @@ export async function hydrateLedgerFromSupabase(userId: string): Promise<number 
       created_at: String(row.created_at),
       source: 'supabase',
     }))
-    const byId = new Map<string, LedgerEvent>()
-    for (const e of [...remote, ...events()]) {
-      if (!byId.has(e.txn_id)) byId.set(e.txn_id, e)
-    }
-    persist([...byId.values()].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)))
-    return ledgerBalance(userId)
+    return applyHydratedEvents(remote, userId)
   } catch (e) {
-    console.info('[orbit] credit hydrate failed — demo ledger:', e)
+    console.info('[orbit] credit hydrate failed:', e)
     return null
   }
 }
@@ -245,13 +322,20 @@ export function reconstructFromSignedTxs(
 
 export function __resetLedgerForTests() {
   cache = null
+  prodTransport = null
   localStorage.removeItem(KEY)
   localStorage.removeItem(PENDING_KEY)
 }
 
-export const LEDGER_MODE_LINE =
-  APP_MODE === 'prod'
-    ? isProdLedgerEnabled()
-      ? 'prod · Supabase credit_events'
-      : 'prod requested · keys missing → demo localStorage'
-    : 'demo · localStorage ledger'
+export function __setProdCreditTransportForTests(fn: ProdCreditTransport | null) {
+  prodTransport = fn
+}
+
+export function ledgerModeLine(): string {
+  if (getAppMode() !== 'prod') return 'demo · localStorage ledger'
+  return isProdLedgerEnabled()
+    ? 'prod · Supabase credit_events'
+    : 'prod · Supabase not configured · credit mutations hard-fail'
+}
+
+export const LEDGER_MODE_LINE = ledgerModeLine()

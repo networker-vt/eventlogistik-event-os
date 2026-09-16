@@ -235,9 +235,30 @@ export function isPackMarketP2P(): boolean {
   return get().pools.packs.remaining <= 0 || get().remainingReserve <= 0
 }
 
+/** Point-in-time copy for atomic mint rollback (see restoreProtocolSnapshot). */
+export function snapshotProtocol(): ProtocolState {
+  return structuredClone(get())
+}
+
+/**
+ * ATOMIC MINT / rollback (R3): restore circulating + pools after a failed wallet credit.
+ * `mintFromPool` + `creditWallet` are not a DB transaction on the client. Callers
+ * snapshot, debit the pool, then credit the wallet/ledger; if that credit fails
+ * they MUST call this so the protocol debit does not leak. Production mint+user
+ * credit is one SQL transaction in `apply_credit_intent` (server is source of truth).
+ */
+export function restoreProtocolSnapshot(snap: ProtocolState): boolean {
+  if (!protocolInvariantHolds(snap)) {
+    console.error('[orbit credits] refuse restore — invariant failed', snap)
+    return false
+  }
+  return commit(structuredClone(snap))
+}
+
 /**
  * Mint from a pre-allocated pool into circulating. Fails if the pool or cap is exhausted.
- * Caller credits the user wallet by the same amount.
+ * Caller credits the user wallet by the same amount — wrap with snapshot + restore
+ * so a failed wallet/ledger write cannot leave circulating moved (R3).
  */
 export function mintFromPool(pool: CreditPoolId, amount: number, opId?: string): boolean {
   const amt = Math.max(0, Math.round(amount))

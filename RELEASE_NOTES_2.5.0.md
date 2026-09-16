@@ -14,7 +14,8 @@ Assist-first. Top-3 chips: **Suchen / Anbieten / Weitermachen**. One filled prim
 
 - Schema `credit_events` (SQL migration) + Edge Function stub `credit-intent`.
 - Idempotent `txn_id`. **Balance = sum(delta)**. Cap never exceeded (client + RPC).
-- `VITE_APP_MODE=demo|prod` — demo keeps localStorage; prod writes/reads intents when keys exist, otherwise graceful demo fallback.
+- `VITE_APP_MODE=demo|prod` — demo keeps localStorage; prod writes intents only after server `ok:true`. Missing keys in prod **hard-fail** credit mutations (no silent local mint).
+- Follow-up (Tech-Gate R1–R4): kind allowlist + service_role mint, atomic mint rollback, hydrate replaces local cache. See [CREDITS.md](./CREDITS.md).
 - Early-50: 1.500 Credits (≥2–3× welcome) **plus −20% boosts forever**. Normal welcome 25.
 - Soft paywall only at money moments. Public Wert-Index + Burn table in Wallet.
 - See [CREDITS.md](./CREDITS.md).
