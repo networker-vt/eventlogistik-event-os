@@ -6,7 +6,8 @@ import { Empty } from '../components/ui/Empty'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { useListings } from '../hooks/useStore'
 import { useI18n } from '../lib/i18n'
-import { MARKET_TYPES, deriveMarketType } from '../lib/market'
+import { filledMarketTypes } from '../lib/categories'
+import { deriveMarketType } from '../lib/market'
 import { filterMarketplaceByPrefs, getPrefs, isCompanySide, subscribePrefs } from '../lib/prefs'
 import { rankForCompanyWorld, rankForWorld } from '../lib/behavior'
 import { cn } from '../lib/utils'
@@ -71,7 +72,7 @@ export function MarketplacePage() {
         >
           {t('market.all')}
         </button>
-        {MARKET_TYPES.map((m) => (
+        {filledMarketTypes(raw).map((m) => (
           <button
             key={m}
             type="button"

@@ -12,16 +12,24 @@ import { store } from './store'
 import type { AuthUser, Profile, Role } from '../types'
 import { uid } from './utils'
 import { consumePendingReferral } from './referral'
+import { isSupabaseConfigured, supabase } from './supabase'
+import { markEmailVerified, stubVerifyPhone } from './verify'
+import { hydrateCreditsLedger } from './credits'
 
 const AUTH_KEY = 'el_auth_user'
+const MAGIC_PENDING_KEY = 'orbit_magic_pending_v1'
 
 interface AuthContextValue {
   user: AuthUser | null
   profile: Profile | null
   loading: boolean
+  authBackend: 'supabase' | 'demo'
+  magicPending: string | null
   loginDemo: (profileId?: string) => void
   login: (email: string, name: string, role: Role) => void
   register: (email: string, name: string, role: Role, city: string) => Profile
+  requestMagicLink: (email: string, name?: string) => Promise<{ ok: boolean; backend: 'supabase' | 'demo' }>
+  confirmDemoMagic: () => void
   logout: () => void
   updateProfile: (patch: Partial<Profile>) => void
 }
@@ -37,53 +45,127 @@ function loadStored(): AuthUser | null {
   }
 }
 
+function profileFromUser(stored: AuthUser): Profile {
+  return (
+    store.getProfile(stored.id) ??
+    seedProfiles.find((x) => x.id === stored.id) ??
+    ({
+      id: stored.id,
+      name: stored.name,
+      email: stored.email,
+      role: stored.role,
+      city: 'Berlin',
+      bio: '',
+      crafts: [],
+      verified: 'email',
+      rating: 5,
+      reviewCount: 0,
+      createdAt: new Date().toISOString(),
+    } satisfies Profile)
+  )
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const stored = loadStored()
-    if (stored) {
-      setUser(stored)
-      const p =
-        store.getProfile(stored.id) ??
-        seedProfiles.find((x) => x.id === stored.id) ??
-        ({
-          id: stored.id,
-          name: stored.name,
-          email: stored.email,
-          role: stored.role,
-          city: 'Berlin',
-          bio: '',
-          crafts: [],
-          verified: 'email',
-          rating: 5,
-          reviewCount: 0,
-          createdAt: new Date().toISOString(),
-        } satisfies Profile)
-      setProfile(p)
+  const [magicPending, setMagicPending] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(MAGIC_PENDING_KEY)
+    } catch {
+      return null
     }
-    setLoading(false)
-  }, [])
+  })
+  const authBackend: 'supabase' | 'demo' = isSupabaseConfigured && supabase ? 'supabase' : 'demo'
 
   const persist = useCallback((u: AuthUser | null, p: Profile | null) => {
     setUser(u)
     setProfile(p)
     if (u) localStorage.setItem(AUTH_KEY, JSON.stringify(u))
     else localStorage.removeItem(AUTH_KEY)
+    if (u) {
+      markEmailVerified()
+      void hydrateCreditsLedger(u.id)
+    }
   }, [])
 
-  const loginDemo = useCallback((profileId?: string) => {
-    const id = typeof profileId === 'string' ? profileId : undefined
-    const p =
-      seedProfiles.find((x) => x.id === id) ??
-      seedProfiles.find((x) => x.id === DEMO_USER_ID)!
-    store.upsertProfile(p)
-    persist({ id: p.id, email: p.email, name: p.name, role: p.role }, p)
-    consumePendingReferral(p.id)
-    void import('./rewards').then((m) => m.grantWelcomeOnSignup()).catch(() => undefined)
+  useEffect(() => {
+    let unsub: (() => void) | undefined
+    const boot = async () => {
+      if (supabase) {
+        const { data } = await supabase.auth.getSession()
+        const sessionUser = data.session?.user
+        if (sessionUser?.email) {
+          const id = sessionUser.id
+          const name =
+            (sessionUser.user_metadata?.name as string | undefined) ||
+            sessionUser.email.split('@')[0]
+          const existing = store.getProfile(id)
+          const p: Profile = existing ?? {
+            id,
+            name,
+            email: sessionUser.email,
+            role: 'freelancer',
+            city: 'Berlin',
+            bio: '',
+            crafts: [],
+            verified: 'email',
+            rating: 5,
+            reviewCount: 0,
+            createdAt: new Date().toISOString(),
+          }
+          store.upsertProfile(p)
+          persist({ id, email: p.email, name: p.name, role: p.role }, p)
+          setLoading(false)
+          return
+        }
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+          const su = session?.user
+          if (!su?.email) return
+          const id = su.id
+          const name = (su.user_metadata?.name as string | undefined) || su.email.split('@')[0]
+          const existing = store.getProfile(id)
+          const p: Profile = existing ?? {
+            id,
+            name,
+            email: su.email,
+            role: 'freelancer',
+            city: 'Berlin',
+            bio: '',
+            crafts: [],
+            verified: 'email',
+            rating: 5,
+            reviewCount: 0,
+            createdAt: new Date().toISOString(),
+          }
+          store.upsertProfile(p)
+          persist({ id, email: p.email, name: p.name, role: p.role }, p)
+          consumePendingReferral(id)
+          void import('./rewards').then((m) => m.grantWelcomeOnSignup()).catch(() => undefined)
+        })
+        unsub = () => listener.subscription.unsubscribe()
+      }
+      const stored = loadStored()
+      if (stored) persist(stored, profileFromUser(stored))
+      setLoading(false)
+    }
+    void boot()
+    return () => unsub?.()
   }, [persist])
+
+  const loginDemo = useCallback(
+    (profileId?: string) => {
+      const id = typeof profileId === 'string' ? profileId : undefined
+      const p =
+        seedProfiles.find((x) => x.id === id) ?? seedProfiles.find((x) => x.id === DEMO_USER_ID)!
+      store.upsertProfile(p)
+      persist({ id: p.id, email: p.email, name: p.name, role: p.role }, p)
+      consumePendingReferral(p.id)
+      stubVerifyPhone('01710000000')
+      void import('./rewards').then((m) => m.grantWelcomeOnSignup()).catch(() => undefined)
+    },
+    [persist],
+  )
 
   const login = useCallback(
     (email: string, name: string, role: Role) => {
@@ -147,7 +229,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [persist],
   )
 
-  const logout = useCallback(() => persist(null, null), [persist])
+  const requestMagicLink = useCallback(
+    async (email: string, name?: string): Promise<{ ok: boolean; backend: 'supabase' | 'demo' }> => {
+      const trimmed = email.trim()
+      if (!trimmed) return { ok: false, backend: authBackend }
+      localStorage.setItem(MAGIC_PENDING_KEY, trimmed)
+      if (name) localStorage.setItem(`${MAGIC_PENDING_KEY}_name`, name)
+      setMagicPending(trimmed)
+      if (supabase) {
+        const redirect =
+          import.meta.env.VITE_APP_URL ||
+          (typeof window !== 'undefined' ? window.location.origin + import.meta.env.BASE_URL : undefined)
+        const { error } = await supabase.auth.signInWithOtp({
+          email: trimmed,
+          options: { emailRedirectTo: redirect, data: { name: name || trimmed.split('@')[0] } },
+        })
+        if (error) {
+          console.info('[orbit] magic link supabase skip:', error.message)
+          return { ok: true, backend: 'demo' }
+        }
+        return { ok: true, backend: 'supabase' }
+      }
+      return { ok: true, backend: 'demo' }
+    },
+    [authBackend],
+  )
+
+  const confirmDemoMagic = useCallback(() => {
+    const email = magicPending || localStorage.getItem(MAGIC_PENDING_KEY)
+    if (!email) return
+    const name = localStorage.getItem(`${MAGIC_PENDING_KEY}_name`) || email.split('@')[0]
+    localStorage.removeItem(MAGIC_PENDING_KEY)
+    localStorage.removeItem(`${MAGIC_PENDING_KEY}_name`)
+    setMagicPending(null)
+    login(email, name, 'freelancer')
+  }, [login, magicPending])
+
+  const logout = useCallback(() => {
+    persist(null, null)
+    if (supabase) void supabase.auth.signOut()
+  }, [persist])
 
   const updateProfile = useCallback(
     (patch: Partial<Profile>) => {
@@ -155,10 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const next = { ...profile, ...patch }
       store.upsertProfile(next)
       setProfile(next)
-      persist(
-        { ...user, name: next.name, email: next.email, role: next.role },
-        next,
-      )
+      persist({ ...user, name: next.name, email: next.email, role: next.role }, next)
     },
     [persist, profile, user],
   )
@@ -168,13 +286,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       profile,
       loading,
+      authBackend,
+      magicPending,
       loginDemo,
       login,
       register,
+      requestMagicLink,
+      confirmDemoMagic,
       logout,
       updateProfile,
     }),
-    [user, profile, loading, loginDemo, login, register, logout, updateProfile],
+    [
+      user,
+      profile,
+      loading,
+      authBackend,
+      magicPending,
+      loginDemo,
+      login,
+      register,
+      requestMagicLink,
+      confirmDemoMagic,
+      logout,
+      updateProfile,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -85,7 +85,7 @@ export function GiftSheet({
         <Badge tone="amber">Demo</Badge>
       </div>
       <p className="text-xs text-violet-100/85">{t('gift.lead')}</p>
-      <p className="text-[11px] text-muted">{t('gift.disclaimer')}</p>
+      <p className="text-[11px] text-muted">{t('gift.stub')}</p>
 
       {flash && (
         <p className="rounded-xl border border-cyan/30 bg-cyan/10 px-3 py-2 text-xs text-cyan">{flash}</p>

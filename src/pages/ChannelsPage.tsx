@@ -1,6 +1,7 @@
 import { Hash, MessageCircle, Plane, Briefcase, Building2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Badge } from '../components/ui/Badge'
+import { useI18n } from '../lib/i18n'
 
 const CHANNELS = [
   {
@@ -41,14 +42,14 @@ const CHANNELS = [
 ] as const
 
 export function ChannelsPage() {
+  const { t } = useI18n()
   return (
     <div className="mx-auto max-w-2xl space-y-5 pb-scroll-chrome">
       <header className="space-y-1">
         <p className="text-xs font-medium uppercase tracking-wider text-cyan">Community</p>
         <h1 className="text-2xl font-bold tracking-tight">Channels</h1>
         <p className="text-sm text-muted">
-          Link-Stubs — kein Live-Chat, kein Telegram/Discord. Später externe Räume oder ein
-          Orbit-Channel-Layer.
+          Link-Stubs — connected-Flag only. {t('channels.flagOnly')}
         </p>
       </header>
 

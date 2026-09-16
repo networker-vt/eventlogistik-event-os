@@ -22,6 +22,8 @@ import { LanguageSwitcher } from '../components/i18n/LanguageSwitcher'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { RoleSwitcher } from '../components/role/RoleSwitcher'
 import { ChannelLinks } from '../components/mein/ChannelLinks'
+import { VerifyPanel } from '../components/verify/VerifyPanel'
+import { ReminderOptIn } from '../components/reminders/ReminderOptIn'
 import { CATALOG_KIND_LABEL, catalogSectionPath, resolveCatalogEntry } from '../data/catalog/lookup'
 import { useFavorites } from '../hooks/useFavorites'
 import { store } from '../lib/store'
@@ -43,6 +45,7 @@ import {
 } from '../lib/profileHub'
 import { getPrefs, savePrefs, subscribePrefs } from '../lib/prefs'
 import { getCredits, subscribeCredits } from '../lib/credits'
+import { filledIndustries } from '../lib/categories'
 import { INDUSTRIES, JOB_TYPES } from '../data/industries'
 import { cn } from '../lib/utils'
 import { useAuth } from '../lib/auth'
@@ -173,6 +176,9 @@ export function MeinPage() {
         </div>
       </header>
 
+      <VerifyPanel />
+      <ReminderOptIn />
+
       <RoleSwitcher />
 
       <ChannelLinks />
@@ -245,7 +251,7 @@ export function MeinPage() {
         <p className="text-xs text-muted">Seite: {prefs.side === 'seeker' ? 'Jobsuche' : 'Hiring'}</p>
         <h3 className="text-sm font-semibold">Branchen</h3>
         <div className="flex flex-wrap gap-2">
-          {INDUSTRIES.map((ind) => (
+          {filledIndustries().map((ind) => (
             <button
               key={ind}
               type="button"

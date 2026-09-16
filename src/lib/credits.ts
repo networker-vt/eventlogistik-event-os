@@ -8,6 +8,7 @@ import {
   P2P_ORDERS,
   WELCOME_GRANT,
   ensureSignupIdentity,
+  getSignupIdentity,
   holdFromUser,
   isPackMarketP2P,
   getProtocol,
@@ -22,6 +23,13 @@ import {
 import { getReferral, spendFeaturedCredits, simulateReferralSignup } from './referral'
 import { getWallet, mockAdjustBalance } from './wallet'
 import { uid } from './utils'
+import {
+  hydrateLedgerFromSupabase,
+  ledgerBalance,
+  reconstructFromSignedTxs,
+  submitCreditIntent,
+  __resetLedgerForTests,
+} from './creditLedger'
 
 export {
   MAX_SUPPLY,
@@ -54,6 +62,8 @@ export const CREDITS_PER_EUR = 10
 
 export const FREE_SWIPES_PER_DAY = 20
 export const EXTRA_SWIPES_PACK = 20
+/** Early testers keep this discount on boost prices forever (demo + prod intents). */
+export const EARLY_BOOST_DISCOUNT = 0.2
 
 export type CreditPackId = 'small' | 'medium' | 'large'
 
@@ -152,7 +162,9 @@ function load(): CreditsState {
     if (!raw) return defaultState()
     const parsed = JSON.parse(raw) as Partial<CreditsState>
     if (typeof parsed.balance !== 'number') return defaultState()
-    return normalize({ ...parsed, balance: parsed.balance, txs: parsed.txs ?? [] })
+    const state = normalize({ ...parsed, balance: parsed.balance, txs: parsed.txs ?? [] })
+    reconstructFromSignedTxs(state.txs)
+    return state
   } catch {
     return defaultState()
   }
@@ -203,6 +215,16 @@ export function getCredits(): CreditsState {
 export function __resetCreditsForTests() {
   cache = null
   localStorage.removeItem(KEY)
+  __resetLedgerForTests()
+}
+
+export function hydrateCreditsLedger(userId?: string) {
+  if (!userId) return Promise.resolve(null)
+  return hydrateLedgerFromSupabase(userId)
+}
+
+export function creditsLedgerSum(): number {
+  return ledgerBalance()
 }
 
 export function creditsToEur(credits: number) {
@@ -237,6 +259,13 @@ function creditWallet(
     label,
     kind,
     createdAt: new Date().toISOString(),
+  })
+  submitCreditIntent({
+    txn_id: id,
+    delta: amt,
+    kind: kind || type,
+    label,
+    pool: type === 'welcome' ? undefined : type === 'purchase' ? 'packs' : 'rewards',
   })
   commit(next)
   return next
@@ -310,8 +339,9 @@ export function spendCredits(
   if (next.balance < amt) return null
   if (!holdFromUser(amt)) return null
   next.balance -= amt
+  const txn_id = uid('cr')
   next.txs.unshift({
-    id: uid('cr'),
+    id: txn_id,
     type: 'spend',
     amount: amt,
     kind,
@@ -325,6 +355,7 @@ export function spendCredits(
   } catch {
     /* ignore */
   }
+  submitCreditIntent({ txn_id, delta: -amt, kind, label })
   commit(next)
   return next
 }
@@ -337,14 +368,17 @@ export function giftCredits(amount: number, toLabel = 'Orbit-Nutzer (Demo)'): Cr
   const moved = peerTransferOut(amt)
   if (!moved) return null
   next.balance -= amt
+  const txn_id = uid('cr')
+  const label = `Geschenk / Sponsoring an ${toLabel} · ${moved.net} an Peer, ${moved.burned} gebbrannt`
   next.txs.unshift({
-    id: uid('cr'),
+    id: txn_id,
     type: 'gift',
     amount: amt,
     kind: 'sponsor_fee',
-    label: `Geschenk / Sponsoring an ${toLabel} · ${moved.net} an Peer, ${moved.burned} gebbrannt`,
+    label,
     createdAt: new Date().toISOString(),
   })
+  submitCreditIntent({ txn_id, delta: -amt, kind: 'sponsor_fee', label })
   commit(next)
   return next
 }
@@ -379,12 +413,19 @@ export function exchangeCreditsToEur(credits: number): CreditsState | null {
   next.balance -= amt
   const eur = creditsToEur(amt)
   mockAdjustBalance('topup', eur, 'sepa')
+  const txn_id = uid('cr')
   next.txs.unshift({
-    id: uid('cr'),
+    id: txn_id,
     type: 'exchange_out',
     amount: amt,
     label: `Umtausch ${amt} Credits → ${eur.toFixed(2)} € (Demo, indikativ)`,
     createdAt: new Date().toISOString(),
+  })
+  submitCreditIntent({
+    txn_id,
+    delta: -amt,
+    kind: 'exchange_out',
+    label: `Umtausch ${amt} Credits → ${eur.toFixed(2)} € (Demo, indikativ)`,
   })
   commit(next)
   return next
@@ -461,10 +502,24 @@ export function hasTravelDeepScan(): boolean {
   return get().travelScanDay === todayKey()
 }
 
+export function boostCost(kind: CreditSpendKind): number {
+  const base = CREDITS_COSTS[kind].credits
+  if (!CREDITS_BOOST_KINDS.includes(kind)) return base
+  try {
+    if (!getSignupIdentity()?.earlyTester) return base
+  } catch {
+    return base
+  }
+  return Math.max(1, Math.round(base * (1 - EARLY_BOOST_DISCOUNT)))
+}
+
 export function buyBoost(kind: CreditSpendKind): CreditsState | null {
   if (consumeFreeMonthlyBoost(kind)) return getCredits()
   const meta = CREDITS_COSTS[kind]
-  return spendCredits(meta.credits, kind, meta.label)
+  const cost = boostCost(kind)
+  const label =
+    cost < meta.credits ? `${meta.label} · Early −20% (${cost})` : meta.label
+  return spendCredits(cost, kind, label)
 }
 
 /** Boosts that cost Credits — never core discovery. */
@@ -566,18 +621,18 @@ export const CREDITS_FREE_DE = [
 ]
 
 export const CREDITS_FREE_EN = [
-  'Assist fragen',
-  `Match browsen + ${FREE_SWIPES_PER_DAY} Swipes / Tag`,
-  'Look-Analyse (Basis)',
+  'Ask Assist',
+  `Browse Match + ${FREE_SWIPES_PER_DAY} swipes / day`,
+  'Look analysis (basic)',
   'Chat (Match / Booking / Support)',
-  'Wallet ansehen',
-  'Social lesen',
+  'Wallet view',
+  'Read Social',
 ]
 
 export const CREDITS_DISCLAIMER_DE =
-  'Orbit Credits sind eine Demo-In-App-Währung mit hartem Cap 21.000.000. Das Ledger läuft client-seitig — echte 21M-Enforcement braucht später Server oder Chain. Dieser Client mint nie über den Cap. Pack-Kauf ist ein Stub (kein Stripe/PayPal). Kern-Entdeckung bleibt kostenlos.'
+  'Orbit Credits: hartes Cap 21.000.000. Demo nutzt localStorage (append-only credit_events, balance = Summe). Prod (VITE_APP_MODE=prod + Keys) schreibt Intents nach Supabase. Dieser Client mint nie über den Cap. Pack-Kauf ist ein Stub (kein Stripe/PayPal). Kern-Entdeckung bleibt kostenlos. Soft-Paywall nur an Geld-Momenten.'
 
 export const CREDITS_DISCLAIMER_EN =
-  'Orbit Credits are a demo in-app currency with a hard cap of 21,000,000. The ledger is client-side — real 21M enforcement needs a server or chain later. This client still never mints above the cap. Pack purchase is a stub (no Stripe/PayPal). Core discovery stays free.'
+  'Orbit Credits: hard cap 21,000,000. Demo uses localStorage (append-only credit_events, balance = sum). Prod (VITE_APP_MODE=prod + keys) writes intents to Supabase. This client never mints above the cap. Pack purchase is a stub (no Stripe/PayPal). Core discovery stays free. Soft paywall only at money moments.'
 
-export const EARLY_TESTER_COPY_DE = `Die ersten ${50} Signups sind Early Testers (${EARLY_TESTER_GRANT.toLocaleString('de-DE')} Credits). Ab Signup 51: ${WELCOME_GRANT} Credits. Alles aus der 21M-Reserve.`
+export const EARLY_TESTER_COPY_DE = `Die ersten 50 Signups sind Early Testers (${EARLY_TESTER_GRANT.toLocaleString('de-DE')} Credits, ≥2–3× Welcome) plus −${Math.round(EARLY_BOOST_DISCOUNT * 100)} % Boost-Preis für immer. Ab Signup 51: ${WELCOME_GRANT} Credits.`

@@ -10,6 +10,8 @@ import {
 } from './creditProtocol'
 import {
   __resetCreditsForTests,
+  boostCost,
+  CREDITS_COSTS,
   getCredits,
   giftCredits,
   grantWelcomeAllocation,
@@ -79,5 +81,11 @@ describe('Orbit Credits protocol', () => {
     const p = getProtocol()
     expect(protocolInvariantHolds(p)).toBe(true)
     expect(p.circulating + p.remainingReserve + p.burned).toBe(MAX_SUPPLY)
+  })
+
+  it('gives Early-50 a −20% boost price forever', () => {
+    grantWelcomeAllocation()
+    expect(boostCost('featured')).toBe(Math.round(CREDITS_COSTS.featured.credits * 0.8))
+    expect(boostCost('extra_swipes')).toBeLessThan(CREDITS_COSTS.extra_swipes.credits)
   })
 })

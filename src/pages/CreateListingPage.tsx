@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Input, Select, Textarea } from '../components/ui/Input'
@@ -12,11 +12,13 @@ import {
   TRAVEL_OPTIONS,
   VERTICAL_META,
 } from '../data/constants'
-import { INDUSTRIES } from '../data/industries'
+import { filledIndustries } from '../lib/categories'
 import { DEMO_USER_ID, seedProfiles } from '../data/seed'
 import { useAuth } from '../lib/auth'
 import { getCompany } from '../lib/company'
-import { CREDITS_COSTS, getCredits, spendCredits } from '../lib/credits'
+import { CREDITS_COSTS, boostCost, getCredits, spendCredits } from '../lib/credits'
+import { canOffer, subscribeVerify } from '../lib/verify'
+import { VerifyPanel } from '../components/verify/VerifyPanel'
 import { LaneBadge } from '../components/credits/LaneBadge'
 import { useI18n } from '../lib/i18n'
 import { CREATE_INTENTS, intentToDraft, MARKET_EMOJI, MARKET_TYPES, verticalForMarket } from '../lib/market'
@@ -80,6 +82,9 @@ function SimpleCreateListing() {
   const [industry, setIndustry] = useState(company.industry || '')
   const [boost, setBoost] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [offerOk, setOfferOk] = useState(canOffer)
+
+  useEffect(() => subscribeVerify(() => setOfferOk(canOffer())), [])
 
   const draft = useMemo(() => {
     if (intent === 'need') {
@@ -88,7 +93,7 @@ function SimpleCreateListing() {
     return intentToDraft(intent)
   }, [intent, needLane])
 
-  const cost = CREDITS_COSTS.featured
+  const cost = { ...CREDITS_COSTS.featured, credits: boostCost('featured') }
   const canBoost = credits.balance >= cost.credits
 
   const submit = (e: React.FormEvent) => {
@@ -103,6 +108,7 @@ function SimpleCreateListing() {
     }
     const trimmed = title.trim()
     if (!trimmed) return
+    if (intent !== 'need' && !canOffer()) return
     const desc = description.trim() || `${trimmed}`
     let featured = false
     if (boost && canBoost) {
@@ -247,7 +253,7 @@ function SimpleCreateListing() {
             </Select>
             <Select label={t('create.industry')} value={industry} onChange={(e) => setIndustry(e.target.value)}>
               <option value="">{t('create.industryAny')}</option>
-              {INDUSTRIES.map((ind) => (
+              {filledIndustries().map((ind) => (
                 <option key={ind} value={ind}>
                   {ind}
                 </option>
@@ -260,8 +266,11 @@ function SimpleCreateListing() {
             {t('create.demoNote')}
           </p>
         )}
+        {intent !== 'need' && !offerOk && <VerifyPanel focus="offer" />}
         <div className="flex flex-wrap gap-2">
-          <Button type="submit">{t('create.publish')}</Button>
+          <Button type="submit" disabled={intent !== 'need' && !offerOk}>
+            {t('create.publish')}
+          </Button>
           <Button type="button" variant="secondary" onClick={() => navigate(-1)}>
             {t('create.cancel')}
           </Button>

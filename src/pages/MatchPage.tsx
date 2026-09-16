@@ -12,7 +12,8 @@ import { store } from '../lib/store'
 import { useI18n } from '../lib/i18n'
 import { applyInterest } from '../lib/apply'
 import { rankForCompanyWorld, rankForWorld, trackBehavior } from '../lib/behavior'
-import { buyBoost, consumeSwipe, CREDITS_COSTS, getSwipeBudget, subscribeCredits } from '../lib/credits'
+import { buyBoost, boostCost, consumeSwipe, getSwipeBudget, subscribeCredits } from '../lib/credits'
+import { SoftPaywall } from '../components/credits/SoftPaywall'
 import { listingSpeech } from '../lib/tts'
 import { cn, formatPrice } from '../lib/utils'
 import { getCompany, subscribeCompany } from '../lib/company'
@@ -361,38 +362,17 @@ export function MatchPage() {
       )}
 
       {capOpen && (
-        <div className="fixed inset-x-4 bottom-28 z-40 mx-auto max-w-sm rounded-2xl border border-violet-400/40 bg-surface-2 p-4 shadow-xl md:bottom-8">
-          <p className="text-sm font-semibold text-white">{t('match.swipesCap')}</p>
-          <p className="mt-1 text-xs text-muted">{t('match.swipesCapHint')}</p>
-          <div className="mt-3 flex flex-col gap-2">
-            <Button
-              size="sm"
-              className="w-full"
-              onClick={() => {
-                const ok = buyBoost('extra_swipes')
-                setBudget(getSwipeBudget())
-                if (ok) setCapOpen(false)
-              }}
-            >
-              {t('match.buySwipes')} · {CREDITS_COSTS.extra_swipes.credits} Credits
-            </Button>
-            {current && current.kind !== 'candidate' && (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => {
-                  setCapOpen(false)
-                  navigate(`/listings/${current.listing.id}`)
-                }}
-              >
-                {t('match.seeCard')}
-              </Button>
-            )}
-            <button type="button" className="text-xs text-muted hover:underline" onClick={() => setCapOpen(false)}>
-              {t('assist.clear')}
-            </button>
-          </div>
-        </div>
+        <SoftPaywall
+          title={t('match.swipesCap')}
+          hint={t('match.swipesCapHint')}
+          cost={boostCost('extra_swipes')}
+          onBuy={() => {
+            const ok = buyBoost('extra_swipes')
+            setBudget(getSwipeBudget())
+            if (ok) setCapOpen(false)
+          }}
+          onClose={() => setCapOpen(false)}
+        />
       )}
     </div>
   )

@@ -111,7 +111,7 @@ export function LookPage() {
         <h1 className="text-2xl font-bold tracking-tight">{t('look.title')}</h1>
         <p className="text-sm text-muted">{t('look.lead')}</p>
         <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-          {t('look.disclaimer')}
+          {t('look.stub')}
         </p>
       </header>
 

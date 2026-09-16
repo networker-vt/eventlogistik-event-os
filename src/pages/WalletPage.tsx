@@ -16,6 +16,8 @@ import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
 import { LaneBadge } from '../components/credits/LaneBadge'
 import { SupplyMeter } from '../components/credits/SupplyMeter'
+import { BurnTable } from '../components/credits/BurnTable'
+import { VerifyPanel } from '../components/verify/VerifyPanel'
 import { Input, Select } from '../components/ui/Input'
 import { GiftSheet } from '../components/wallet/GiftSheet'
 import { WalletDisclaimer } from '../components/wallet/WalletDisclaimer'
@@ -46,9 +48,12 @@ import {
   purchaseCreditPack,
   simulatePacksSoldOut,
   spendCredits,
+  boostCost,
   subscribeCredits,
   type CreditPackId,
 } from '../lib/credits'
+import { LEDGER_MODE_LINE } from '../lib/creditLedger'
+import { canPayout, subscribeVerify } from '../lib/verify'
 import { REWARD_RULES_DE } from '../lib/rewards'
 import {
   WALLET_METHODS,
@@ -93,6 +98,7 @@ export function WalletPage() {
   const [tickets, setTickets] = useState(listTickets)
   const [packPick, setPackPick] = useState<CreditPackId | null>(null)
   const [protocol, setProtocol] = useState(getProtocol)
+  const [payoutOk, setPayoutOk] = useState(canPayout)
   const identity = getSignupIdentity()
   const p2pOnly = isPackMarketP2P()
 
@@ -105,6 +111,7 @@ export function WalletPage() {
     [],
   )
   useEffect(() => subscribeTickets(() => setTickets(listTickets())), [])
+  useEffect(() => subscribeVerify(() => setPayoutOk(canPayout())), [])
 
   useEffect(() => {
     if (hash !== '#gift') return
@@ -287,6 +294,12 @@ export function WalletPage() {
 
         <SupplyMeter />
 
+        <p className="text-[11px] text-muted">
+          {t('credits.ledgerMode')}: {LEDGER_MODE_LINE}
+        </p>
+
+        <BurnTable />
+
         <div className="rounded-xl border border-violet-400/20 bg-black/20 p-3">
           <h3 className="text-sm font-semibold">Allokation (21M)</h3>
           <ul className="mt-2 space-y-1 text-[11px] text-neutral-300">
@@ -417,17 +430,19 @@ export function WalletPage() {
           <div className="mt-2 flex flex-wrap gap-2">
             {CREDITS_BOOST_KINDS.map((kind) => {
               const meta = CREDITS_COSTS[kind]
+              const cost = boostCost(kind)
               return (
                 <Button
                   key={kind}
                   size="sm"
                   variant="ghost"
                   onClick={() => {
-                    const ok = spendCredits(meta.credits, kind, meta.label)
-                    note(ok ? `−${meta.credits} Credits: ${meta.label}` : t('credits.notEnough'))
+                    const ok = spendCredits(cost, kind, cost < meta.credits ? `${meta.label} · Early −20%` : meta.label)
+                    note(ok ? `−${cost} Credits: ${meta.label}` : t('credits.notEnough'))
                   }}
                 >
-                  {meta.label} (−{meta.credits})
+                  {meta.label} (−{cost}
+                  {cost < meta.credits ? ' · Early' : ''})
                 </Button>
               )
             })}
@@ -597,6 +612,10 @@ export function WalletPage() {
           <Landmark size={18} className="text-cyan" /> Auszahlung aufs Konto
         </h2>
         <p className="text-xs text-muted">IBAN-Formular — Stub. Kein Banking-Partner, keine SEPA-Datei.</p>
+        {!payoutOk ? (
+          <VerifyPanel focus="payout" />
+        ) : (
+          <>
         <Input label="Kontoinhaber" value={holder} onChange={(e) => setHolder(e.target.value)} placeholder="Mirco Küßner" />
         <Input label="IBAN" value={iban} onChange={(e) => setIban(e.target.value)} placeholder="DE89 ACCT-000034" />
         <Input label="BIC (optional)" value={bic} onChange={(e) => setBic(e.target.value)} placeholder="COBADEFFXXX" />
@@ -617,6 +636,8 @@ export function WalletPage() {
         >
           Demo-Auszahlung
         </Button>
+          </>
+        )}
       </section>
 
       <section className="card-elevated space-y-3 rounded-2xl border border-border p-5">
