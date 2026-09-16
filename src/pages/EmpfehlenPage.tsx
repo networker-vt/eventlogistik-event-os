@@ -1,16 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Copy, Gift, Share2 } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { useReferral } from '../hooks/useReferral'
-import { REFERRAL_RULES_DE, shareUrl, simulateReferralSignup, spendFeaturedCredits } from '../lib/referral'
+import { REFERRAL_RULES_DE, shareUrl } from '../lib/referral'
+import { claimReferralCreditsDemo, getCredits, subscribeCredits } from '../lib/credits'
 import { formatDateTime } from '../lib/utils'
 
 export function EmpfehlenPage() {
   const { referral } = useReferral()
   const [copied, setCopied] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
+  const [credits, setCredits] = useState(getCredits)
   const url = shareUrl()
+
+  useEffect(() => subscribeCredits(() => setCredits(getCredits())), [])
 
   const copy = async () => {
     try {
@@ -30,8 +34,8 @@ export function EmpfehlenPage() {
           <Gift size={22} className="text-cyan" /> Orbit empfehlen
         </h1>
         <p className="text-sm text-muted">
-          Persönlicher Code, Share-Link, Credits für Featured-Listings — alles Demo, lokal auf
-          diesem Gerät.
+          Persönlicher Code und Share-Link. Referral-Credits kommen aus dem Rewards-Pool (21M Cap) —
+          Demo, lokal auf diesem Gerät.
         </p>
       </header>
 
@@ -64,19 +68,18 @@ export function EmpfehlenPage() {
       <section className="card-elevated rounded-2xl border border-border p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-muted">Featured-Credits (Demo)</p>
-            <p className="text-3xl font-bold tabular-nums text-cyan">{referral.featuredCredits}</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted">Orbit Credits (Demo)</p>
+            <p className="text-3xl font-bold tabular-nums text-cyan">{credits.balance}</p>
           </div>
           <Button
             size="sm"
             variant="secondary"
-            disabled={referral.featuredCredits < 25}
             onClick={() => {
-              spendFeaturedCredits(25)
-              setFlash('25 Credits für ein Featured-Listing eingelöst (nur Anzeige).')
+              const ok = claimReferralCreditsDemo()
+              setFlash(ok ? 'Freund geworben — +40 Credits aus dem Rewards-Pool.' : 'Rewards-Pool leer — kein Mint.')
             }}
           >
-            25 für Featured einlösen
+            Demo-Signup (+40)
           </Button>
         </div>
         {referral.referredBy && (
@@ -93,15 +96,7 @@ export function EmpfehlenPage() {
       </section>
 
       <div className="flex flex-wrap gap-2">
-        <Button
-          variant="secondary"
-          onClick={() => {
-            simulateReferralSignup()
-            setFlash('Demo-Freund geworben — +25 Featured-Credits.')
-          }}
-        >
-          Demo-Signup simulieren
-        </Button>
+        <p className="text-xs text-muted">Demo-Signup liegt am Button oben — kein zweites Mint.</p>
       </div>
       {flash && (
         <p className="rounded-xl border border-cyan/30 bg-cyan/10 px-3 py-2 text-xs text-cyan">{flash}</p>

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, SkipForward, Sparkles, SlidersHorizontal, MessageSquare } from 'lucide-react'
+import { Heart, SkipForward, SlidersHorizontal, MessageSquare } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
+import { Empty } from '../components/ui/Empty'
+import { LaneBadge } from '../components/credits/LaneBadge'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
@@ -10,6 +12,7 @@ import { store } from '../lib/store'
 import { useI18n } from '../lib/i18n'
 import { applyInterest } from '../lib/apply'
 import { rankForCompanyWorld, rankForWorld, trackBehavior } from '../lib/behavior'
+import { buyBoost, consumeSwipe, CREDITS_COSTS, getSwipeBudget, subscribeCredits } from '../lib/credits'
 import { listingSpeech } from '../lib/tts'
 import { cn, formatPrice } from '../lib/utils'
 import { getCompany, subscribeCompany } from '../lib/company'
@@ -50,6 +53,8 @@ export function MatchPage() {
   const [, setSwipeTick] = useState(0)
   const [toast, setToast] = useState<MutualMatch | null>(null)
   const [explain, setExplain] = useState(false)
+  const [capOpen, setCapOpen] = useState(false)
+  const [budget, setBudget] = useState(getSwipeBudget)
   const [deckMode, setDeckMode] = useState<MatchDeckMode>(() =>
     getMatchDeckMode(getPrefs().side === 'employer' ? 'company' : 'seeker'),
   )
@@ -58,10 +63,12 @@ export function MatchPage() {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
     const u2 = subscribeSwipes(() => setSwipeTick((n) => n + 1))
     const u3 = subscribeCompany(() => setCompany(getCompany()))
+    const u4 = subscribeCredits(() => setBudget(getSwipeBudget()))
     return () => {
       u1()
       u2()
       u3()
+      u4()
     }
   }, [])
 
@@ -119,6 +126,12 @@ export function MatchPage() {
 
   const swipe = (action: 'interested' | 'skip') => {
     if (!current) return
+    if (!consumeSwipe()) {
+      setCapOpen(true)
+      setBudget(getSwipeBudget())
+      return
+    }
+    setBudget(getSwipeBudget())
     if (current.kind === 'candidate') {
       const { mutual } = recordSwipe({
         targetId: current.profile.id,
@@ -198,11 +211,14 @@ export function MatchPage() {
 
   if (!prefs.completed) {
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-16 text-center">
-        <Sparkles className="text-[var(--theme-accent)]" size={32} />
-        <h1 className="text-xl font-bold">{t('match.needPrefs')}</h1>
-        <p className="text-sm text-muted">{t('match.needPrefsHint')}</p>
-        <Button onClick={() => navigate('/prefs')}>{t('match.openPrefs')}</Button>
+      <div className="mx-auto max-w-md pb-scroll-chrome pt-8">
+        <Empty
+          emoji="🛰️"
+          title={t('match.needPrefs')}
+          hint={t('match.needPrefsHint')}
+          actionLabel={t('match.openPrefs')}
+          onAction={() => navigate('/prefs')}
+        />
       </div>
     )
   }
@@ -217,12 +233,16 @@ export function MatchPage() {
           <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">{t('match.kicker')}</p>
           <h1 className="text-xl font-bold tracking-tight">{heading}</h1>
           <p className="text-xs text-muted">
-            {deck.length} {t('match.cards')}
+            {deck.length} {t('match.cards')} · {t('match.swipesLeft')} {budget.remaining}/{budget.freeCap}
+            {budget.extra ? ` +${budget.extra}` : ''}
           </p>
         </div>
-        <Button size="sm" variant="ghost" onClick={() => navigate('/prefs')}>
-          <SlidersHorizontal size={16} /> Prefs
-        </Button>
+        <div className="flex items-center gap-2">
+          <LaneBadge lane="free" />
+          <Button size="sm" variant="ghost" onClick={() => navigate('/prefs')}>
+            <SlidersHorizontal size={16} /> {t('match.tweakPrefs')}
+          </Button>
+        </div>
       </header>
 
       {both && (
@@ -247,16 +267,15 @@ export function MatchPage() {
       )}
 
       {!current ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-surface-2 p-8 text-center">
-          <p className="text-4xl">🛰️</p>
-          <h2 className="text-lg font-semibold">{t('match.empty')}</h2>
-          <p className="text-sm text-muted">{t('match.emptyHint')}</p>
-          <Button variant="secondary" onClick={() => navigate('/prefs')}>
-            {t('match.tweakPrefs')}
-          </Button>
-          <Link to="/marktplatz" className="text-sm text-cyan hover:underline">
-            {t('market.nav')} →
-          </Link>
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <Empty
+            emoji="🛰️"
+            title={t('match.empty')}
+            hint={t('match.emptyHint')}
+            actionLabel={t('match.tweakPrefs')}
+            onAction={() => navigate('/prefs')}
+            className="w-full"
+          />
         </div>
       ) : current.kind === 'candidate' ? (
         <CandidateCard
@@ -338,6 +357,41 @@ export function MatchPage() {
           >
             {t('apply.chat')}
           </Button>
+        </div>
+      )}
+
+      {capOpen && (
+        <div className="fixed inset-x-4 bottom-28 z-40 mx-auto max-w-sm rounded-2xl border border-violet-400/40 bg-surface-2 p-4 shadow-xl md:bottom-8">
+          <p className="text-sm font-semibold text-white">{t('match.swipesCap')}</p>
+          <p className="mt-1 text-xs text-muted">{t('match.swipesCapHint')}</p>
+          <div className="mt-3 flex flex-col gap-2">
+            <Button
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                const ok = buyBoost('extra_swipes')
+                setBudget(getSwipeBudget())
+                if (ok) setCapOpen(false)
+              }}
+            >
+              {t('match.buySwipes')} · {CREDITS_COSTS.extra_swipes.credits} Credits
+            </Button>
+            {current && current.kind !== 'candidate' && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  setCapOpen(false)
+                  navigate(`/listings/${current.listing.id}`)
+                }}
+              >
+                {t('match.seeCard')}
+              </Button>
+            )}
+            <button type="button" className="text-xs text-muted hover:underline" onClick={() => setCapOpen(false)}>
+              {t('assist.clear')}
+            </button>
+          </div>
         </div>
       )}
     </div>

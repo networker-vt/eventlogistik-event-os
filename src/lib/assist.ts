@@ -1,5 +1,6 @@
 import { CITIES } from '../data/constants'
 import type { Listing, MarketType } from '../types'
+import { trackBehavior } from './behavior'
 import { getCompany } from './company'
 import { deriveMarketType, listingHaystack, overlapCount } from './market'
 import { scoreB2bMatch, scoreJobMatch } from './match'
@@ -11,6 +12,7 @@ import {
   type TravelOffer,
 } from './travel'
 import { uid } from './utils'
+import { detectLookIntent } from './look'
 
 const KEY = 'orbit_assist_v1'
 const EVT = 'orbit-assist-changed'
@@ -24,6 +26,7 @@ export type AssistKind =
   | 'service'
   | 'partnership'
   | 'travel'
+  | 'look'
 
 export interface ParsedIntent {
   text: string
@@ -38,6 +41,7 @@ export interface ParsedIntent {
   marketTypes: MarketType[]
   travelKinds: TravelKind[]
   cheapest: boolean
+  lookIntent?: ReturnType<typeof detectLookIntent>
 }
 
 export interface PlanStep {
@@ -309,8 +313,10 @@ export function parseIntent(raw: string): ParsedIntent {
   const companyNeed = COMPANY_CUE.some((c) => lower.includes(c)) || isCompanySide(getPrefs().side)
   const travelKinds = detectTravelKinds(lower)
   const cheapest = /billigst|günstigst|guenstigst|cheapest|lowest/i.test(lower)
+  const lookIntent = detectLookIntent(lower)
   let kind: AssistKind = 'everyday'
-  if (travelKinds.length || TRAVEL_ANY.some((w) => lower.includes(w))) kind = 'travel'
+  if (lookIntent && !TRAVEL_ANY.some((w) => lower.includes(w))) kind = 'look'
+  else if (travelKinds.length || TRAVEL_ANY.some((w) => lower.includes(w))) kind = 'travel'
   else if (EVENT_WORDS.some((w) => lower.includes(w))) kind = 'event'
   else if (B2B_WORDS.some((w) => lower.includes(w)) && (STAFF_WORDS.some((w) => lower.includes(w)) || peopleCount))
     kind = 'staffing'
@@ -336,6 +342,8 @@ export function parseIntent(raw: string): ParsedIntent {
               ? ['job', 'minijob']
               : kind === 'partnership'
                 ? ['partnership', 'b2b']
+              : kind === 'look'
+                ? ['asset', 'service']
                 : ['service', 'job']
 
   return {
@@ -351,6 +359,7 @@ export function parseIntent(raw: string): ParsedIntent {
     marketTypes,
     travelKinds,
     cheapest,
+    lookIntent: lookIntent || undefined,
   }
 }
 
@@ -375,7 +384,42 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
   const steps: PlanStep[] = []
   let summary = ''
 
-  if (intent.kind === 'travel') {
+  if (intent.kind === 'look') {
+    const look = intent.lookIntent || 'kleidung'
+    const qs = new URLSearchParams({ intent: look })
+    summary = de
+      ? `Style-Rat (${look}): Foto oder kurzes Video — Orbit schlägt Varianten, Shops und Nearby vor.`
+      : `Style advice (${look}): photo or short video — Orbit suggests variants, shops and nearby.`
+    steps.push(
+      step(
+        de ? 'Look aufnehmen' : 'Capture a look',
+        de
+          ? 'Selfie, Upload oder kurzes Video. Basis-Analyse ist frei — Demo/Vision-Stub, kein Live-ML.'
+          : 'Selfie, upload or short video. Basic analysis is free — demo/vision stub, no live ML.',
+        { actionTo: `/look?${qs.toString()}`, actionLabel: de ? 'Orbit Look öffnen' : 'Open Orbit Look', remindable: false },
+      ),
+      step(
+        de ? 'Varianten vergleichen' : 'Compare variants',
+        de
+          ? 'Zwei Filter frei. Extra-Try-on-Pack aus dem 21M-Credits-Pool.'
+          : 'Two filters free. Extra try-on pack from the 21M credits pool.',
+        { actionTo: `/look?${qs.toString()}`, actionLabel: de ? 'Try-on (Demo)' : 'Try-on (demo)' },
+      ),
+      step(
+        de ? 'Shops & Nearby' : 'Shops & nearby',
+        de
+          ? 'Produktkacheln + Friseur, Optiker, Läden in deinem Radius (Prefs).'
+          : 'Product tiles + hair, optician, shops in your radius (prefs).',
+        { actionTo: `/look?${qs.toString()}`, actionLabel: de ? 'In der Nähe' : 'Nearby' },
+      ),
+    )
+    tips.push({
+      title: de ? 'Orbit berät (Look)' : 'Orbit advises (look)',
+      body: de
+        ? 'Kein echtes Virtual-Try-on-ML auf dem Gerät. Filter + Labels + Seed-Shops. Featured Nearby kostet Credits, mintet nicht über 21M.'
+        : 'No real virtual try-on ML on device. Filters + labels + seeded shops. Featured nearby costs Credits, never mints above 21M.',
+    })
+  } else if (intent.kind === 'travel') {
     const dest = intent.city || (de ? 'dein Ziel' : 'your destination')
     const when = intent.dateLabel || (de ? 'dein Datum' : 'your date')
     const kinds = intent.travelKinds.length
@@ -457,7 +501,7 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
         de
           ? 'Keine Live-Suche — Demo-Hinweis + Archiv-Locations. Später Partner-APIs.'
           : 'No live search — demo note + archive locations. Partner APIs later.',
-        { actionTo: '/katalog/locations', actionLabel: de ? 'Locations (Archiv)' : 'Locations (archive)' },
+        { actionTo: '/marktplatz', actionLabel: de ? 'Marktplatz' : 'Marketplace' },
       ),
       step(
         de ? 'Dienstleister matchen' : 'Match service partners',
@@ -624,7 +668,11 @@ function llmConfigured() {
   return Boolean(key && key.trim())
 }
 
-async function tryLlmEnrich(intent: ParsedIntent, locale: 'de' | 'en'): Promise<AssistTip[] | null> {
+async function tryLlmEnrich(
+  intent: ParsedIntent,
+  locale: 'de' | 'en',
+  signal?: AbortSignal,
+): Promise<AssistTip[] | null> {
   const key = import.meta.env.VITE_LLM_API_KEY?.trim()
   if (!key) return null
   const url = import.meta.env.VITE_LLM_URL?.trim() || 'https://api.openai.com/v1/chat/completions'
@@ -636,6 +684,8 @@ async function tryLlmEnrich(intent: ParsedIntent, locale: 'de' | 'en'): Promise<
   try {
     const ctrl = new AbortController()
     const t = window.setTimeout(() => ctrl.abort(), 8000)
+    const onAbort = () => ctrl.abort()
+    signal?.addEventListener('abort', onAbort)
     const res = await fetch(url, {
       method: 'POST',
       signal: ctrl.signal,
@@ -651,6 +701,7 @@ async function tryLlmEnrich(intent: ParsedIntent, locale: 'de' | 'en'): Promise<
       }),
     })
     window.clearTimeout(t)
+    signal?.removeEventListener('abort', onAbort)
     if (!res.ok) return null
     const json = (await res.json()) as { choices?: { message?: { content?: string } }[] }
     const content = json.choices?.[0]?.message?.content || ''
@@ -662,17 +713,27 @@ async function tryLlmEnrich(intent: ParsedIntent, locale: 'de' | 'en'): Promise<
   return null
 }
 
-export async function buildAssistPlan(text: string, locale: 'de' | 'en'): Promise<AssistPlan> {
+export function primaryAssistAction(plan: AssistPlan): PlanStep | null {
+  return plan.steps.find((s) => !s.done && s.actionTo) || plan.steps.find((s) => s.actionTo) || null
+}
+
+export async function buildAssistPlan(
+  text: string,
+  locale: 'de' | 'en',
+  signal?: AbortSignal,
+): Promise<AssistPlan | null> {
+  if (signal?.aborted) return null
   const intent = parseIntent(text)
   const base = heuristicPlan(intent, locale)
   let source: AssistPlan['source'] = 'heuristic'
   if (llmConfigured()) {
-    const extra = await tryLlmEnrich(intent, locale)
+    const extra = await tryLlmEnrich(intent, locale, signal)
     if (extra?.length) {
       base.tips = [...extra, ...base.tips].slice(0, 4)
       source = 'llm'
     }
   }
+  if (signal?.aborted) return null
   const matches = intent.kind === 'travel' ? [] : matchListingsForIntent(intent, 4)
   const travel =
     intent.kind === 'travel'
@@ -693,6 +754,11 @@ export async function buildAssistPlan(text: string, locale: 'de' | 'en'): Promis
     source,
   }
   savePlan(plan)
+  trackBehavior({
+    kind: 'assist',
+    query: text,
+    city: intent.city,
+  })
   return plan
 }
 

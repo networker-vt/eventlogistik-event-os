@@ -17,6 +17,7 @@ export interface InterviewSlot {
   endIso: string
   label: string
   confirmed: boolean
+  priority?: boolean
 }
 
 export interface InterviewRoom {
@@ -181,11 +182,19 @@ export function sendInterviewMessage(roomId: string, body: string): InterviewRoo
   return structuredClone(room)
 }
 
-export function confirmInterviewSlot(roomId: string, slotId: string): InterviewRoom | undefined {
+export function confirmInterviewSlot(
+  roomId: string,
+  slotId: string,
+  opts?: { priority?: boolean },
+): InterviewRoom | undefined {
   const next = structuredClone(get())
   const room = next.find((r) => r.id === roomId)
   if (!room) return undefined
-  room.slots = room.slots.map((s) => ({ ...s, confirmed: s.id === slotId }))
+  room.slots = room.slots.map((s) => ({
+    ...s,
+    confirmed: s.id === slotId,
+    priority: s.id === slotId ? Boolean(opts?.priority) : s.priority,
+  }))
   const slot = room.slots.find((s) => s.id === slotId)
   if (slot) {
     addLocalCalendarItem({
@@ -198,7 +207,9 @@ export function confirmInterviewSlot(roomId: string, slotId: string): InterviewR
     room.messages.push({
       id: uid('ivm'),
       role: 'bot',
-      body: `Slot bestätigt: ${slot.label}. Liegt in Mein Bereich → Kalender. Video bleibt ein Stub.`,
+      body: slot.priority
+        ? `Priority-Slot bestätigt: ${slot.label}. Liegt in Mein Bereich → Kalender. Video bleibt ein Stub.`
+        : `Slot bestätigt: ${slot.label}. Liegt in Mein Bereich → Kalender. Video bleibt ein Stub.`,
       at: new Date().toISOString(),
     })
   }

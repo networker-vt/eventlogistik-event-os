@@ -3,8 +3,11 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CalendarClock, MessageSquare, Video } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Textarea } from '../components/ui/Input'
+import { Empty } from '../components/ui/Empty'
+import { LaneBadge } from '../components/credits/LaneBadge'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { useI18n } from '../lib/i18n'
+import { buyBoost, CREDITS_COSTS } from '../lib/credits'
 import {
   confirmInterviewSlot,
   getInterviewRoom,
@@ -56,12 +59,13 @@ export function InterviewPage() {
 
   if (!active) {
     return (
-      <div className="rounded-2xl border border-border p-8 text-center">
-        <p>Kein Interview-Raum.</p>
-        <Button className="mt-3" onClick={() => navigate('/match')}>
-          Match
-        </Button>
-      </div>
+      <Empty
+        emoji="🎥"
+        title={t('interview.empty')}
+        hint={t('interview.emptyHint')}
+        actionLabel={t('home.ctaMatch')}
+        onAction={() => navigate('/match')}
+      />
     )
   }
 
@@ -163,20 +167,39 @@ function InterviewRoomView({ room }: { room: InterviewRoom }) {
       {tab === 'schedule' && (
         <section className="space-y-2 rounded-2xl border border-border bg-surface-2 p-4">
           <h2 className="font-semibold">{t('interview.schedule')}</h2>
+          <p className="text-xs text-muted">
+            {t('interview.priorityHint')} <LaneBadge lane="credits" />
+          </p>
           {room.slots.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => confirmInterviewSlot(room.id, s.id)}
-              className={`flex min-h-12 w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-sm ${
-                s.confirmed
-                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15'
-                  : 'border-border bg-black/20'
-              }`}
-            >
-              <span>{s.label}</span>
-              <span className="text-xs text-muted">{s.confirmed ? '✓' : t('interview.confirm')}</span>
-            </button>
+            <div key={s.id} className="flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={() => confirmInterviewSlot(room.id, s.id)}
+                className={`flex min-h-12 w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-sm ${
+                  s.confirmed
+                    ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15'
+                    : 'border-border bg-black/20'
+                }`}
+              >
+                <span>
+                  {s.label}
+                  {s.priority ? ` · ${t('interview.priority')}` : ''}
+                </span>
+                <span className="text-xs text-muted">{s.confirmed ? '✓' : t('interview.confirm')}</span>
+              </button>
+              {!s.confirmed && (
+                <button
+                  type="button"
+                  className="self-end text-[11px] text-violet-300 hover:underline"
+                  onClick={() => {
+                    const ok = buyBoost('interview_slot')
+                    confirmInterviewSlot(room.id, s.id, { priority: Boolean(ok) })
+                  }}
+                >
+                  {t('interview.priority')} · {CREDITS_COSTS.interview_slot.credits} Credits
+                </button>
+              )}
+            </div>
           ))}
         </section>
       )}

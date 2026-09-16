@@ -17,6 +17,7 @@ import { DEMO_USER_ID, seedProfiles } from '../data/seed'
 import { useAuth } from '../lib/auth'
 import { getCompany } from '../lib/company'
 import { CREDITS_COSTS, getCredits, spendCredits } from '../lib/credits'
+import { LaneBadge } from '../components/credits/LaneBadge'
 import { useI18n } from '../lib/i18n'
 import { CREATE_INTENTS, intentToDraft, MARKET_EMOJI, MARKET_TYPES, verticalForMarket } from '../lib/market'
 import { store } from '../lib/store'
@@ -224,7 +225,7 @@ function SimpleCreateListing() {
             onChange={(e) => setBoost(e.target.checked)}
           />
           <span>
-            {t('create.boost')} ({cost.credits} Credits)
+            {t('create.boost')} ({cost.credits} Credits) <LaneBadge lane="credits" />
             <span className="block text-[11px] text-muted">{t('create.boostHint')}</span>
           </span>
         </label>

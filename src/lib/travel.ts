@@ -237,7 +237,7 @@ export function listTravelOffers(): TravelOffer[] {
 }
 
 export function getTravelOffer(id: string): TravelOffer | undefined {
-  return OFFERS.find((o) => o.id === id)
+  return OFFERS.find((o) => o.id === id) ?? TRAVEL_DEEP_SCAN_OFFERS.find((o) => o.id === id)
 }
 
 export function searchTravel(input: {
@@ -320,6 +320,58 @@ export function searchTravelForNeed(input: {
     )
   }
   return withCheapestFlag(items)
+}
+
+/** Extra cheapest-first hits unlocked by a Credits travel deep-scan (demo). */
+export const TRAVEL_DEEP_SCAN_OFFERS: TravelOffer[] = [
+  {
+    id: 'tr-scan-fl-1',
+    kind: 'flight',
+    title: 'HHN → BER · red-eye (Scan)',
+    from: 'Frankfurt-Hahn',
+    to: 'Berlin',
+    dateFrom: '2026-10-16',
+    provider: 'Orbit Scan (Demo)',
+    priceEur: 19,
+    duration: '1h 25m',
+    rating: 3.4,
+    imageEmoji: '✈️',
+    tags: ['Deep-Scan', 'Günstigste Spur'],
+  },
+  {
+    id: 'tr-scan-ht-1',
+    kind: 'hotel',
+    title: 'Capsule Prenzlauer Berg',
+    to: 'Berlin',
+    dateFrom: '2026-10-16',
+    dateTo: '2026-10-17',
+    provider: 'Orbit Scan (Demo)',
+    priceEur: 22,
+    duration: '/ Nacht',
+    rating: 3.9,
+    imageEmoji: '🏨',
+    tags: ['Deep-Scan', 'Günstig'],
+  },
+  {
+    id: 'tr-scan-rail-1',
+    kind: 'rail',
+    title: 'Sparpreis Köln → Berlin',
+    from: 'Köln',
+    to: 'Berlin',
+    dateFrom: '2026-10-16',
+    provider: 'Orbit Scan · DB (Demo)',
+    priceEur: 17,
+    duration: '4h 20m',
+    rating: 4.0,
+    imageEmoji: '🚆',
+    tags: ['Deep-Scan', 'Sparpreis'],
+  },
+]
+
+export function mergeDeepScan(items: TravelOffer[], enabled: boolean): TravelOffer[] {
+  if (!enabled) return items
+  const extra = TRAVEL_DEEP_SCAN_OFFERS.filter((o) => !items.some((x) => x.id === o.id))
+  return sortCheapest([...extra, ...items])
 }
 
 export const TRAVEL_DISCLAIMER_DE =

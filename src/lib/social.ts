@@ -23,6 +23,7 @@ export interface SocialPost {
   createdAt: string
   likes: string[]
   comments: SocialComment[]
+  featured?: boolean
 }
 
 interface SocialState {
@@ -122,6 +123,7 @@ export function addPost(input: {
   authorKind: 'person' | 'company'
   body: string
   listingId?: string
+  featured?: boolean
 }) {
   const body = input.body.trim()
   if (!body) return getSocial()
@@ -129,12 +131,15 @@ export function addPost(input: {
     id: uid('soc'),
     ...input,
     body,
+    featured: Boolean(input.featured),
     createdAt: new Date().toISOString(),
     likes: [],
     comments: [],
   }
   const s = get()
-  commit({ ...s, posts: [post, ...s.posts].slice(0, 80) })
+  const posts = [post, ...s.posts].slice(0, 80)
+  posts.sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
+  commit({ ...s, posts })
   return getSocial()
 }
 

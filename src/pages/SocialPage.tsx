@@ -9,6 +9,9 @@ import { useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import { DEMO_USER_ID } from '../data/seed'
 import { useI18n } from '../lib/i18n'
+import { buyBoost, CREDITS_COSTS, getCredits, subscribeCredits } from '../lib/credits'
+import { LaneBadge } from '../components/credits/LaneBadge'
+import { Badge } from '../components/ui/Badge'
 import {
   addComment,
   addPost,
@@ -31,8 +34,11 @@ export function SocialPage() {
   const [draft, setDraft] = useState('')
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({})
   const [shareId, setShareId] = useState('')
+  const [feature, setFeature] = useState(false)
+  const [credits, setCredits] = useState(getCredits)
 
   useEffect(() => subscribeSocial(() => setSocial(getSocial())), [])
+  useEffect(() => subscribeCredits(() => setCredits(getCredits())), [])
 
   const actor = user ?? { id: DEMO_USER_ID, name: 'Alex Müller' }
   const listings = store.listListings({}).slice(0, 8)
@@ -46,15 +52,21 @@ export function SocialPage() {
   const publish = () => {
     const me = ensureUser()
     const listing = listings.find((l) => l.id === shareId)
+    let featured = false
+    if (feature) {
+      featured = Boolean(buyBoost('social_boost'))
+    }
     addPost({
       authorId: me.id,
       authorName: me.name,
       authorKind: 'person',
       body: draft,
       listingId: listing?.id,
+      featured,
     })
     setDraft('')
     setShareId('')
+    setFeature(false)
   }
 
   return (
@@ -97,6 +109,19 @@ export function SocialPage() {
               </option>
             ))}
           </select>
+        </label>
+        <label className="flex min-h-11 items-start gap-2 rounded-xl border border-border bg-black/20 px-3 py-2 text-sm">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={feature}
+            disabled={credits.balance < CREDITS_COSTS.social_boost.credits}
+            onChange={(e) => setFeature(e.target.checked)}
+          />
+          <span>
+            {t('social.featurePost')} ({CREDITS_COSTS.social_boost.credits} Credits){' '}
+            <LaneBadge lane="credits" />
+          </span>
         </label>
         <Button onClick={publish} disabled={!draft.trim()} className="w-full">
           {t('social.post')}
@@ -158,7 +183,13 @@ export function SocialPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-semibold">{t('social.feed')}</h2>
         {social.posts.length === 0 ? (
-          <Empty emoji="✨" title={t('social.empty')} hint={t('social.emptyHint')} />
+          <Empty
+            emoji="✨"
+            title={t('social.empty')}
+            hint={t('social.emptyHint')}
+            actionLabel={t('travel.toAssist')}
+            onAction={() => navigate('/')}
+          />
         ) : (
           <ul className="space-y-3">
             {social.posts.map((post) => {
@@ -168,6 +199,12 @@ export function SocialPage() {
                   <p className="text-xs text-muted">
                     {post.authorName} · {post.authorKind === 'company' ? t('role.company') : t('role.seeker')} ·{' '}
                     {formatDateTime(post.createdAt)}
+                    {post.featured ? (
+                      <>
+                        {' '}
+                        · <Badge tone="violet">{t('social.featured')}</Badge>
+                      </>
+                    ) : null}
                   </p>
                   <p className="mt-2 text-sm text-white whitespace-pre-wrap">{post.body}</p>
                   {post.listingId && (
