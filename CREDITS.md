@@ -1,6 +1,18 @@
-# Orbit Credits (v2.4.0)
+# Orbit Credits (v2.5.0)
 
-Bitcoin-style **hard cap: 21.000.000** Orbit Credits across the entire app. The demo ledger is **client-side** (localStorage). Real 21M enforcement later needs a server or chain — **this client still never mints above the cap.**
+Bitcoin-style **hard cap: 21.000.000** Orbit Credits. **Balance = sum(`credit_events.delta`)**. Every write is an append-only intent with an idempotent **`txn_id`**. Duplicate `txn_id` is a no-op.
+
+## Modes (`VITE_APP_MODE=demo|prod`)
+
+| Mode | Ledger | Auth |
+|------|--------|------|
+| **demo** (default, GitHub Pages) | localStorage `orbit_credit_events_v1` + 21M protocol guardrail | Magic-link UI, no mail server — 1-tap demo link |
+| **prod** | Same local cache **plus** read/write intents: RPC `apply_credit_intent` / Edge Function `credit-intent` → table `credit_events` | Supabase `signInWithOtp` when URL + anon key are set |
+| prod **without keys** | Graceful fallback to demo localStorage | Graceful demo magic-link |
+
+SQL: `supabase/migrations/20260916_credit_events.sql`. Stub: `supabase/functions/credit-intent/index.ts`. Client: `src/lib/creditLedger.ts`. The 21M protocol in `creditProtocol.ts` remains a **UX guardrail**; prod RPC also refuses mints that would breach the supply row.
+
+`mintFromPoolToWallet` is still two local steps in demo. Prod intents are one RPC (`apply_credit_intent`) so mint + user credit share a `txn_id`.
 
 Invariant: `circulating + remainingReserve + burned === 21_000_000`. Every grant (welcome, early tester, rewards, packs) **debits a pre-allocated pool** or fails.
 
@@ -8,7 +20,7 @@ Invariant: `circulating + remainingReserve + burned === 21_000_000`. Every grant
 
 | Pool | Amount | Rule |
 |------|--------|------|
-| Early Testers (signup **1–50**) | 75.000 | **1.500** Credits each |
+| Early Testers (signup **1–50**) | 75.000 | **1.500** Credits each (≥2–3× welcome) **plus −20% boost price forever** |
 | Welcome later (signup 51+) | 425.000 | **25** Credits each (17.000 seats) |
 | Rewards (performance) | 4.500.000 | Prefs, profile, match, referral, reviews, jobs — transfer from this pool |
 | Packs (system mint) | 14.000.000 | While reserve remains. After 0: **P2P only** |
@@ -20,23 +32,23 @@ Signup ordinal is stored in `localStorage` (`orbit_signup_ordinal_v1`) on this d
 
 When **remainingReserve = 0**: no system minting. Users can (1) **earn** from whatever is left in the pre-allocated rewards pool, or (2) **buy/P2P** from other users (order-book stub). Gift / sponsoring is a **peer transfer** (~2% / min 1 Credit burned as fee) — never a new mint.
 
-The client `assertCap` / invariant in `creditProtocol.ts` is a **UX guardrail**, not a production ledger. **P0:** a server or chain ledger must apply mint + wallet credit atomically (`mintFromPoolToWallet` is two steps today).
-
-## Always free
+## Always free (soft paywall only at money moments)
 
 - Assist ask
 - Browse Match + **20 swipes / day**
-- **Look analysis (basic)** — photo/video, two demo variants
+- **Look analysis (basic)** — photo/video, two demo variants (Look is a **stub**)
 - Basic chat (Match / Booking / Support)
 - Wallet view
 - Social read
 
+Credits are required for: listing boosts, extra swipes, travel deep-scan, featured social, priority interview, Look extras. Pack checkout is a stub (no Stripe/PayPal).
+
 ## Welcome / Early testers
 
-| Cohort | Each | Pool |
-|--------|------|------|
-| Signup 1–50 | 1.500 | Early |
-| Signup 51+ | 25 | Welcome |
+| Cohort | Each | Extra |
+|--------|------|-------|
+| Signup 1–50 | 1.500 | −20% on boost prices forever |
+| Signup 51+ | 25 | — |
 
 No extra +100 seed. If a pool is empty, the grant fails.
 
@@ -67,18 +79,18 @@ While the **packs pool** has remainder, packs debit that pool:
 
 ## Spend (boosts — no remint into reserve)
 
-| Boost | Credits |
-|-------|---------|
-| Listing boost | 40 |
-| Extra-Swipes | 25 |
-| Travel deep-scan | 15 |
-| Social featured | 20 |
-| Priority interview | 30 |
-| Look extra try-on variants (today) | 15 |
-| Look nearby shop featured | 20 |
-| Gift / sponsoring | peer transfer, **1 burned** |
+| Boost | Credits | Early-50 |
+|-------|---------|----------|
+| Listing boost | 40 | 32 |
+| Extra-Swipes | 25 | 20 |
+| Travel deep-scan | 15 | 12 |
+| Social featured | 20 | 16 |
+| Priority interview | 30 | 24 |
+| Look extra try-on variants (today) | 15 | 12 |
+| Look nearby shop featured | 20 | 16 |
+| Gift / sponsoring | peer transfer, **1 burned** | — |
 
-### Gift / Sponsoring (Demo)
+### Gift / Sponsoring (Demo stub)
 
 Wallet → **Verschenken / Sponsorn** (EN: Gift / Sponsor): pick a listing, company or profile → amount → optional message → confirm.
 
@@ -88,18 +100,22 @@ Wallet → **Verschenken / Sponsorn** (EN: Gift / Sponsor): pick a listing, comp
 
 DE: Demo-Ledger, kein Stripe. EN: same honesty — no real money.
 
-## Channel linking (Demo)
+## Channel linking (Demo stub)
 
 Mein → **Kanäle verbinden**: Amazon, Netflix, YouTube, Spotify, Instagram.
 
-- Toggle only. **No OAuth, no scraping, no real account access.**
+- **Connected flag only.** Toggle only. **No OAuth, no scraping, no real account access.**
 - When “connected”, Home Für-dich / Top Deals / News get a **light on-device tag bias** (shopping, entertainment, music, look).
 - Copy never claims Orbit read those accounts.
 
-## Scarcity UX
+## Public Wert-Index + Burn table
 
-Wallet shows `X / 21M im Umlauf`, remaining reserve, burned, P2P-float, and a **Wert-Index** stub:
+Wallet shows `X / 21M im Umlauf`, remaining reserve, burned, P2P-float, a **Wert-Index** stub, and a **Burn-Tabelle** (gift fees).
 
 `100 × log₁₀(1 + aktive Nutzer) × (1 + Umlauf / 21M)` — labeled Demo-Formel, not a market price.
 
 Indicative rate: 10 Credits ≈ 1 € — not a payout.
+
+## Soft verify
+
+E-Mail (magic link / login) → **phone before offering** → **ID / business before payout**. Stubs, no SMS vendor, no KYC vendor.

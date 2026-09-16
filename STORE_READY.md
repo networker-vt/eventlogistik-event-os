@@ -1,5 +1,7 @@
 # Store-Ready — Orbit als installierbare App
 
+**v2.5.0 sprint: PWA first. No App Store / Play submission this sprint.**
+
 Kurzüberblick (Deutsch): Was **jetzt** bereit ist, was **ihr** noch klicken müsst, und warum wir **nicht** einreichen können.
 
 Privacy-URL (Pflicht für Stores):  

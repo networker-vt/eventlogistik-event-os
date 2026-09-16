@@ -5,8 +5,9 @@ Deutsche Go-Live-Checkliste. Haken setzen, bevor Traffic / Presse / Ads.
 ## 1. Supabase-Projekt
 
 - [ ] Projekt anlegen (EU-Region empfohlen, z. B. `eu-central-1`)
-- [ ] SQL aus `supabase/migrations/20260912_init.sql` ausführen
-- [ ] Auth: E-Mail-Provider aktivieren; Redirect-URLs = Pages-URL + Custom Domain
+- [ ] SQL aus `supabase/migrations/20260912_init.sql` **und** `20260916_credit_events.sql` ausführen
+- [ ] Auth: E-Mail-Provider / Magic Link aktivieren; Redirect-URLs = Pages-URL + Custom Domain
+- [ ] `VITE_APP_MODE=prod` nur mit gültigen Keys — sonst fällt die App auf Demo-localStorage zurück
 - [ ] RLS Policies reviewen (Starter sind vorhanden)
 - [ ] Optional: Seed/Migration für Demo-Daten (nicht die lokalen Seed-IDs)
 

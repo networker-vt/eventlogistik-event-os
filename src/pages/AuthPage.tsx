@@ -5,123 +5,159 @@ import { Input, Select } from '../components/ui/Input'
 import { CITIES, ROLE_LABELS } from '../data/constants'
 import { useAuth } from '../lib/auth'
 import { EARLY_TESTER_GRANT, getSignupIdentity } from '../lib/credits'
+import { useI18n } from '../lib/i18n'
 import type { Role } from '../types'
 
 const ROLES = Object.keys(ROLE_LABELS).filter((r) => r !== 'admin') as Role[]
 
 export function AuthPage() {
-  const { login, register, loginDemo, user } = useAuth()
+  const { t } = useI18n()
+  const { login, register, loginDemo, user, requestMagicLink, confirmDemoMagic, magicPending, authBackend } =
+    useAuth()
   const navigate = useNavigate()
-  const [mode, setMode] = useState<'login' | 'register'>('register')
+  const [mode, setMode] = useState<'magic' | 'register'>('magic')
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
-  const [role, setRole] = useState<Role>('agency')
+  const [role, setRole] = useState<Role>('freelancer')
   const [city, setCity] = useState('Berlin')
+  const [busy, setBusy] = useState(false)
+  const [note, setNote] = useState<string | null>(null)
 
   if (user) {
     return (
       <div className="mx-auto max-w-md rounded-2xl border border-border bg-surface-2 p-6 text-center">
-        <p className="text-lg font-semibold">Angemeldet als {user.name}</p>
-        <Button className="mt-4" onClick={() => navigate('/dashboard')}>
-          Zum Dashboard
+        <p className="text-lg font-semibold">
+          {t('auth.signedIn')} {user.name}
+        </p>
+        <Button className="mt-4" onClick={() => navigate('/')}>
+          {t('nav.home')}
         </Button>
       </div>
     )
   }
 
-  const submit = (e: React.FormEvent) => {
+  const sendMagic = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (mode === 'login') {
-      login(email || 'alex@demo.eventlogistik.de', name || 'Alex Müller', role)
-    } else {
-      register(email, name, role, city)
+    setBusy(true)
+    try {
+      const res = await requestMagicLink(email, name)
+      setNote(res.backend === 'supabase' ? t('auth.magicSent') : t('auth.magicDemo'))
+    } finally {
+      setBusy(false)
     }
-    navigate('/dashboard')
+  }
+
+  const submitRegister = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (mode === 'register') {
+      register(email, name, role, city)
+      navigate('/')
+      return
+    }
+    login(email || 'alex@demo.eventlogistik.de', name || 'Alex Müller', role)
+    navigate('/')
   }
 
   return (
     <div className="mx-auto max-w-md space-y-5">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Willkommen bei Orbit</h1>
-        <p className="mt-1 text-sm text-muted">Dein Orbit für Arbeit — Matching statt Spam.</p>
-        <p className="mt-1 text-sm text-muted">
-          Rollenbasierte Registrierung — Mock-Auth lokal, Supabase-ready.
+        <h1 className="text-2xl font-bold">{t('auth.title')}</h1>
+        <p className="mt-1 text-sm text-muted">{t('auth.lead')}</p>
+        <p className="mt-1 text-xs text-muted">
+          {authBackend === 'supabase' ? t('auth.backendLive') : t('auth.backendDemo')}
         </p>
         {getSignupIdentity()?.earlyTester ? (
           <p className="mt-2 text-sm text-amber-200">
-            Early Tester #{getSignupIdentity()?.ordinal} — {EARLY_TESTER_GRANT.toLocaleString('de-DE')}{' '}
-            Credits aus der 21M-Reserve (Demo).
+            Early Tester #{getSignupIdentity()?.ordinal} — {EARLY_TESTER_GRANT.toLocaleString('de-DE')} Credits
           </p>
         ) : (
-          <p className="mt-2 text-sm text-muted">
-            Welcome 25 Credits aus der 21M-Reserve (Signup #{getSignupIdentity()?.ordinal ?? '…'}).
-          </p>
+          <p className="mt-2 text-sm text-muted">{t('auth.welcomeHint')}</p>
         )}
       </div>
 
-      <div className="flex rounded-xl border border-border bg-surface-2 p-1">
-        <button
-          type="button"
-          className={`flex-1 rounded-lg py-2 text-sm ${mode === 'register' ? 'bg-cyan text-black font-semibold' : 'text-muted'}`}
-          onClick={() => setMode('register')}
-        >
-          Registrieren
-        </button>
-        <button
-          type="button"
-          className={`flex-1 rounded-lg py-2 text-sm ${mode === 'login' ? 'bg-cyan text-black font-semibold' : 'text-muted'}`}
-          onClick={() => setMode('login')}
-        >
-          Anmelden
-        </button>
-      </div>
-
-      <form onSubmit={submit} className="space-y-3 rounded-2xl border border-border bg-surface-2 p-5">
+      <form onSubmit={sendMagic} className="space-y-3 rounded-2xl border border-border bg-surface-2 p-5">
+        <p className="text-sm font-semibold">{t('auth.magicTitle')}</p>
         <Input
-          label="Name / Firma"
-          required={mode === 'register'}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nordlicht Events GmbH"
-        />
-        <Input
-          label="E-Mail"
+          label={t('auth.email')}
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="du@firma.de"
         />
-        <Select label="Rolle" value={role} onChange={(e) => setRole(e.target.value as Role)}>
-          {ROLES.map((r) => (
-            <option key={r} value={r}>
-              {ROLE_LABELS[r]}
-            </option>
-          ))}
-        </Select>
-        {mode === 'register' && (
-          <Select label="Stadt" value={city} onChange={(e) => setCity(e.target.value)}>
+        <Input
+          label={t('auth.nameOptional')}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Alex"
+        />
+        <Button type="submit" className="w-full" disabled={busy || !email.trim()}>
+          {busy ? t('auth.sending') : t('auth.sendLink')}
+        </Button>
+        {note && <p className="text-xs text-amber-100">{note}</p>}
+        {magicPending && (
+          <Button type="button" variant="secondary" className="w-full" onClick={() => { confirmDemoMagic(); navigate('/') }}>
+            {t('auth.openDemoLink')}
+          </Button>
+        )}
+      </form>
+
+      <div className="flex rounded-xl border border-border bg-surface-2 p-1">
+        <button
+          type="button"
+          className={`flex-1 rounded-lg py-2 text-sm ${mode === 'magic' ? 'bg-cyan text-black font-semibold' : 'text-muted'}`}
+          onClick={() => setMode('magic')}
+        >
+          {t('auth.magicTab')}
+        </button>
+        <button
+          type="button"
+          className={`flex-1 rounded-lg py-2 text-sm ${mode === 'register' ? 'bg-cyan text-black font-semibold' : 'text-muted'}`}
+          onClick={() => setMode('register')}
+        >
+          {t('auth.registerTab')}
+        </button>
+      </div>
+
+      {mode === 'register' && (
+        <form onSubmit={submitRegister} className="space-y-3 rounded-2xl border border-border bg-surface-2 p-5">
+          <Input label={t('auth.name')} required value={name} onChange={(e) => setName(e.target.value)} />
+          <Input
+            label={t('auth.email')}
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Select label={t('role.label')} value={role} onChange={(e) => setRole(e.target.value as Role)}>
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {ROLE_LABELS[r]}
+              </option>
+            ))}
+          </Select>
+          <Select label={t('create.city')} value={city} onChange={(e) => setCity(e.target.value)}>
             {CITIES.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
             ))}
           </Select>
-        )}
-        <Button type="submit" className="w-full">
-          {mode === 'register' ? 'Konto erstellen' : 'Anmelden'}
-        </Button>
-      </form>
+          <Button type="submit" className="w-full">
+            {t('auth.createAccount')}
+          </Button>
+        </form>
+      )}
 
       <Button
         variant="secondary"
         className="w-full"
         onClick={() => {
           loginDemo()
-          navigate('/dashboard')
+          navigate('/')
         }}
       >
-        Demo als Agentur starten
+        {t('auth.demoAgency')}
       </Button>
       <Button
         variant="ghost"
@@ -131,11 +167,9 @@ export function AuthPage() {
           navigate('/firma')
         }}
       >
-        Demo als Firma starten
+        {t('auth.demoFirm')}
       </Button>
-      <p className="text-center text-xs text-muted">
-        Ohne Supabase-Keys läuft Auth lokal (localStorage). Siehe README & `.env.example`.
-      </p>
+      <p className="text-center text-xs text-muted">{t('auth.footer')}</p>
     </div>
   )
 }

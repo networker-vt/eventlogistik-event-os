@@ -16,9 +16,10 @@ export function ChannelLinks() {
       <div>
         <h2 className="text-lg font-semibold">{t('channels.linkTitle')}</h2>
         <p className="mt-1 text-sm text-muted">{t('channels.linkLead')}</p>
+        <p className="mt-1 text-[11px] text-muted">{t('channels.flagOnly')}</p>
       </div>
       <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-        {t('channels.disclaimer')}
+        {t('channels.flagOnly')}
       </p>
       <ul className="space-y-2">
         {CHANNEL_DEFS.map((ch) => {

@@ -51,7 +51,7 @@ export function MehrPage() {
     {
       id: 'entdecken',
       title: 'Entdecken',
-      subtitle: 'Everything App — ohne Katalog-Spam',
+      subtitle: 'Jobs finden oder anbieten — DE Freelancer/KMU',
       accent: 'border-[var(--theme-accent)]/35 bg-[var(--theme-accent)]/5',
       links: [
         { to: '/look', label: t('look.nav'), hint: t('look.hint'), icon: Sparkles },

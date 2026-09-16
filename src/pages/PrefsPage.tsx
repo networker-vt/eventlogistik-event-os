@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, Sparkles } from 'lucide-react'
+import { filledIndustries } from '../lib/categories'
 import {
   COMPANY_SIZES,
   COUNTRIES,
-  INDUSTRIES,
   ORBIT_TAGLINE_DE,
   type Industry,
 } from '../data/industries'
@@ -200,7 +200,7 @@ export function PrefsPage() {
           <div>
             <h2 className="mb-2 text-sm font-semibold">Branche</h2>
             <div className="flex flex-wrap gap-2">
-              {INDUSTRIES.map((ind) => (
+              {filledIndustries().map((ind) => (
                 <Chip
                   key={ind}
                   active={seeker.industries.includes(ind)}
@@ -245,7 +245,7 @@ export function PrefsPage() {
           <div>
             <h2 className="mb-2 text-sm font-semibold">Branchen</h2>
             <div className="flex flex-wrap gap-2">
-              {INDUSTRIES.map((ind) => (
+              {filledIndustries().map((ind) => (
                 <Chip
                   key={ind}
                   active={employer.industries.includes(ind)}

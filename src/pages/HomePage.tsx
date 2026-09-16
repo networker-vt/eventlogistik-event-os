@@ -25,12 +25,13 @@ import { NewsStrip } from '../components/home/NewsStrip'
 import { consumeAssistTurn, formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
 import { isDemo } from '../lib/flags'
 import { getResume, subscribeResume } from '../lib/resume'
+import { dueReminders, subscribeReminders, tapReminder } from '../lib/reminders'
 import { rankHomeNews } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
 import { canListen, listenOnce } from '../lib/speech'
 import { cn } from '../lib/utils'
 
-type WarmChip = 'seek' | 'offer' | 'think'
+type WarmChip = 'seek' | 'offer' | 'resume'
 
 export function HomePage() {
   useStoreVersion()
@@ -51,6 +52,7 @@ export function HomePage() {
   const [pendingSide, setPendingSide] = useState<PrefsSide | null>(null)
   const [othersOpen, setOthersOpen] = useState(false)
   const [resume, setResume] = useState(getResume)
+  const [reminders, setReminders] = useState(dueReminders)
   const [assistNote, setAssistNote] = useState<string | null>(null)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const { listings: raw } = useListings({})
@@ -63,6 +65,7 @@ export function HomePage() {
     const u5 = subscribeAssist(() => setPlan(getLastPlan()))
     const u6 = subscribeChannels(() => setBehaviorTick((n) => n + 1))
     const u7 = subscribeResume(() => setResume(getResume()))
+    const u8 = subscribeReminders(() => setReminders(dueReminders()))
     return () => {
       u1()
       u2()
@@ -71,6 +74,7 @@ export function HomePage() {
       u5()
       u6()
       u7()
+      u8()
       abortRef.current?.abort()
     }
   }, [])
@@ -88,20 +92,20 @@ export function HomePage() {
   const stems: Record<WarmChip, string> = {
     seek: t('home.stemSeek'),
     offer: t('home.stemOffer'),
-    think: t('home.stemThink'),
+    resume: resume ? `${t('home.stemResume')}${resume.title}` : t('home.stemThink'),
   }
   const placeholder =
     warm === 'offer'
       ? t('home.phOffer')
-      : warm === 'think'
-        ? t('home.phThink')
+      : warm === 'resume'
+        ? t('home.phResume')
         : companyView
           ? t('assist.phCompany')
           : t('home.phSeek')
 
   const pickWarm = (id: WarmChip) => {
     setWarm(id)
-    setPendingSide(id === 'seek' ? 'seeker' : id === 'offer' ? 'employer' : 'both')
+    setPendingSide(id === 'seek' ? 'seeker' : id === 'offer' ? 'employer' : null)
     setAsk((prev) => {
       const trimmed = prev.trim()
       const wasStem = (Object.values(stems) as string[]).some(
@@ -157,9 +161,9 @@ export function HomePage() {
   const assistAction = plan ? primaryAssistAction(plan) : null
   const assistHit = plan ? listingsForPlan(plan)[0] || travelForPlan(plan)[0] : null
   const chips: { id: WarmChip; title: string }[] = [
-    { id: 'seek', title: t('home.tileNeed') },
+    { id: 'seek', title: t('home.tileSeek') },
     { id: 'offer', title: t('home.tileOffer') },
-    { id: 'think', title: t('home.tileResume') },
+    { id: 'resume', title: t('home.tileResume') },
   ]
 
   return (
@@ -172,6 +176,21 @@ export function HomePage() {
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-[2rem]">{greeting}</h1>
           <p className="mt-1 max-w-sm text-sm text-muted">{t('home.value')}</p>
         </div>
+
+        {reminders[0] && (
+          <p className="text-sm">
+            <button
+              type="button"
+              className="text-[var(--theme-accent)] hover:underline"
+              onClick={() => {
+                const item = tapReminder(reminders[0].id)
+                if (item) navigate(item.actionTo)
+              }}
+            >
+              {reminders[0].actionLabel}: {reminders[0].title} →
+            </button>
+          </p>
+        )}
 
         <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-2">
           {chips.map((chip) => (
@@ -248,6 +267,23 @@ export function HomePage() {
             >
               {assistAction.actionLabel || t('home.next')} →
             </Link>
+          )}
+          {assistAction.actionTo && (
+            <button
+              type="button"
+              className="mt-2 ml-3 text-[11px] text-muted hover:underline"
+              onClick={() => {
+                void import('../lib/reminders').then((m) =>
+                  m.enqueueReminder({
+                    title: plan.summary,
+                    actionTo: assistAction.actionTo!,
+                    actionLabel: assistAction.actionLabel || t('home.next'),
+                  }),
+                )
+              }}
+            >
+              {t('assist.remind')}
+            </button>
           )}
         </section>
       )}

@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_NAME?: string
   readonly VITE_USE_MOCK?: string
   readonly VITE_APP_URL?: string
+  readonly VITE_APP_MODE?: string
+  readonly VITE_ORBIT_MODE?: string
   readonly VITE_LLM_API_KEY?: string
   readonly VITE_LLM_URL?: string
   readonly VITE_LLM_MODEL?: string
