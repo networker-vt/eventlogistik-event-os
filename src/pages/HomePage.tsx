@@ -2,18 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mic, Send } from 'lucide-react'
 import { FuerDichCard } from '../components/home/FuerDichCard'
+import { OrbitRobot } from '../components/home/OrbitRobot'
+import { Tageskarte } from '../components/home/Tageskarte'
 import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
 import { useListings, useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
 import {
   buildAssistPlan,
-  clearPlan,
   getLastPlan,
-  listingsForPlan,
-  primaryAssistAction,
   subscribeAssist,
-  travelForPlan,
   type AssistPlan,
 } from '../lib/assist'
 import { getCompany, subscribeCompany } from '../lib/company'
@@ -25,10 +23,11 @@ import { NewsStrip } from '../components/home/NewsStrip'
 import { consumeAssistTurn, formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
 import { isDemo } from '../lib/flags'
 import { getResume, subscribeResume } from '../lib/resume'
-import { dueReminders, enqueueReminder, subscribeReminders, tapReminder } from '../lib/reminders'
+import { dueReminders, subscribeReminders, tapReminder } from '../lib/reminders'
 import { rankHomeNews } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
 import { canListen, listenOnce } from '../lib/speech'
+import { pickTageskarte, tageskarteCopy } from '../lib/tageskarte'
 import { cn } from '../lib/utils'
 
 type WarmChip = 'seek' | 'offer' | 'resume'
@@ -56,6 +55,8 @@ export function HomePage() {
   const [assistNote, setAssistNote] = useState<string | null>(null)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const { listings: raw } = useListings({})
+  const daily = useMemo(() => pickTageskarte(), [])
+  const dailyCopy = tageskarteCopy(daily.item, resolved)
 
   useEffect(() => {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
@@ -122,8 +123,19 @@ export function HomePage() {
     })
   }
 
+  const fillPrompt = (prompt: string) => {
+    setAsk(prompt)
+    window.requestAnimationFrame(() => {
+      const el = askRef.current
+      if (!el) return
+      el.focus()
+      const len = prompt.length
+      el.setSelectionRange(len, len)
+    })
+  }
+
   const submitAsk = async (text: string) => {
-    const q = text.trim()
+    const q = text.trim() || dailyCopy.prompt
     if (!q || busy) return
     const gate = await consumeAssistTurn()
     if (gate === 'need_credits') {
@@ -158,8 +170,6 @@ export function HomePage() {
     }
   }
 
-  const assistAction = plan ? primaryAssistAction(plan) : null
-  const assistHit = plan ? listingsForPlan(plan)[0] || travelForPlan(plan)[0] : null
   const chips: { id: WarmChip; title: string }[] = [
     { id: 'seek', title: t('home.tileSeek') },
     { id: 'offer', title: t('home.tileOffer') },
@@ -173,8 +183,13 @@ export function HomePage() {
           <p className="text-xs font-medium uppercase tracking-wider text-muted">
             Orbit{isDemo ? ` · ${t('home.demoBadge')}` : ''}
           </p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-[2rem]">{greeting}</h1>
-          <p className="mt-1 max-w-sm text-sm text-muted">{t('home.value')}</p>
+          <div className="mt-2 flex items-start gap-3">
+            <OrbitRobot />
+            <div className="min-w-0">
+              <h1 className="text-3xl font-bold tracking-tight text-white md:text-[2rem]">{greeting}</h1>
+              <p className="mt-1 max-w-sm text-sm text-muted">{t('home.need')}</p>
+            </div>
+          </div>
         </div>
 
         {reminders[0] && (
@@ -192,17 +207,15 @@ export function HomePage() {
           </p>
         )}
 
-        <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-2">
+        <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-1.5">
           {chips.map((chip) => (
             <button
               key={chip.id}
               type="button"
               onClick={() => pickWarm(chip.id)}
               className={cn(
-                'rounded-full border px-3.5 py-2 text-sm',
-                warm === chip.id
-                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/10 text-white'
-                  : 'border-border text-neutral-300 hover:text-white',
+                'rounded-full px-2.5 py-1 text-xs tracking-wide',
+                warm === chip.id ? 'text-neutral-400' : 'text-neutral-600 hover:text-neutral-400',
               )}
             >
               {chip.title}
@@ -243,63 +256,14 @@ export function HomePage() {
                 <Mic size={18} />
               </button>
             )}
-            <Button type="submit" className="flex-1" disabled={busy || !ask.trim()}>
+            <Button type="submit" className="flex-1" disabled={busy}>
               {busy ? t('assist.thinking') : t('assist.submit')} <Send size={16} />
             </Button>
           </div>
         </form>
       </header>
 
-      {plan && assistAction && (
-        <section className="rounded-2xl border border-border/80 bg-surface-2/40 p-4">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">{t('assist.planKicker')}</p>
-            <button type="button" className="text-[11px] text-muted hover:underline" onClick={() => clearPlan()}>
-              {t('assist.clear')}
-            </button>
-          </div>
-          <h2 className="mt-1 text-base font-semibold text-white">{plan.summary}</h2>
-          <p className="mt-1 text-sm text-neutral-300">{assistAction.title}</p>
-          {assistAction.actionTo && (
-            <Link
-              to={assistAction.actionTo}
-              className="mt-2 inline-flex text-sm text-[var(--theme-accent)] hover:underline"
-            >
-              {assistAction.actionLabel || t('home.next')} →
-            </Link>
-          )}
-          {assistAction.actionTo && (
-            <button
-              type="button"
-              className="mt-2 ml-3 text-[11px] text-muted hover:underline"
-              onClick={() => {
-                enqueueReminder({
-                  title: plan.summary,
-                    actionTo: assistAction.actionTo!,
-                    actionLabel: assistAction.actionLabel || t('home.next'),
-                  })
-              }}
-            >
-              {t('assist.remind')}
-            </button>
-          )}
-        </section>
-      )}
-
-      {plan && !assistAction && assistHit && (
-        <section className="rounded-2xl border border-border/80 bg-surface-2/40 p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">{t('assist.planKicker')}</p>
-          <h2 className="mt-1 text-base font-semibold text-white">
-            {'title' in assistHit ? assistHit.title : plan.summary}
-          </h2>
-          <Link
-            to={'provider' in assistHit ? `/reise/${assistHit.id}` : `/listings/${assistHit.id}`}
-            className="mt-2 inline-flex text-sm text-[var(--theme-accent)] hover:underline"
-          >
-            {'provider' in assistHit ? t('home.action.book') : t('home.action.contact')} →
-          </Link>
-        </section>
-      )}
+      <Tageskarte item={daily.item} slot={daily.slot} plan={plan} onUsePrompt={fillPrompt} />
 
       <NewsStrip items={newsItems} />
 
@@ -324,18 +288,16 @@ export function HomePage() {
         </summary>
         <div className="mt-3 space-y-3">
           {fuerDich.length === 0 ? (
-            <Empty
-              emoji="✨"
-              title={t('home.dealsEmpty')}
-              hint={t('home.dealsEmptyHint')}
-              actionLabel={matchLabel}
-              onAction={() => navigate(matchTo)}
-              className="py-6"
-            />
+            <div className="space-y-2">
+              <Empty emoji="✨" title={t('home.dealsEmpty')} hint={t('home.dealsEmptyHint')} className="py-6" />
+              <Link to={matchTo} className="inline-flex text-sm text-neutral-300 hover:text-white hover:underline">
+                {matchLabel} →
+              </Link>
+            </div>
           ) : (
             <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
               <ul className="flex snap-x snap-mandatory gap-2">
-                {(fuerDich).map((item) => (
+                {fuerDich.map((item) => (
                   <li key={item.id}>
                     <FuerDichCard item={item} />
                   </li>
