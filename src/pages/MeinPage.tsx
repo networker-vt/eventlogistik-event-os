@@ -259,7 +259,7 @@ export function MeinPage() {
               className={cn(
                 'min-h-10 rounded-full border px-3 py-1.5 text-xs font-medium',
                 prefs.seeker.industries.includes(ind)
-                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-white'
+                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-ink'
                   : 'border-border bg-black/20 text-neutral-300',
               )}
             >
@@ -277,7 +277,7 @@ export function MeinPage() {
               className={cn(
                 'min-h-10 rounded-full border px-3 py-1.5 text-xs font-medium',
                 prefs.seeker.jobTypes.includes(jt)
-                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-white'
+                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-ink'
                   : 'border-border bg-black/20 text-neutral-300',
               )}
             >
@@ -435,7 +435,7 @@ export function MeinPage() {
                   className="flex items-start justify-between gap-2 rounded-xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/5 px-3 py-2 text-sm"
                 >
                   <div>
-                    <div className="font-medium text-white">{c.title}</div>
+                    <div className="font-medium text-ink">{c.title}</div>
                     <div className="text-xs text-muted">
                       {formatDate(c.startIso.slice(0, 10))}
                       {c.location ? ` · ${c.location}` : ''}
@@ -465,7 +465,7 @@ export function MeinPage() {
                 className="flex items-start justify-between gap-2 rounded-xl border border-border/60 bg-black/20 px-3 py-2 text-sm"
               >
                 <div className="min-w-0">
-                  <div className="font-medium text-white">{c.title}</div>
+                  <div className="font-medium text-ink">{c.title}</div>
                   <div className="text-xs text-muted">
                     {c.kind} · {formatDate(c.startIso.slice(0, 10))}
                     {c.location ? ` · ${c.location}` : ''}

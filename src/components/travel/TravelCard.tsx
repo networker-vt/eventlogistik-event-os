@@ -20,7 +20,7 @@ export function TravelCard({
 
   return (
     <Link
-      to={`/reise/${offer.id}`}
+      to={`/abflug/${offer.id}`}
       className={cn(
         'flex items-start gap-3 rounded-2xl border border-border bg-surface-2/70 px-3 py-3 hover:border-[var(--theme-accent)]/40',
         compact && 'py-2.5',
@@ -31,7 +31,7 @@ export function TravelCard({
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
-          <p className="truncate text-sm font-semibold text-white">{offer.title}</p>
+          <p className="truncate text-sm font-semibold text-ink">{offer.title}</p>
           <Badge tone="amber">{resolved === 'de' ? 'Demo' : 'Demo'}</Badge>
           {cheapest && (
             <Badge className="border-[var(--theme-accent)]/40 bg-[var(--theme-accent)]/15 text-[10px]">
@@ -48,7 +48,7 @@ export function TravelCard({
         )}
       </div>
       <div className="shrink-0 text-right">
-        <p className="text-sm font-semibold tabular-nums text-white">{formatPrice(offer.priceEur)}</p>
+        <p className="text-sm font-semibold tabular-nums text-ink">{formatPrice(offer.priceEur)}</p>
         {offer.rating != null && <p className="text-[11px] text-muted">★ {offer.rating.toFixed(1)}</p>}
       </div>
     </Link>

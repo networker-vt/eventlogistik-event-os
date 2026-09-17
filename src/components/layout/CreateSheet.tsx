@@ -70,7 +70,7 @@ export function CreateSheet({ open, onClose }: Props) {
       <div className="absolute inset-x-0 bottom-0 safe-pb rounded-t-3xl border border-border bg-surface-2 p-4 shadow-2xl">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-white">{t('nav.create')}</h2>
+            <h2 className="text-lg font-semibold text-ink">{t('nav.create')}</h2>
             <p className="text-xs text-muted">{t('create.lead')}</p>
           </div>
           <button
@@ -95,7 +95,7 @@ export function CreateSheet({ open, onClose }: Props) {
             >
               <opt.icon size={22} />
               <span>
-                <span className="block font-semibold text-white">{opt.label}</span>
+                <span className="block font-semibold text-ink">{opt.label}</span>
                 <span className="block text-xs text-neutral-300">{opt.hint}</span>
               </span>
             </button>

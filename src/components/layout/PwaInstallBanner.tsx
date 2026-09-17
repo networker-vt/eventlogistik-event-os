@@ -87,7 +87,7 @@ export function PwaInstallBanner() {
           type="button"
           aria-label="Schließen"
           onClick={dismiss}
-          className="tap-target flex items-center justify-center rounded-lg text-muted hover:text-white"
+          className="tap-target flex items-center justify-center rounded-lg text-muted hover:text-ink"
         >
           <X size={18} />
         </button>

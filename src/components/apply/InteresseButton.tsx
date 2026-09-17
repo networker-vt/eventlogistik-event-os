@@ -41,7 +41,7 @@ export function InteresseButton({ listing }: { listing: Listing }) {
   if (done || applied) {
     return (
       <div className="space-y-3 rounded-2xl border border-[var(--theme-accent)]/35 bg-[var(--theme-accent)]/10 p-4">
-        <h2 className="font-semibold text-white">{t('apply.sent')}</h2>
+        <h2 className="font-semibold text-ink">{t('apply.sent')}</h2>
         <p className="text-sm text-neutral-300">{t('apply.sentHint')}</p>
         <div className="flex flex-wrap gap-2">
           {done?.threadId && (

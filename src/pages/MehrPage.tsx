@@ -54,10 +54,10 @@ export function MehrPage() {
       subtitle: 'Jobs finden oder anbieten — DE Freelancer/KMU',
       accent: 'border-[var(--theme-accent)]/35 bg-[var(--theme-accent)]/5',
       links: [
-        { to: '/look', label: t('look.nav'), hint: t('look.hint'), icon: Sparkles },
+        { to: '/kabine', label: t('look.nav'), hint: t('look.hint'), icon: Sparkles },
         { to: '/firma', label: t('firma.nav'), hint: t('firma.hint'), icon: Building2 },
         { to: '/marktplatz', label: t('market.nav'), hint: t('market.hint'), icon: Store },
-        { to: '/reise', label: t('travel.nav'), hint: t('travel.lead'), icon: Plane },
+        { to: '/abflug', label: t('travel.nav'), hint: t('travel.lead'), icon: Plane },
         { to: '/social', label: t('social.title'), hint: t('social.kicker'), icon: Users },
         { to: '/channels', label: t('channels.nav'), hint: t('channels.hint'), icon: Hash },
         { to: '/mein', label: t('nav.mein'), hint: t('mein.lead'), icon: UserRound },
@@ -108,7 +108,7 @@ export function MehrPage() {
           className={`scroll-mt-20 rounded-2xl border p-4 md:p-5 ${section.accent}`}
         >
           <div className="mb-3">
-            <h2 className="text-lg font-semibold text-white">{section.title}</h2>
+            <h2 className="text-lg font-semibold text-ink">{section.title}</h2>
             <p className="text-xs text-neutral-400">{section.subtitle}</p>
           </div>
           <HubLinkGrid links={section.links} />
@@ -125,13 +125,13 @@ function HubLinkGrid({ links }: { links: HubLink[] }) {
         <Link
           key={link.to + link.label}
           to={link.to}
-          className="card-hover flex min-h-12 items-center gap-3 rounded-xl border border-border/80 bg-black/25 px-3 py-3"
+          className="card-hover flex min-h-12 items-center gap-3 rounded-xl border border-border/80 bg-surface-2 px-3 py-3"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-3 text-[var(--theme-accent)]">
             <link.icon size={18} />
           </span>
           <span className="min-w-0">
-            <span className="block text-sm font-medium text-white">{link.label}</span>
+            <span className="block text-sm font-medium text-ink">{link.label}</span>
             {link.hint && <span className="block truncate text-[11px] text-muted">{link.hint}</span>}
           </span>
         </Link>

@@ -164,7 +164,7 @@ function SimpleCreateListing() {
                 className={cn(
                   'min-h-12 rounded-2xl border px-3 py-2 text-left text-sm font-medium',
                   intent === id
-                    ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-white'
+                    ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-ink'
                     : 'border-border bg-black/20 text-neutral-300',
                 )}
               >

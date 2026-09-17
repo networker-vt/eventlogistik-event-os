@@ -14,7 +14,7 @@ export function WorldRow({ listing }: { listing: Listing }) {
         {listing.imageEmoji || '💼'}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium text-white">{listing.title}</span>
+        <span className="block truncate text-sm font-medium text-ink">{listing.title}</span>
         <span className="block truncate text-xs text-muted">{meta}</span>
       </span>
       <span className="shrink-0 text-sm font-semibold tabular-nums text-[var(--theme-accent)]">{rate}</span>

@@ -48,12 +48,12 @@ export function TicketPage() {
 
       <div className="flex flex-col items-center rounded-3xl border border-border bg-surface-2 p-6">
         <QrStub value={ticket.qr} />
-        <p className="mt-3 font-mono text-sm tracking-wider text-white">{ticket.ref}</p>
+        <p className="mt-3 font-mono text-sm tracking-wider text-ink">{ticket.ref}</p>
         <p className="mt-1 text-center text-xs text-muted">{t('ticket.qrHint')}</p>
       </div>
 
       <section className="space-y-2 rounded-2xl border border-border bg-surface-2 p-4">
-        <p className="text-lg font-semibold text-white">{ticket.title}</p>
+        <p className="text-lg font-semibold text-ink">{ticket.title}</p>
         <p className="text-sm text-muted">{ticket.subtitle}</p>
         <p className="text-sm text-neutral-300">
           {ticket.location} · {formatDateTime(ticket.whenIso)}

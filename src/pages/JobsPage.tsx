@@ -98,7 +98,7 @@ export function JobsPage() {
             className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold transition ${
               side === 'seek'
                 ? 'bg-cyan text-black shadow-[0_0_20px_rgba(0,240,255,0.25)]'
-                : 'text-muted hover:text-white'
+                : 'text-muted hover:text-ink'
             }`}
           >
             <Search size={16} /> Jobs finden
@@ -109,7 +109,7 @@ export function JobsPage() {
             className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold transition ${
               side === 'hire'
                 ? 'bg-teal text-black shadow-[0_0_20px_rgba(20,184,166,0.25)]'
-                : 'text-muted hover:text-white'
+                : 'text-muted hover:text-ink'
             }`}
           >
             <Users size={16} /> Jobs / Crew

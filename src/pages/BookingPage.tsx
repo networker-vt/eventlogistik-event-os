@@ -112,7 +112,7 @@ export function BookingPage() {
           {FLOW.map((s, i) => (
             <div
               key={s}
-              className={`rounded-full px-3 py-1 text-xs ${i <= idx && booking.status !== 'cancelled' ? 'bg-cyan/20 text-cyan' : 'bg-white/5 text-muted'}`}
+              className={`rounded-full px-3 py-1 text-xs ${i <= idx && booking.status !== 'cancelled' ? 'bg-cyan/20 text-cyan' : 'bg-ink/5 text-muted'}`}
             >
               {BOOKING_STATUS_LABELS[s]}
             </div>

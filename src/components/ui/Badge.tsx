@@ -10,7 +10,7 @@ export function Badge({
   className?: string
 }) {
   const tones = {
-    default: 'bg-white/5 text-neutral-300 border-white/10',
+    default: 'bg-ink/5 text-neutral-300 border-ink/10',
     cyan: 'bg-cyan/15 text-cyan border-cyan/30',
     teal: 'bg-teal/15 text-teal border-teal/30',
     amber: 'bg-amber-500/15 text-amber-300 border-amber-500/30',

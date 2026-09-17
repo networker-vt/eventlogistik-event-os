@@ -24,7 +24,7 @@ export function ExperienceList({
         {reviews.slice(0, 6).map((r) => (
           <li key={r.id} className="rounded-xl border border-border/70 bg-black/20 px-3 py-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-medium text-white">{r.fromName}</span>
+              <span className="text-sm font-medium text-ink">{r.fromName}</span>
               <StarRating value={r.rating} readOnly size={14} />
             </div>
             {r.comment && <p className="mt-1 text-sm text-neutral-300">{r.comment}</p>}

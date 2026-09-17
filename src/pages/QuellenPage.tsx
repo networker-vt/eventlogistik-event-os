@@ -54,7 +54,7 @@ export function QuellenPage() {
             className="rounded-2xl border border-border bg-surface-2 p-4"
           >
             <div className="flex items-start justify-between gap-2">
-              <h2 className="font-semibold text-white">{src.name}</h2>
+              <h2 className="font-semibold text-ink">{src.name}</h2>
               <Badge
                 tone={
                   src.status === 'live' ? 'cyan' : src.status === 'mock' ? 'amber' : 'default'

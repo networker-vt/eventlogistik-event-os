@@ -388,33 +388,33 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
     const look = intent.lookIntent || 'kleidung'
     const qs = new URLSearchParams({ intent: look })
     summary = de
-      ? `Style-Rat (${look}): Foto oder kurzes Video — Orbit schlägt Varianten, Shops und Nearby vor.`
-      : `Style advice (${look}): photo or short video — Orbit suggests variants, shops and nearby.`
+      ? `Kabine (${look}): Foto oder kurzes Video — Orbit schlägt Varianten, Shops und Nearby vor.`
+      : `Kabine (${look}): photo or short video — Orbit suggests variants, shops and nearby.`
     steps.push(
       step(
-        de ? 'Look aufnehmen' : 'Capture a look',
+        de ? 'Foto aufnehmen' : 'Take a photo',
         de
           ? 'Selfie, Upload oder kurzes Video. Basis-Analyse ist frei — Demo/Vision-Stub, kein Live-ML.'
           : 'Selfie, upload or short video. Basic analysis is free — demo/vision stub, no live ML.',
-        { actionTo: `/look?${qs.toString()}`, actionLabel: de ? 'Orbit Look öffnen' : 'Open Orbit Look', remindable: false },
+        { actionTo: `/kabine?${qs.toString()}`, actionLabel: de ? 'Kabine öffnen' : 'Open Kabine', remindable: false },
       ),
       step(
         de ? 'Varianten vergleichen' : 'Compare variants',
         de
-          ? 'Zwei Filter frei. Extra-Try-on-Pack aus dem 21M-Credits-Pool.'
-          : 'Two filters free. Extra try-on pack from the 21M credits pool.',
-        { actionTo: `/look?${qs.toString()}`, actionLabel: de ? 'Try-on (Demo)' : 'Try-on (demo)' },
+          ? 'Foto plus 1–2 Filter frei. Extra-Try-on-Pack aus dem 21M-Credits-Pool.'
+          : 'Photo plus 1–2 filters free. Extra try-on pack from the 21M credits pool.',
+        { actionTo: `/kabine?${qs.toString()}`, actionLabel: de ? 'Anprobe (Demo)' : 'Try-on (demo)' },
       ),
       step(
         de ? 'Shops & Nearby' : 'Shops & nearby',
         de
           ? 'Produktkacheln + Friseur, Optiker, Läden in deinem Radius (Prefs).'
           : 'Product tiles + hair, optician, shops in your radius (prefs).',
-        { actionTo: `/look?${qs.toString()}`, actionLabel: de ? 'In der Nähe' : 'Nearby' },
+        { actionTo: `/kabine?${qs.toString()}`, actionLabel: de ? 'In der Nähe' : 'Nearby' },
       ),
     )
     tips.push({
-      title: de ? 'Orbit berät (Look)' : 'Orbit advises (look)',
+      title: de ? 'Orbit berät (Kabine)' : 'Orbit advises (Kabine)',
       body: de
         ? 'Kein echtes Virtual-Try-on-ML auf dem Gerät. Filter + Labels + Seed-Shops. Featured Nearby kostet Credits, mintet nicht über 21M.'
         : 'No real virtual try-on ML on device. Filters + labels + seeded shops. Featured nearby costs Credits, never mints above 21M.',
@@ -442,14 +442,14 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
         de
           ? 'Mock-Preise, sortiert nach günstigster Option. Kein GDS.'
           : 'Mock prices, cheapest first. No GDS.',
-        { actionTo: `/reise?${qs.toString()}`, actionLabel: de ? 'Reise-Marktplatz' : 'Travel marketplace', remindable: false },
+        { actionTo: `/abflug?${qs.toString()}`, actionLabel: de ? 'Abflug' : 'Abflug', remindable: false },
       ),
       step(
         de ? 'Buchen in der App (Stub)' : 'Book in-app (stub)',
         de
           ? 'Fiat-Demo oder Orbit Credits — kein echtes Geld, keine Airline-Ticket.'
           : 'Fiat demo or Orbit Credits — no real money, no airline ticket.',
-        { actionTo: `/reise?${qs.toString()}`, actionLabel: de ? 'Zur Buchung' : 'To booking' },
+        { actionTo: `/abflug?${qs.toString()}`, actionLabel: de ? 'Zur Buchung' : 'To booking' },
       ),
       step(
         de ? 'Ticket in die Wallet' : 'Ticket into Wallet',

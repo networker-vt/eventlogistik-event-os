@@ -42,7 +42,7 @@ export function RoleSwitcher({
             className={cn(
               'min-h-10 rounded-full border px-3 py-1.5 text-xs font-medium',
               side === opt.id
-                ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-white'
+                ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-ink'
                 : 'border-border bg-black/20 text-neutral-300',
             )}
           >
@@ -73,7 +73,7 @@ export function RoleSwitcher({
                 : 'border-border bg-black/20 hover:border-[var(--theme-accent)]/40',
             )}
           >
-            <div className="font-semibold text-white">{t(opt.titleKey)}</div>
+            <div className="font-semibold text-ink">{t(opt.titleKey)}</div>
             <p className="mt-1 text-[11px] text-muted">{t(opt.hintKey)}</p>
             {side === opt.id && <Check size={14} className="mt-2 text-[var(--theme-accent)]" />}
           </button>

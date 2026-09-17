@@ -8,7 +8,10 @@ export function themeForPath(pathname: string): SectionTheme {
     pathname.startsWith('/prefs') ||
     pathname.startsWith('/foto') ||
     pathname.startsWith('/marktplatz') ||
-    pathname.startsWith('/reise')
+    pathname.startsWith('/reise') ||
+    pathname.startsWith('/abflug') ||
+    pathname.startsWith('/treffer') ||
+    pathname.startsWith('/crew')
   ) {
     return 'match'
   }

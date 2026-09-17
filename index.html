@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" data-scheme="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
@@ -8,14 +8,24 @@
     <link rel="apple-touch-startup-image" href="./icons/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" />
     <link rel="apple-touch-startup-image" href="./icons/splash-750x1334.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="theme-color" content="#faf8f5" />
     <meta name="description" content="Orbit — Dein Orbit für Arbeit. Global Job Matching OS. Matching statt Spam." />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Orbit" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>Orbit — Matching statt Spam</title>
+    <script>
+      try {
+        var s = localStorage.getItem('orbit_scheme_v1');
+        document.documentElement.dataset.scheme = s === 'dark' ? 'dark' : 'light';
+        if (s === 'dark') {
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute('content', '#0a0a0a');
+        }
+      } catch (e) {}
+    </script>
   </head>
-  <body class="bg-surface text-white antialiased">
+  <body class="bg-surface text-ink antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

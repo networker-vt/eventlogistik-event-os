@@ -17,8 +17,22 @@ import { CreateSheet } from './CreateSheet'
 import { BrandIcon, BrandMark } from '../brand/BrandMark'
 import { SkipLink } from '../a11y/SkipLink'
 import { copyrightLine } from '../../lib/legal'
-import { getPrefs, subscribePrefs } from '../../lib/prefs'
+import { getPrefs, isCompanySide, subscribePrefs } from '../../lib/prefs'
 import { touchResume } from '../../lib/resume'
+import { SchemeToggle } from '../theme/SchemeToggle'
+
+function documentTitleFor(pathname: string, t: (key: string) => string) {
+  if (pathname === '/' || pathname === '') return `Orbit — ${t('brand.tagline')}`
+  if (pathname.startsWith('/kabine') || pathname.startsWith('/look')) return `${t('look.title')} · Orbit`
+  if (pathname.startsWith('/abflug') || pathname.startsWith('/reise')) return `${t('travel.title')} · Orbit`
+  if (pathname.startsWith('/crew')) return `${t('nav.crew')} · Orbit`
+  if (pathname.startsWith('/treffer') || pathname.startsWith('/match')) return `${t('match.kicker')} · Orbit`
+  if (pathname.startsWith('/wallet')) return `${t('nav.wallet')} · Orbit`
+  if (pathname.startsWith('/messages')) return `${t('nav.inbox')} · Orbit`
+  if (pathname.startsWith('/mehr')) return `${t('mehr.title')} · Orbit`
+  if (pathname.startsWith('/impressum')) return `${t('footer.impressum')} · Orbit`
+  return `Orbit — ${t('brand.tagline')}`
+}
 
 export function AppShell() {
   const { user } = useAuth()
@@ -28,17 +42,19 @@ export function AppShell() {
   const [createOpen, setCreateOpen] = useState(false)
   const [prefs, setPrefs] = useState(getPrefs)
   const theme = themeForPath(location.pathname)
-  const matchTo = prefs.completed ? '/match' : '/prefs'
+  const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
+  const matchTo = prefs.completed ? (companyView ? '/crew' : '/treffer') : '/prefs'
+  const matchLabel = companyView ? t('nav.crew') : t('nav.match')
 
   useEffect(() => subscribePrefs(() => setPrefs(getPrefs())), [])
   useEffect(() => {
-    const title = document.title || location.pathname
-    touchResume(`${location.pathname}${location.hash}`, title)
-  }, [location.pathname, location.hash])
+    document.title = documentTitleFor(location.pathname, t)
+    touchResume(`${location.pathname}${location.hash}`, document.title)
+  }, [location.pathname, location.hash, t])
 
   const mobileNav = [
     { to: '/', label: t('nav.home'), icon: Home, end: true },
-    { to: matchTo, label: t('nav.match'), icon: Briefcase },
+    { to: matchTo, label: matchLabel, icon: Briefcase },
     { to: '/messages', label: t('nav.inbox'), icon: MessageSquare },
     { to: '/wallet', label: t('nav.wallet'), icon: Wallet },
     { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal },
@@ -46,7 +62,7 @@ export function AppShell() {
 
   const desktopPrimary = [
     { to: '/', label: t('nav.home'), end: true },
-    { to: matchTo, label: t('nav.match') },
+    { to: matchTo, label: matchLabel },
     { to: '/messages', label: t('nav.inbox') },
     { to: '/wallet', label: t('nav.wallet') },
     { to: '/mehr', label: t('nav.mehr') },
@@ -74,7 +90,7 @@ export function AppShell() {
           >
             <BrandIcon size={36} />
             <div className="leading-tight">
-              <div className="font-bold tracking-tight text-white">Orbit</div>
+              <div className="font-bold tracking-tight text-ink">Orbit</div>
               <div className="text-[10px] uppercase tracking-wider text-[var(--theme-accent)]">
                 {t('brand.tagline')}
               </div>
@@ -89,7 +105,7 @@ export function AppShell() {
                 end={'end' in item ? item.end : false}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-lg px-3 py-2 text-sm text-neutral-300 hover:bg-white/5 hover:text-white',
+                    'rounded-lg px-3 py-2 text-sm text-neutral-300 hover:bg-ink/5 hover:text-ink',
                     isActive && 'bg-[var(--theme-accent)]/10 text-[var(--theme-accent)]',
                   )
                 }
@@ -100,11 +116,12 @@ export function AppShell() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-2">
+            <SchemeToggle compact />
             {location.pathname !== '/' && (
               <button
                 type="button"
                 onClick={() => setCreateOpen(true)}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--theme-accent)] px-3 py-2 text-sm font-semibold text-black"
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--theme-accent)] px-3 py-2 text-sm font-semibold text-[var(--theme-on-accent)]"
               >
                 <Plus size={16} /> {t('nav.create')}
               </button>
@@ -135,6 +152,7 @@ export function AppShell() {
           <BrandMark compact />
         </button>
         <div className="flex items-center gap-2">
+          <SchemeToggle compact />
           {location.pathname !== '/' && (
             <button
               type="button"

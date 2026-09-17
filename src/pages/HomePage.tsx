@@ -26,6 +26,7 @@ import { getResume, subscribeResume } from '../lib/resume'
 import { dueReminders, subscribeReminders, tapReminder } from '../lib/reminders'
 import { rankHomeNews } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
+import { pickRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotAsk'
 import { canListen, listenOnce } from '../lib/speech'
 import { pickTageskarte, tageskarteCopy } from '../lib/tageskarte'
 import { cn } from '../lib/utils'
@@ -49,14 +50,16 @@ export function HomePage() {
   const [listening, setListening] = useState(false)
   const [warm, setWarm] = useState<WarmChip>('seek')
   const [pendingSide, setPendingSide] = useState<PrefsSide | null>(null)
-  const [othersOpen, setOthersOpen] = useState(false)
   const [resume, setResume] = useState(getResume)
   const [reminders, setReminders] = useState(dueReminders)
   const [assistNote, setAssistNote] = useState<string | null>(null)
+  const [robotTapped, setRobotTapped] = useState(false)
+  const [robotAsk, setRobotAsk] = useState<RobotAsk | null>(null)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const { listings: raw } = useListings({})
   const daily = useMemo(() => pickTageskarte(), [])
   const dailyCopy = tageskarteCopy(daily.item, resolved)
+  const robotCopy = robotAsk ? robotAskCopy(robotAsk, resolved) : null
 
   useEffect(() => {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
@@ -88,8 +91,12 @@ export function HomePage() {
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
   const greeting = first ? `${t('home.hello')}, ${first}.` : `${t('home.hello')}.`
-  const matchTo = prefs.completed ? '/match' : '/prefs'
-  const matchLabel = prefs.completed ? t('home.ctaMatch') : t('home.ctaPrefs')
+  const matchTo = prefs.completed ? (companyView ? '/crew' : '/treffer') : '/prefs'
+  const matchLabel = prefs.completed
+    ? companyView
+      ? t('home.ctaCrew')
+      : t('home.ctaMatch')
+    : t('home.ctaPrefs')
   const stems: Record<WarmChip, string> = {
     seek: t('home.stemSeek'),
     offer: t('home.stemOffer'),
@@ -170,10 +177,26 @@ export function HomePage() {
     }
   }
 
+  const onRobotTap = () => {
+    const next = pickRobotAsk().item
+    setRobotAsk(next)
+    setRobotTapped(true)
+    window.setTimeout(() => setRobotTapped(false), 700)
+  }
+
   const chips: { id: WarmChip; title: string }[] = [
     { id: 'seek', title: t('home.tileSeek') },
     { id: 'offer', title: t('home.tileOffer') },
     { id: 'resume', title: t('home.tileResume') },
+  ]
+
+  const discover = [
+    { to: matchTo, label: matchLabel, hint: t('home.discoverTrefferHint') },
+    { to: '/abflug', label: t('travel.nav'), hint: t('home.discoverAbflugHint') },
+    { to: '/crew', label: t('nav.crew'), hint: t('home.discoverCrewHint') },
+    { to: '/wallet', label: t('nav.wallet'), hint: t('home.discoverWalletHint') },
+    { to: '/firma', label: t('firma.nav'), hint: t('firma.hint') },
+    { to: '/social', label: t('social.title'), hint: t('social.kicker') },
   ]
 
   return (
@@ -184,13 +207,43 @@ export function HomePage() {
             Orbit{isDemo ? ` · ${t('home.demoBadge')}` : ''}
           </p>
           <div className="mt-2 flex items-start gap-3">
-            <OrbitRobot />
+            <OrbitRobot
+              tapped={robotTapped}
+              onTap={onRobotTap}
+              label={t('home.robotAria')}
+            />
             <div className="min-w-0">
-              <h1 className="text-3xl font-bold tracking-tight text-white md:text-[2rem]">{greeting}</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-ink md:text-[2rem]">{greeting}</h1>
               <p className="mt-1 max-w-sm text-sm text-muted">{t('home.need')}</p>
             </div>
           </div>
         </div>
+
+        {robotAsk && robotCopy && (
+          <div
+            className="rounded-2xl border border-border/80 bg-surface-2/60 px-3 py-3"
+            role="status"
+            data-robot-ask={robotAsk.kind}
+          >
+            <p className="text-sm text-ink">{robotCopy.question}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              <button
+                type="button"
+                className="text-[var(--theme-accent)] hover:underline"
+                onClick={() => navigate(robotAsk.to)}
+              >
+                {robotCopy.yes} →
+              </button>
+              <button
+                type="button"
+                className="text-muted hover:underline"
+                onClick={() => setRobotAsk(null)}
+              >
+                {t('home.robotDismiss')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {reminders[0] && (
           <p className="text-sm">
@@ -215,7 +268,7 @@ export function HomePage() {
               onClick={() => pickWarm(chip.id)}
               className={cn(
                 'rounded-full px-2.5 py-1 text-xs tracking-wide',
-                warm === chip.id ? 'text-neutral-400' : 'text-neutral-600 hover:text-neutral-400',
+                warm === chip.id ? 'text-ink-soft' : 'text-muted hover:text-ink-soft',
               )}
             >
               {chip.title}
@@ -238,7 +291,7 @@ export function HomePage() {
               onChange={(e) => setAsk(e.target.value)}
               rows={2}
               placeholder={placeholder}
-              className="w-full resize-none rounded-2xl border border-border bg-surface-2 px-3 py-3 text-base text-white placeholder:text-neutral-600 outline-none focus:border-cyan/50"
+              className="w-full resize-none rounded-2xl border border-border bg-surface-2 px-3 py-3 text-base text-ink placeholder:text-muted outline-none focus:border-[var(--theme-accent)]/50"
             />
           </label>
           {assistNote && <p className="text-[11px] text-amber-200">{assistNote}</p>}
@@ -249,7 +302,7 @@ export function HomePage() {
                 onClick={() => void onMic()}
                 aria-label={t('assist.voice')}
                 className={cn(
-                  'tap-target flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface-3 text-neutral-400',
+                  'tap-target flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface-3 text-ink-soft',
                   listening && 'border-[var(--theme-accent)] text-[var(--theme-accent)]',
                 )}
               >
@@ -265,63 +318,67 @@ export function HomePage() {
 
       <Tageskarte item={daily.item} slot={daily.slot} plan={plan} onUsePrompt={fillPrompt} />
 
-      <NewsStrip items={newsItems} />
-
-      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-        <Link to={matchTo} className="text-neutral-300 hover:text-white hover:underline">
-          {matchLabel}
-        </Link>
-        {resume && (
-          <Link to={resume.path} className="text-neutral-400 hover:underline">
-            {t('home.tileResume')}: {resume.title}
-          </Link>
-        )}
-      </p>
-
-      <details
-        className="rounded-2xl border border-border/70 bg-surface-2/40 p-3"
-        open={othersOpen}
-        onToggle={(e) => setOthersOpen((e.target as HTMLDetailsElement).open)}
-      >
-        <summary className="cursor-pointer list-none text-sm font-medium text-neutral-200 marker:content-none">
-          {t('home.otherOptions')}
-        </summary>
-        <div className="mt-3 space-y-3">
-          {fuerDich.length === 0 ? (
-            <div className="space-y-2">
-              <Empty emoji="✨" title={t('home.dealsEmpty')} hint={t('home.dealsEmptyHint')} className="py-6" />
-              <Link to={matchTo} className="inline-flex text-sm text-neutral-300 hover:text-white hover:underline">
-                {matchLabel} →
-              </Link>
-            </div>
-          ) : (
-            <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
-              <ul className="flex snap-x snap-mandatory gap-2">
-                {fuerDich.map((item) => (
-                  <li key={item.id}>
-                    <FuerDichCard item={item} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {prefs.completed && (
-            <Link to="/match" className="inline-flex text-sm text-[var(--theme-accent)] hover:underline">
-              {t('home.ctaMatch')} →
-            </Link>
-          )}
-          <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
-            <Link to="/wallet" className="tabular-nums text-white hover:text-[var(--theme-accent)]">
-              {credits.balance} Credits
-            </Link>
-            <span>{formatSupplyLine()}</span>
-            {getSignupIdentity()?.earlyTester && (
-              <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
-            )}
-            <span>· {t('home.creditsPeek')}</span>
-          </p>
+      <section className="space-y-3 pt-2" aria-labelledby="mehr-entdecken">
+        <div>
+          <h2 id="mehr-entdecken" className="text-xs font-medium uppercase tracking-wider text-muted">
+            {t('home.mehrEntdecken')}
+          </h2>
+          <p className="mt-1 text-[11px] text-muted">{t('home.mehrHint')}</p>
         </div>
-      </details>
+        <ul className="divide-y divide-border/70">
+          {discover.map((item) => (
+            <li key={item.to + item.label}>
+              <Link
+                to={item.to}
+                className="flex items-baseline justify-between gap-3 py-2.5 text-sm text-ink-soft hover:text-ink"
+              >
+                <span>{item.label}</span>
+                <span className="min-w-0 truncate text-[11px] text-muted">{item.hint}</span>
+              </Link>
+            </li>
+          ))}
+          {resume && (
+            <li>
+              <Link
+                to={resume.path}
+                className="flex items-baseline justify-between gap-3 py-2.5 text-sm text-ink-soft hover:text-ink"
+              >
+                <span>
+                  {t('home.tileResume')}: {resume.title}
+                </span>
+                <span className="text-[11px] text-muted">{t('home.tileResumeHint')}</span>
+              </Link>
+            </li>
+          )}
+        </ul>
+
+        <NewsStrip items={newsItems} />
+
+        {fuerDich.length === 0 ? (
+          <Empty emoji="✨" title={t('home.dealsEmpty')} hint={t('home.dealsEmptyHint')} className="py-6" />
+        ) : (
+          <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
+            <ul className="flex snap-x snap-mandatory gap-2">
+              {fuerDich.map((item) => (
+                <li key={item.id}>
+                  <FuerDichCard item={item} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
+          <Link to="/wallet" className="tabular-nums text-ink hover:text-[var(--theme-accent)]">
+            {credits.balance} Credits
+          </Link>
+          <span>{formatSupplyLine()}</span>
+          {getSignupIdentity()?.earlyTester && (
+            <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
+          )}
+          <span>· {t('home.creditsPeek')}</span>
+        </p>
+      </section>
     </div>
   )
 }

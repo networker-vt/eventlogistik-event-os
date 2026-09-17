@@ -1,5 +1,6 @@
 /**
- * Orbit Look / Style — demo advisor (photo + video).
+ * Orbit Kabine — demo photo/video try-on.
+ * Base (photo + 1–2 variants) is free. Credits only on extra variants / nearby shop boosts.
  * No on-device ML. Filters + labeled variants + seeded shops / nearby services.
  */
 import { getPrefs } from './prefs'
@@ -37,6 +38,10 @@ export const LOOK_WORDS = [
   'look',
   'style',
   'stil',
+  'kabine',
+  'anprobe',
+  'try-on',
+  'tryon',
   ...Object.values(LOOK_CUES).flat(),
 ]
 
@@ -73,6 +78,15 @@ export const LOOK_VARIANTS: LookVariant[] = [
     labelDe: 'Original',
     hintDe: 'Dein Foto, unverändert',
     filter: 'none',
+    overlay: 'transparent',
+    free: true,
+    intents: ['kleidung', 'schuhe', 'frisur', 'makeup', 'brille', 'kids'],
+  },
+  {
+    id: 'klar',
+    labelDe: 'Klar',
+    hintDe: 'Demo-Filter · etwas mehr Kontrast — frei',
+    filter: 'contrast(1.06) saturate(1.08)',
     overlay: 'transparent',
     free: true,
     intents: ['kleidung', 'schuhe', 'frisur', 'makeup', 'brille', 'kids'],
@@ -252,8 +266,12 @@ const PLACE_FOR_INTENT: Record<LookIntent, PlaceKind[]> = {
 
 export function variantsFor(intent: LookIntent, extraUnlocked: boolean): LookVariant[] {
   const pool = LOOK_VARIANTS.filter((v) => v.intents.includes(intent) || v.id === 'original')
+  const free = pool.filter((v) => v.free)
   if (extraUnlocked) return pool
-  return pool.filter((v) => v.free)
+  /** Photo (original) + 1–2 free variants. Credits only on extras. */
+  const photo = free.filter((v) => v.id === 'original')
+  const extras = free.filter((v) => v.id !== 'original').slice(0, 2)
+  return [...photo, ...extras]
 }
 
 export function productsFor(intent: LookIntent): LookProduct[] {
