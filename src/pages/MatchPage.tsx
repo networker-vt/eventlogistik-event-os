@@ -38,6 +38,7 @@ import {
   type MatchScore,
   type MutualMatch,
 } from '../lib/match'
+import { listingIsSafeForKids, kidsMaySeeJobs, isKidsMode, subscribeKids } from '../lib/kids'
 import type { Listing, Profile } from '../types'
 
 type DeckCard =
@@ -65,6 +66,7 @@ export function MatchPage() {
     if (typeof window !== 'undefined' && window.location.pathname.includes('/treffer')) return 'seeker'
     return getMatchDeckMode(getPrefs().side === 'employer' ? 'company' : 'seeker')
   })
+  const [kids, setKids] = useState(isKidsMode)
 
   useEffect(() => {
     if (forceCrew) {
@@ -81,11 +83,13 @@ export function MatchPage() {
     const u2 = subscribeSwipes(() => setSwipeTick((n) => n + 1))
     const u3 = subscribeCompany(() => setCompany(getCompany()))
     const u4 = subscribeCredits(() => setBudget(getSwipeBudget()))
+    const u5 = subscribeKids(() => setKids(isKidsMode()))
     return () => {
       u1()
       u2()
       u3()
       u4()
+      u5()
     }
   }, [])
 
@@ -97,11 +101,17 @@ export function MatchPage() {
       : prefs.side === 'seeker' || (prefs.side === 'both' && deckMode === 'seeker')
 
   const deck = useMemo((): DeckCard[] => {
+    if (kids && !useSeekerDeck) return []
     if (useSeekerDeck) {
       const done = swipedIds(['job', 'company'])
       const pool = store
         .listListings({})
         .filter((l) => isSeekerFeedListing(l) && l.kind === 'offer' && l.status === 'active' && !done.has(l.id))
+        .filter((l) => {
+          if (!kids) return true
+          if (!kidsMaySeeJobs()) return false
+          return listingIsSafeForKids(l)
+        })
       const ranked = rankForWorld(pool, prefs)
       const jobs = ranked.length
         ? ranked
@@ -148,7 +158,7 @@ export function MatchPage() {
         score: scoreCandidateMatch(p, prefs, company),
       }))
     return loosePeople
-  }, [prefs, company, useSeekerDeck, toast, user?.id])
+  }, [prefs, company, useSeekerDeck, toast, user?.id, kids])
 
   const current = deck[0]
 
@@ -292,7 +302,7 @@ export function MatchPage() {
         </div>
         <div className="flex items-center gap-2">
           <LaneBadge lane="free" />
-          <Button size="sm" variant="ghost" onClick={() => navigate('/prefs')}>
+          <Button size="sm" variant="secondary" onClick={() => navigate('/prefs')}>
             <SlidersHorizontal size={16} /> {t('match.tweakPrefs')}
           </Button>
         </div>

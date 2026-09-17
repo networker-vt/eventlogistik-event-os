@@ -1,4 +1,4 @@
-# Orbit Credits (v2.5.0)
+# Orbit Credits (v2.6.0)
 
 Bitcoin-style **hard cap: 21.000.000** Orbit Credits. **Balance = sum(`credit_events.delta`)**. Every write is an append-only intent with an idempotent **`txn_id`**. Duplicate `txn_id` is a no-op.
 
@@ -89,6 +89,7 @@ No extra +100 seed. If a pool is empty, the grant fails.
 | First successful match | 15 | once |
 | Referral demo-signup | 40 | per demo |
 | Ideas box | 8 | max 3 |
+| **Contributor merged PR** | **120** | **1 per PR** (`contributor:pr:{n}`, required `serverOrdinal === prNumber`, never client-mint) |
 | Review | 10 | max 5 |
 | Search / Match day | 5 | max 7 days |
 | Job completed | 25 | max 5 |

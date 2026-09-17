@@ -4,7 +4,7 @@
 const KEY = 'orbit_resume_v1'
 const EVT = 'orbit-resume-changed'
 
-const KEEP = [/^\/listings/, /^\/look/, /^\/kabine/, /^\/reise/, /^\/abflug/, /^\/match/, /^\/treffer/, /^\/crew/, /^\/social/, /^\/firma/, /^\/wallet#gift/]
+const KEEP = [/^\/listings/, /^\/look/, /^\/kabine/, /^\/reise/, /^\/abflug/, /^\/match/, /^\/treffer/, /^\/crew/, /^\/social/, /^\/firma/, /^\/wallet#gift/, /^\/campus/]
 
 export interface ResumePoint {
   path: string

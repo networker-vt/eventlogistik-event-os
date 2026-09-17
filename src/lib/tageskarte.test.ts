@@ -67,4 +67,13 @@ describe('Tageskarte Money Boy rotation', () => {
     )
     expect(ids.size).toBeGreaterThan(1)
   })
+
+  it('Kids mode Tageskarte stays off adult Kabine try-on and Abflug booking', () => {
+    const kidsTag = poolForSlot('tag', true)
+    expect(kidsTag.some((i) => i.parentKids || i.themes.includes('kids') || i.themes.includes('alltag'))).toBe(true)
+    expect(kidsTag.every((i) => !i.to?.startsWith('/abflug'))).toBe(true)
+    expect(kidsTag.every((i) => !i.to?.startsWith('/campus'))).toBe(true)
+    const evening = pickTageskarte(new Date('2026-09-17T19:40:00+02:00'), { kids: true })
+    expect(evening.item.to?.startsWith('/kabine')).not.toBe(true)
+  })
 })

@@ -54,7 +54,7 @@ import {
 } from '../lib/credits'
 import { ledgerModeLine } from '../lib/creditLedger'
 import { canPayout, subscribeVerify } from '../lib/verify'
-import { REWARD_RULES_DE } from '../lib/rewards'
+import { REWARD_RULES_DE, REWARD_RULES_EN, CONTRIBUTOR_REWARDS, isVerbesserer, getRewardFlags, subscribeRewards } from '../lib/rewards'
 import {
   WALLET_METHODS,
   connectMethod,
@@ -72,6 +72,8 @@ import { listTickets, subscribeTickets } from '../lib/tickets'
 import { store } from '../lib/store'
 import { formatDateTime, formatPrice } from '../lib/utils'
 import { cn } from '../lib/utils'
+import { KidsBlocked } from '../components/kids/KidsBlocked'
+import { kidsHideWallet, subscribeKids } from '../lib/kids'
 
 export function WalletPage() {
   const { t, resolved } = useI18n()
@@ -99,6 +101,8 @@ export function WalletPage() {
   const [packPick, setPackPick] = useState<CreditPackId | null>(null)
   const [protocol, setProtocol] = useState(getProtocol)
   const [payoutOk, setPayoutOk] = useState(canPayout)
+  const [verbesserer, setVerbesserer] = useState(isVerbesserer)
+  const [kids, setKids] = useState(kidsHideWallet)
   const identity = getSignupIdentity()
   const p2pOnly = isPackMarketP2P()
 
@@ -112,6 +116,8 @@ export function WalletPage() {
   )
   useEffect(() => subscribeTickets(() => setTickets(listTickets())), [])
   useEffect(() => subscribeVerify(() => setPayoutOk(canPayout())), [])
+  useEffect(() => subscribeRewards(() => setVerbesserer(isVerbesserer())), [])
+  useEffect(() => subscribeKids(() => setKids(kidsHideWallet())), [])
 
   useEffect(() => {
     if (hash !== '#gift') return
@@ -128,6 +134,10 @@ export function WalletPage() {
   const note = (msg: string) => {
     setFlash(msg)
     window.setTimeout(() => setFlash(null), 3200)
+  }
+
+  if (kids) {
+    return <KidsBlocked title={t('kids.walletBlocked')} hint={t('kids.zeroCredits')} />
   }
 
   const runConnect = (id: WalletMethodId, next: boolean) => {
@@ -528,12 +538,43 @@ export function WalletPage() {
           ))}
         </ul>
         <div className="rounded-xl border border-border/70 bg-black/20 p-3">
-          <h3 className="text-sm font-semibold">Faire Rewards (Demo)</h3>
-          <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-neutral-300">
-            {REWARD_RULES_DE.map((r) => (
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
+            Faire Rewards (Demo)
+            {verbesserer && (
+              <Badge tone="amber" data-verbesserer="1">
+                {t('rewards.verbesserer')}
+              </Badge>
+            )}
+          </h3>
+          <p className="mt-1 text-[11px] text-muted">{t('rewards.verbessererHint')}</p>
+          <table className="mt-3 w-full text-left text-xs">
+            <caption className="sr-only">{t('rewards.tableTitle')}</caption>
+            <thead>
+              <tr className="text-muted">
+                <th className="pb-1 font-medium">{t('rewards.tableTitle')}</th>
+                <th className="pb-1 font-medium">Credits</th>
+                <th className="pb-1 font-medium">Cap</th>
+              </tr>
+            </thead>
+            <tbody>
+              {CONTRIBUTOR_REWARDS.map((row) => (
+                <tr key={row.id} className="border-t border-border/50">
+                  <td className="py-1">{resolved === 'de' ? row.de : row.en}</td>
+                  <td className="py-1 tabular-nums">{row.amount}</td>
+                  <td className="py-1 tabular-nums">{row.cap}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 text-xs text-muted">{t('rewards.noClientMint')}</p>
+          <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-neutral-300">
+            {(resolved === 'de' ? REWARD_RULES_DE : REWARD_RULES_EN).map((r) => (
               <li key={r}>{r}</li>
             ))}
           </ul>
+          <p className="mt-2 text-[11px] text-muted">
+            Flags: ideas {getRewardFlags().ideas} · merged PRs {getRewardFlags().grantedPrs.join(', ') || '—'}
+          </p>
         </div>
       </section>
 
@@ -555,7 +596,7 @@ export function WalletPage() {
             <Button size="sm" onClick={() => runCash(sheet)}>
               {sheet === 'topup' ? '+250 € Demo' : '−100 € Demo'}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setSheet(null)}>
+            <Button size="sm" variant="secondary" onClick={() => setSheet(null)}>
               Abbrechen
             </Button>
           </div>

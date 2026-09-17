@@ -11,6 +11,9 @@ describe('product surface names DE+EN', () => {
       expect(tStatic('nav.crew', locale)).toBe('Crew')
       expect(tStatic('match.companyDeck', locale)).toBe('Crew')
       expect(tStatic('nav.wallet', locale)).toBe('Wallet')
+      expect(tStatic('campus.nav', locale)).toBe('Campus')
+      expect(tStatic('campus.title', locale)).toBe('Campus')
+      expect(tStatic('kids.title', locale)).toBe('Orbit Kids')
     }
   })
 })

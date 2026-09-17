@@ -24,6 +24,8 @@ import {
 } from '../lib/social'
 import { store } from '../lib/store'
 import { formatDateTime, cn } from '../lib/utils'
+import { KidsBlocked } from '../components/kids/KidsBlocked'
+import { emitParentalRequired, kidsHideSocialChat, subscribeKids } from '../lib/kids'
 
 export function SocialPage() {
   const { t } = useI18n()
@@ -36,9 +38,11 @@ export function SocialPage() {
   const [shareId, setShareId] = useState('')
   const [feature, setFeature] = useState(false)
   const [credits, setCredits] = useState(getCredits)
+  const [kids, setKids] = useState(kidsHideSocialChat)
 
   useEffect(() => subscribeSocial(() => setSocial(getSocial())), [])
   useEffect(() => subscribeCredits(() => setCredits(getCredits())), [])
+  useEffect(() => subscribeKids(() => setKids(kidsHideSocialChat())), [])
 
   const actor = user ?? { id: DEMO_USER_ID, name: 'Alex Müller' }
   const listings = store.listListings({}).slice(0, 8)
@@ -88,6 +92,12 @@ export function SocialPage() {
         {t('social.demo')}
       </p>
 
+      {kids ? (
+        <KidsBlocked
+          title={t('kids.socialBlocked')}
+          onAskParent={() => emitParentalRequired('external_social')}
+        />
+      ) : (
       <section className="rounded-2xl border border-border bg-surface-2 p-4 space-y-2">
         <Textarea
           value={draft}
@@ -127,6 +137,7 @@ export function SocialPage() {
           {t('social.post')}
         </Button>
       </section>
+      )}
 
       <section className="space-y-2">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
@@ -158,6 +169,7 @@ export function SocialPage() {
                 >
                   {following ? t('social.following') : t('social.follow')}
                 </button>
+                {!kids && (
                 <button
                   type="button"
                   className="text-xs text-muted hover:text-ink"
@@ -174,6 +186,7 @@ export function SocialPage() {
                 >
                   DM
                 </button>
+                )}
               </li>
             )
           })}

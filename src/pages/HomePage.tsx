@@ -30,6 +30,13 @@ import { pickRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotAsk'
 import { canListen, listenOnce } from '../lib/speech'
 import { pickTageskarte, tageskarteCopy } from '../lib/tageskarte'
 import { cn } from '../lib/utils'
+import {
+  isKidsMode,
+  kidsHideTravel,
+  kidsHideWallet,
+  kidsMaySeeJobs,
+  subscribeKids,
+} from '../lib/kids'
 
 type WarmChip = 'seek' | 'offer' | 'resume'
 
@@ -55,11 +62,13 @@ export function HomePage() {
   const [assistNote, setAssistNote] = useState<string | null>(null)
   const [robotTapped, setRobotTapped] = useState(false)
   const [robotAsk, setRobotAsk] = useState<RobotAsk | null>(null)
+  const [kids, setKids] = useState(isKidsMode)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const { listings: raw } = useListings({})
-  const daily = useMemo(() => pickTageskarte(), [])
+  const daily = useMemo(() => pickTageskarte(new Date(), { kids }), [kids])
   const dailyCopy = tageskarteCopy(daily.item, resolved)
   const robotCopy = robotAsk ? robotAskCopy(robotAsk, resolved) : null
+  const hideWallet = kidsHideWallet()
 
   useEffect(() => {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
@@ -70,6 +79,7 @@ export function HomePage() {
     const u6 = subscribeChannels(() => setBehaviorTick((n) => n + 1))
     const u7 = subscribeResume(() => setResume(getResume()))
     const u8 = subscribeReminders(() => setReminders(dueReminders()))
+    const u9 = subscribeKids(() => setKids(isKidsMode()))
     return () => {
       u1()
       u2()
@@ -79,14 +89,17 @@ export function HomePage() {
       u6()
       u7()
       u8()
+      u9()
       abortRef.current?.abort()
     }
   }, [])
 
-  const fuerDich = useMemo(
-    () => rankFuerDich(raw, prefs, resolved, 8),
-    [raw, prefs, behaviorTick, resolved],
-  )
+  const fuerDich = useMemo(() => {
+    const ranked = rankFuerDich(raw, prefs, resolved, 8)
+    if (!kids) return ranked
+    if (!kidsMaySeeJobs()) return []
+    return ranked.filter((item) => item.action !== 'look' && item.action !== 'book')
+  }, [raw, prefs, behaviorTick, resolved, kids])
   const newsItems = useMemo(() => rankHomeNews(prefs, resolved, 2), [prefs, behaviorTick, resolved])
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
@@ -103,13 +116,7 @@ export function HomePage() {
     resume: resume ? `${t('home.stemResume')}${resume.title}` : t('home.stemThink'),
   }
   const placeholder =
-    warm === 'offer'
-      ? t('home.phOffer')
-      : warm === 'resume'
-        ? t('home.phResume')
-        : companyView
-          ? t('assist.phCompany')
-          : t('home.phSeek')
+    warm === 'offer' ? t('home.phOffer') : warm === 'resume' ? t('home.phResume') : companyView ? t('assist.phCompany') : t('home.phSeek')
 
   const pickWarm = (id: WarmChip) => {
     setWarm(id)
@@ -178,7 +185,7 @@ export function HomePage() {
   }
 
   const onRobotTap = () => {
-    const next = pickRobotAsk().item
+    const next = pickRobotAsk(new Date(), { kids }).item
     setRobotAsk(next)
     setRobotTapped(true)
     window.setTimeout(() => setRobotTapped(false), 700)
@@ -192,11 +199,19 @@ export function HomePage() {
 
   const discover = [
     { to: matchTo, label: matchLabel, hint: t('home.discoverTrefferHint') },
-    { to: '/abflug', label: t('travel.nav'), hint: t('home.discoverAbflugHint') },
-    { to: '/crew', label: t('nav.crew'), hint: t('home.discoverCrewHint') },
-    { to: '/wallet', label: t('nav.wallet'), hint: t('home.discoverWalletHint') },
-    { to: '/firma', label: t('firma.nav'), hint: t('firma.hint') },
-    { to: '/social', label: t('social.title'), hint: t('social.kicker') },
+    ...(!kidsHideTravel()
+      ? [{ to: '/abflug', label: t('travel.nav'), hint: t('home.discoverAbflugHint') }]
+      : []),
+    ...(!kids ? [{ to: '/crew', label: t('nav.crew'), hint: t('home.discoverCrewHint') }] : []),
+    ...(!hideWallet
+      ? [{ to: '/wallet', label: t('nav.wallet'), hint: t('home.discoverWalletHint') }]
+      : []),
+    ...(!kids
+      ? [
+          { to: '/firma', label: t('firma.nav'), hint: t('firma.hint') },
+          { to: '/social', label: t('social.title'), hint: t('social.kicker') },
+        ]
+      : []),
   ]
 
   return (
@@ -226,21 +241,13 @@ export function HomePage() {
             data-robot-ask={robotAsk.kind}
           >
             <p className="text-sm text-ink">{robotCopy.question}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-              <button
-                type="button"
-                className="text-[var(--theme-accent)] hover:underline"
-                onClick={() => navigate(robotAsk.to)}
-              >
-                {robotCopy.yes} →
-              </button>
-              <button
-                type="button"
-                className="text-muted hover:underline"
-                onClick={() => setRobotAsk(null)}
-              >
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Button type="button" size="sm" variant="secondary" onClick={() => navigate(robotAsk.to)}>
+                {robotCopy.yes}
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => setRobotAsk(null)}>
                 {t('home.robotDismiss')}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -260,19 +267,19 @@ export function HomePage() {
           </p>
         )}
 
-        <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-1.5">
-          {chips.map((chip) => (
-            <button
+        <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-2">
+          {chips
+            .filter((chip) => !(kids && chip.id === 'offer'))
+            .map((chip) => (
+            <Button
               key={chip.id}
               type="button"
+              size="sm"
+              variant={warm === chip.id ? 'tonal' : 'secondary'}
               onClick={() => pickWarm(chip.id)}
-              className={cn(
-                'rounded-full px-2.5 py-1 text-xs tracking-wide',
-                warm === chip.id ? 'text-ink-soft' : 'text-muted hover:text-ink-soft',
-              )}
             >
               {chip.title}
-            </button>
+            </Button>
           ))}
         </nav>
 
@@ -297,19 +304,18 @@ export function HomePage() {
           {assistNote && <p className="text-[11px] text-amber-200">{assistNote}</p>}
           <div className="flex items-center gap-2">
             {canListen() && (
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="md"
                 onClick={() => void onMic()}
                 aria-label={t('assist.voice')}
-                className={cn(
-                  'tap-target flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface-3 text-ink-soft',
-                  listening && 'border-[var(--theme-accent)] text-[var(--theme-accent)]',
-                )}
+                className={cn('h-11 w-11 shrink-0 px-0', listening && 'bg-[var(--theme-accent)]/15')}
               >
                 <Mic size={18} />
-              </button>
+              </Button>
             )}
-            <Button type="submit" className="flex-1" disabled={busy}>
+            <Button type="submit" className="flex-1" disabled={busy} data-home-primary="1">
               {busy ? t('assist.thinking') : t('assist.submit')} <Send size={16} />
             </Button>
           </div>
@@ -368,16 +374,18 @@ export function HomePage() {
           </div>
         )}
 
-        <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
-          <Link to="/wallet" className="tabular-nums text-ink hover:text-[var(--theme-accent)]">
-            {credits.balance} Credits
-          </Link>
-          <span>{formatSupplyLine()}</span>
-          {getSignupIdentity()?.earlyTester && (
-            <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
-          )}
-          <span>· {t('home.creditsPeek')}</span>
-        </p>
+        {!hideWallet && (
+          <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
+            <Link to="/wallet" className="tabular-nums text-ink hover:text-[var(--theme-accent)]">
+              {credits.balance} Credits
+            </Link>
+            <span>{formatSupplyLine()}</span>
+            {getSignupIdentity()?.earlyTester && (
+              <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
+            )}
+            <span>· {t('home.creditsPeek')}</span>
+          </p>
+        )}
       </section>
     </div>
   )

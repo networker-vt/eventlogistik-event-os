@@ -112,6 +112,8 @@ export interface Listing {
   offerTags?: string[]
   /** What this post needs (chips). */
   needTags?: string[]
+  /** Jugendschutz: listing may appear in Orbit Kids Treffer. */
+  safeForKids?: boolean
 }
 
 

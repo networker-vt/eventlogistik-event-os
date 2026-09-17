@@ -8,9 +8,10 @@ import { CREDITS_COSTS, getCredits } from '../lib/credits'
 import { useI18n } from '../lib/i18n'
 import { bookTravelOffer, creditsNeeded } from '../lib/tickets'
 import { TRAVEL_DISCLAIMER_DE, TRAVEL_DISCLAIMER_EN, TRAVEL_KIND_META, getTravelOffer } from '../lib/travel'
-import { formatPrice } from '../lib/utils'
+import { formatPrice, cn } from '../lib/utils'
 import { getWallet, WALLET_METHODS, type WalletMethodId } from '../lib/wallet'
-import { cn } from '../lib/utils'
+import { KidsBlocked } from '../components/kids/KidsBlocked'
+import { emitParentalRequired, kidsHideTravel } from '../lib/kids'
 
 export function TravelCheckoutPage() {
   const { offerId } = useParams()
@@ -22,6 +23,14 @@ export function TravelCheckoutPage() {
   const [methodId, setMethodId] = useState<WalletMethodId>('sepa')
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  if (kidsHideTravel()) {
+    return (
+      <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome">
+        <KidsBlocked title={t('kids.travelBlocked')} onAskParent={() => emitParentalRequired('leave_kids')} />
+      </div>
+    )
+  }
 
   if (!offer) {
     return (

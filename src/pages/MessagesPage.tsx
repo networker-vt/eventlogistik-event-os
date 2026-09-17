@@ -10,6 +10,8 @@ import { useI18n } from '../lib/i18n'
 import { store } from '../lib/store'
 import { formatDateTime, cn } from '../lib/utils'
 import type { ThreadKind } from '../types'
+import { KidsBlocked } from '../components/kids/KidsBlocked'
+import { kidsHidePublicChat } from '../lib/kids'
 
 const KINDS: { id: 'all' | ThreadKind; key: string }[] = [
   { id: 'all', key: 'chat.all' },
@@ -48,6 +50,10 @@ export function MessagesPage() {
       navigate(`/messages/${visible[0].id}`, { replace: true })
     }
   }, [user, threadId, visible, navigate])
+
+  if (kidsHidePublicChat()) {
+    return <KidsBlocked title={t('kids.chatBlocked')} />
+  }
 
   if (!user) {
     return (

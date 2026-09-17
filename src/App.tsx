@@ -62,6 +62,8 @@ const ErfahrungenPage = lazy(() =>
   import('./pages/ErfahrungenPage').then((m) => ({ default: m.ErfahrungenPage })),
 )
 const TicketPage = lazy(() => import('./pages/TicketPage').then((m) => ({ default: m.TicketPage })))
+const CampusPage = lazy(() => import('./pages/CampusPage').then((m) => ({ default: m.CampusPage })))
+const KidsPage = lazy(() => import('./pages/KidsPage').then((m) => ({ default: m.KidsPage })))
 
 export default function App() {
   return (
@@ -121,6 +123,9 @@ function AppReady() {
               <Route path="auth" element={<AuthPage />} />
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="mehr" element={<MehrPage />} />
+              <Route path="campus" element={<CampusPage />} />
+              <Route path="lernen" element={<Navigate to="/campus" replace />} />
+              <Route path="kids" element={<KidsPage />} />
               <Route path="channels" element={<ChannelsPage />} />
               <Route path="look" element={<LookPage />} />
               <Route path="kabine" element={<LookPage />} />

@@ -9,7 +9,7 @@
 
 export type DaySlot = 'morgen' | 'tag' | 'abend'
 
-export type TageskarteTheme = 'job' | 'laune' | 'alltag' | 'familie' | 'kids' | 'look' | 'freizeit'
+export type TageskarteTheme = 'job' | 'laune' | 'alltag' | 'familie' | 'kids' | 'look' | 'freizeit' | 'lernen'
 
 export interface TageskarteItem {
   id: string
@@ -273,6 +273,12 @@ const SLOT_THEMES: Record<DaySlot, TageskarteTheme[]> = {
   abend: ['look', 'laune', 'freizeit'],
 }
 
+const KIDS_SLOT_THEMES: Record<DaySlot, TageskarteTheme[]> = {
+  morgen: ['job', 'laune'],
+  tag: ['kids', 'familie', 'alltag'],
+  abend: ['kids', 'laune', 'freizeit'],
+}
+
 export function berlinOrLocalClock(now = new Date()): {
   dateKey: string
   hour: number
@@ -314,9 +320,16 @@ export function slotFromHour(hour: number): DaySlot {
   return 'abend'
 }
 
-export function poolForSlot(slot: DaySlot): TageskarteItem[] {
-  const allowed = new Set(SLOT_THEMES[slot])
-  return TAGESKARTE_POOL.filter((item) => item.slot === slot && item.themes.some((th) => allowed.has(th)))
+export function poolForSlot(slot: DaySlot, kids = false): TageskarteItem[] {
+  const allowed = new Set(kids ? KIDS_SLOT_THEMES[slot] : SLOT_THEMES[slot])
+  return TAGESKARTE_POOL.filter((item) => {
+    if (item.slot !== slot) return false
+    if (!item.themes.some((th) => allowed.has(th))) return false
+    if (kids && item.to?.startsWith('/kabine')) return false
+    if (kids && item.to?.startsWith('/abflug')) return false
+    if (item.to?.startsWith('/campus')) return false
+    return true
+  })
 }
 
 /** FNV-1a — stable daily seed, no Math.random. */
@@ -335,7 +348,10 @@ export function pickFromPool(pool: TageskarteItem[], seed: number): TageskarteIt
   return pool[seed % pool.length]
 }
 
-export function pickTageskarte(now = new Date()): {
+export function pickTageskarte(
+  now = new Date(),
+  opts?: { kids?: boolean },
+): {
   item: TageskarteItem
   slot: DaySlot
   dateKey: string
@@ -345,7 +361,7 @@ export function pickTageskarte(now = new Date()): {
 } {
   const clock = berlinOrLocalClock(now)
   const slot = slotFromHour(clock.hour)
-  const pool = poolForSlot(slot)
+  const pool = poolForSlot(slot, opts?.kids)
   const seed = dailySeed(clock.dateKey, slot)
   return { item: pickFromPool(pool, seed), slot, dateKey: clock.dateKey, hour: clock.hour, zone: clock.zone, seed }
 }
