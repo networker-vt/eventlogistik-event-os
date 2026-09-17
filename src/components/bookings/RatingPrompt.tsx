@@ -50,7 +50,7 @@ export function RatingPrompt({
         {done ? 'Danke für deine Bewertung' : 'Job abgeschlossen — bitte bewerten'}
       </h2>
       <p className="mt-1 text-sm text-muted">
-        Wie war die Zusammenarbeit mit <span className="text-white">{toUserName}</span>?
+        Wie war die Zusammenarbeit mit <span className="text-ink">{toUserName}</span>?
         Ratings stärken Trust auf der Plattform.
       </p>
 
@@ -84,7 +84,7 @@ export function RatingPrompt({
             onChange={(e) => setComment(e.target.value)}
             placeholder="Kurzfeedback (optional) — Pünktlichkeit, Kommunikation, Qualität…"
             rows={3}
-            className="mt-3 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-white placeholder:text-muted focus:border-cyan/50 focus:outline-none"
+            className="mt-3 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-cyan/50 focus:outline-none"
           />
           <Button className="mt-3" onClick={submit}>
             Bewertung absenden

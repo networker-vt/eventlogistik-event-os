@@ -733,15 +733,15 @@ export const CREDITS_COSTS: Record<CreditSpendKind, { credits: number; label: st
   unlock_message: { credits: 5, label: 'Nachricht freischalten (Demo)' },
   demo_gig: { credits: 20, label: 'Demo-Gig buchen' },
   sponsor_fee: { credits: 1, label: 'Sponsoring-Gebühr (Burn)' },
-  look_tryon: { credits: 15, label: 'Look: Extra-Varianten (heute)' },
-  look_shop: { credits: 20, label: 'Look: Nearby-Shop featuren (Demo)' },
+  look_tryon: { credits: 15, label: 'Kabine: Extra-Varianten (heute)' },
+  look_shop: { credits: 20, label: 'Kabine: Nearby-Shop featuren (Demo)' },
   assist_priority: { credits: 8, label: 'Assist extra (nach 8 frei/Tag)' },
 }
 
 export const CREDITS_FREE_DE = [
   'Assist fragen',
   `Match browsen + ${FREE_SWIPES_PER_DAY} Swipes / Tag`,
-  'Look-Analyse (Basis)',
+  'Kabine Basis (Foto + 1–2 Varianten)',
   'Chat (Match / Booking / Support)',
   'Wallet ansehen',
   'Social lesen',
@@ -750,7 +750,7 @@ export const CREDITS_FREE_DE = [
 export const CREDITS_FREE_EN = [
   'Ask Assist',
   `Browse Match + ${FREE_SWIPES_PER_DAY} swipes / day`,
-  'Look analysis (basic)',
+  'Kabine base (photo + 1–2 variants)',
   'Chat (Match / Booking / Support)',
   'Wallet view',
   'Read Social',

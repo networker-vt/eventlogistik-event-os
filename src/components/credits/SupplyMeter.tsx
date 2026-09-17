@@ -11,7 +11,7 @@ export function SupplyMeter({ className }: { className?: string }) {
   return (
     <div className={cn('space-y-2', className)}>
       <div className="flex items-baseline justify-between gap-2">
-        <p className="text-sm font-semibold tabular-nums text-white">{formatSupplyLine(p)}</p>
+        <p className="text-sm font-semibold tabular-nums text-ink">{formatSupplyLine(p)}</p>
         <p className="text-[11px] text-muted">Cap 21.000.000</p>
       </div>
       <div
@@ -33,7 +33,7 @@ export function SupplyMeter({ className }: { className?: string }) {
       </div>
       <div className="rounded-lg border border-violet-400/25 bg-black/20 px-3 py-2">
         <p className="text-[11px] uppercase tracking-wider text-violet-200">Wert-Index (Stub)</p>
-        <p className="text-xl font-bold tabular-nums text-white">{wert.value.toLocaleString('de-DE')}</p>
+        <p className="text-xl font-bold tabular-nums text-ink">{wert.value.toLocaleString('de-DE')}</p>
         <p className="text-[11px] text-muted">
           {wert.activeUsers.toLocaleString('de-DE')} aktive Nutzer (Demo) · {wert.formula}
         </p>

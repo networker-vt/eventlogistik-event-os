@@ -108,7 +108,7 @@ export function rankMatchSuggestions(
         de ? 'Urlaub / Reise — passend zu Prefs' : 'Travel that fits your prefs',
         hit,
       ),
-      to: `/reise/${o.id}`,
+      to: `/abflug/${o.id}`,
     })
   }
   buckets.travel.sort((a, b) => b.percent - a.percent)

@@ -20,7 +20,7 @@ export function BrandMark({
           className="h-8 w-8 rounded-lg border border-cyan/25 object-cover"
         />
         <span className="leading-tight">
-          <span className="block font-bold tracking-tight text-white">{ORBIT_BRAND}</span>
+          <span className="block font-bold tracking-tight text-ink">{ORBIT_BRAND}</span>
           <span className="hidden text-[10px] uppercase tracking-wider text-cyan sm:block">
             Matching statt Spam
           </span>
@@ -36,7 +36,7 @@ export function BrandMark({
         className="h-9 w-9 rounded-xl border border-cyan/25 object-cover md:h-10 md:w-10"
       />
       <span className="leading-tight">
-        <span className="block font-bold tracking-tight text-white">{ORBIT_BRAND}</span>
+        <span className="block font-bold tracking-tight text-ink">{ORBIT_BRAND}</span>
         <span className="block max-w-[11rem] truncate text-[10px] text-cyan">{ORBIT_TAGLINE_DE}</span>
       </span>
     </span>
@@ -51,7 +51,7 @@ export function BrandIcon({ className, size = 36 }: { className?: string; size?:
       width={size}
       height={size}
       className={cn(
-        'rounded-xl border border-cyan/25 object-cover shadow-[0_0_18px_rgba(0,240,255,0.18)]',
+        'rounded-xl border border-cyan/25 object-cover shadow-[0_0_18px_color-mix(in_oklab,var(--theme-accent)_18%,transparent)]',
         className,
       )}
     />

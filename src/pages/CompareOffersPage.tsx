@@ -63,7 +63,7 @@ export function CompareOffersPage() {
       <button
         type="button"
         onClick={() => navigate('/match')}
-        className="flex min-h-11 items-center gap-2 text-sm text-muted hover:text-white"
+        className="flex min-h-11 items-center gap-2 text-sm text-muted hover:text-ink"
       >
         <ArrowLeft size={16} /> Match
       </button>
@@ -167,7 +167,7 @@ export function CompareOffersPage() {
                 <tr>
                   <th className="px-4 py-3 font-medium">Kriterium</th>
                   {rows.map(({ booking: b }) => (
-                    <th key={b.id} className="px-4 py-3 font-semibold text-white">
+                    <th key={b.id} className="px-4 py-3 font-semibold text-ink">
                       <Link to={`/profiles/${b.requesterId}`} className="text-cyan hover:underline">
                         {b.requesterName}
                       </Link>

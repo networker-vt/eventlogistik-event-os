@@ -26,7 +26,7 @@ export function Empty({
       <div className="relative mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-surface-3 text-2xl">
         {emoji}
       </div>
-      <p className="relative text-lg font-semibold text-white">{title}</p>
+      <p className="relative text-lg font-semibold text-ink">{title}</p>
       {hint && <p className="relative mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted">{hint}</p>}
       {actionLabel && onAction && (
           <Button className="relative mt-5" onClick={onAction}>

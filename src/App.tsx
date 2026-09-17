@@ -100,14 +100,18 @@ function AppReady() {
               <Route path="material" element={<Navigate to="/marktplatz" replace />} />
               <Route path="transporter" element={<Navigate to="/marktplatz" replace />} />
               <Route path="kuriere" element={<Navigate to="/marktplatz" replace />} />
-              <Route path="hotels" element={<Navigate to="/reise" replace />} />
+              <Route path="hotels" element={<Navigate to="/abflug" replace />} />
               <Route path="jobs" element={<JobsPage />} />
               <Route path="prefs" element={<PrefsPage />} />
               <Route path="match" element={<MatchPage />} />
+              <Route path="treffer" element={<MatchPage />} />
+              <Route path="crew" element={<MatchPage />} />
               <Route path="firma" element={<FirmaPage />} />
               <Route path="marktplatz" element={<MarketplacePage />} />
               <Route path="reise" element={<TravelPage />} />
+              <Route path="abflug" element={<TravelPage />} />
               <Route path="reise/:offerId" element={<TravelCheckoutPage />} />
+              <Route path="abflug/:offerId" element={<TravelCheckoutPage />} />
               <Route path="tickets/:id" element={<TicketPage />} />
               <Route path="social" element={<SocialPage />} />
               <Route path="quellen" element={<QuellenPage />} />
@@ -119,6 +123,7 @@ function AppReady() {
               <Route path="mehr" element={<MehrPage />} />
               <Route path="channels" element={<ChannelsPage />} />
               <Route path="look" element={<LookPage />} />
+              <Route path="kabine" element={<LookPage />} />
               <Route path="mein" element={<MeinPage />} />
               <Route path="foto" element={<PhotoJobsPage />} />
               <Route path="interview" element={<InterviewPage />} />

@@ -4,6 +4,7 @@ import { Camera, ImageIcon, Sparkles, Video } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { LaneBadge } from '../components/credits/LaneBadge'
+import { SoftPaywall } from '../components/credits/SoftPaywall'
 import {
   CREDITS_COSTS,
   getCredits,
@@ -45,6 +46,8 @@ export function LookPage() {
   const [look, setLook] = useState(getLook)
   const [flash, setFlash] = useState<string | null>(null)
   const [prefsTick, setPrefsTick] = useState(0)
+  const [paywall, setPaywall] = useState<null | 'tryon' | 'shop'>(null)
+  const [pendingShop, setPendingShop] = useState<{ id: string; name: string } | null>(null)
 
   useEffect(() => {
     const q = params.get('intent') || params.get('q') || ''
@@ -124,8 +127,8 @@ export function LookPage() {
             className={cn(
               'rounded-full border px-3 py-1.5 text-xs',
               intent === it.id
-                ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-white'
-                : 'border-border text-muted hover:text-white',
+                ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-ink'
+                : 'border-border text-muted hover:text-ink',
             )}
           >
             {it.emoji} {it.labelDe}
@@ -186,7 +189,7 @@ export function LookPage() {
           ) : (
             <img
               src={media.url}
-              alt="Dein Look — Demo, kein Live-ML"
+              alt="Deine Kabine — Demo, kein Live-ML"
               className="max-h-80 w-full object-cover"
               style={{ filter: current?.filter }}
             />
@@ -199,7 +202,7 @@ export function LookPage() {
             <LaneBadge lane={current?.free ? 'free' : 'credits'} />
           </div>
           {current && current.id !== 'original' && (
-            <p className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/55 px-2 py-1 text-[11px] text-white">
+            <p className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/55 px-2 py-1 text-[11px] text-ink">
               {current.labelDe} · {current.hintDe}
             </p>
           )}
@@ -226,8 +229,13 @@ export function LookPage() {
                   variant="secondary"
                   onClick={() => {
                     const meta = CREDITS_COSTS.look_tryon
+                    if (credits.balance < meta.credits) {
+                      setPaywall('tryon')
+                      return
+                    }
                     void spendCredits(meta.credits, 'look_tryon', meta.label).then((ok) => {
                       note(ok ? t('look.tryonUnlocked') : t('credits.notEnough'))
+                      if (!ok) setPaywall('tryon')
                     })
                   }}
                 >
@@ -250,7 +258,7 @@ export function LookPage() {
                           : 'border-border bg-surface-2',
                       )}
                     >
-                      <p className="text-xs font-medium text-white">{v.labelDe}</p>
+                      <p className="text-xs font-medium text-ink">{v.labelDe}</p>
                       <p className="mt-0.5 text-[10px] text-muted">{v.free ? t('look.free') : t('look.extra')}</p>
                     </button>
                   </li>
@@ -270,7 +278,7 @@ export function LookPage() {
                       to={p.href}
                       className="block rounded-xl border border-border bg-surface-2 px-3 py-3 hover:border-[var(--theme-accent)]/40"
                     >
-                      <p className="text-sm font-medium text-white">{p.title}</p>
+                      <p className="text-sm font-medium text-ink">{p.title}</p>
                       <p className="text-[11px] text-muted">
                         {p.shop} · {p.priceLabel}
                       </p>
@@ -282,7 +290,7 @@ export function LookPage() {
                       rel="noreferrer"
                       className="block rounded-xl border border-border bg-surface-2 px-3 py-3 hover:border-[var(--theme-accent)]/40"
                     >
-                      <p className="text-sm font-medium text-white">{p.title}</p>
+                      <p className="text-sm font-medium text-ink">{p.title}</p>
                       <p className="text-[11px] text-muted">
                         {p.shop} · {p.priceLabel} · extern
                       </p>
@@ -308,7 +316,7 @@ export function LookPage() {
                     className="flex items-center justify-between gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2"
                   >
                     <div>
-                      <p className="text-sm font-medium text-white">
+                      <p className="text-sm font-medium text-ink">
                         {p.name}
                         {look.boostedShopId === p.id && (
                           <span className="ml-2 text-[10px] uppercase text-violet-200">Featured</span>
@@ -324,8 +332,17 @@ export function LookPage() {
                       disabled={look.boostedShopId === p.id}
                       onClick={() => {
                         const meta = CREDITS_COSTS.look_shop
+                        if (credits.balance < meta.credits) {
+                          setPendingShop({ id: p.id, name: p.name })
+                          setPaywall('shop')
+                          return
+                        }
                         void spendCredits(meta.credits, 'look_shop', `${meta.label}: ${p.name}`).then((ok) => {
                           if (ok) setBoostedShop(p.id)
+                          else {
+                            setPendingShop({ id: p.id, name: p.name })
+                            setPaywall('shop')
+                          }
                           note(ok ? t('look.shopBoosted') : t('credits.notEnough'))
                         })
                       }}
@@ -338,6 +355,34 @@ export function LookPage() {
             )}
           </section>
         </>
+      )}
+
+      {paywall && (
+        <SoftPaywall
+          title={paywall === 'tryon' ? t('look.paywallTryon') : t('look.paywallShop')}
+          hint={t('look.tryonHint')}
+          cost={CREDITS_COSTS[paywall === 'tryon' ? 'look_tryon' : 'look_shop'].credits}
+          onBuy={() => {
+            const kind = paywall === 'tryon' ? 'look_tryon' : 'look_shop'
+            const meta = CREDITS_COSTS[kind]
+            const label = kind === 'look_shop' && pendingShop ? `${meta.label}: ${pendingShop.name}` : meta.label
+            void spendCredits(meta.credits, kind, label).then((ok) => {
+              if (ok && kind === 'look_tryon') note(t('look.tryonUnlocked'))
+              if (ok && kind === 'look_shop' && pendingShop) {
+                setBoostedShop(pendingShop.id)
+                note(t('look.shopBoosted'))
+              }
+              if (ok) {
+                setPaywall(null)
+                setPendingShop(null)
+              } else note(t('credits.notEnough'))
+            })
+          }}
+          onClose={() => {
+            setPaywall(null)
+            setPendingShop(null)
+          }}
+        />
       )}
     </div>
   )

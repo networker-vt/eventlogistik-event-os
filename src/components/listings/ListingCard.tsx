@@ -66,7 +66,7 @@ export function ListingCard({
         </div>
       )}
 
-      <h3 className="line-clamp-2 text-base font-semibold text-white transition group-hover:text-cyan/95">
+      <h3 className="line-clamp-2 text-base font-semibold text-ink transition group-hover:text-cyan/95">
         {listing.title}
       </h3>
       <p className="mt-1 line-clamp-2 text-sm text-muted">{listing.description}</p>

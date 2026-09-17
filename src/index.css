@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface: #0a0a0a;
-  --color-surface-2: #111111;
-  --color-surface-3: #171717;
-  --color-border: #262626;
-  --color-cyan: #00f0ff;
-  --color-teal: #14b8a6;
-  --color-muted: #a3a3a3;
+  --color-surface: #faf8f5;
+  --color-surface-2: #f3efe8;
+  --color-surface-3: #ece6dc;
+  --color-border: #ddd5c8;
+  --color-cyan: #0f766e;
+  --color-teal: #0d9488;
+  --color-muted: #6b6560;
+  --color-ink: #1c1917;
+  --color-ink-soft: #44403c;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
@@ -26,7 +28,7 @@
   body {
     margin: 0;
     background: var(--color-surface);
-    color: #f5f5f5;
+    color: var(--color-ink);
     font-family: var(--font-sans);
     overflow-x: hidden;
     touch-action: manipulation;
@@ -52,7 +54,8 @@
   }
 }
 
-:root {
+:root,
+html[data-scheme="light"] {
   /* Mobile fixed chrome: bottom nav */
   --el-nav-h: 3.25rem;
   --el-nav-pad: max(0.5rem, env(safe-area-inset-bottom, 0px));
@@ -61,32 +64,100 @@
   --el-nav-stack: calc(var(--el-nav-h) + var(--el-nav-pad));
   --el-fab-bottom: calc(var(--el-nav-stack) + var(--el-fab-gap));
   --el-bottom-chrome: calc(var(--el-nav-stack) + 0.75rem);
-  --theme-accent: #00e0ea;
-  --theme-accent-2: #14b8a6;
+  --theme-accent: #0f766e;
+  --theme-accent-2: #0d9488;
+  --theme-on-accent: #faf8f5;
   --theme-wash: transparent;
+  color-scheme: light;
+  /* Readable “dark-UI” neutrals inverted for parchment */
+  --color-neutral-200: #3f3a36;
+  --color-neutral-300: #4a4540;
+  --color-neutral-400: #5e584f;
+  --color-neutral-500: #6f6860;
+  --color-neutral-600: #8a8278;
+  --color-amber-100: #7c4a12;
+  --color-amber-200: #92400e;
+  --color-amber-300: #b45309;
+  --color-violet-200: #5b21b6;
+  --color-violet-300: #6d28d9;
+  --color-rose-300: #be123c;
+  --color-emerald-300: #047857;
 }
 
 [data-theme="home"] {
-  --theme-accent: #00e0ea;
-  --theme-accent-2: #2dd4bf;
-  --theme-wash: color-mix(in oklab, #00e0ea 7%, transparent);
+  --theme-accent: #0f766e;
+  --theme-accent-2: #0d9488;
+  --theme-wash: color-mix(in oklab, #0f766e 9%, transparent);
 }
 [data-theme="match"] {
+  --theme-accent: #b45309;
+  --theme-accent-2: #c2410c;
+  --theme-wash: color-mix(in oklab, #b45309 8%, transparent);
+}
+[data-theme="mein"] {
+  --theme-accent: #6d28d9;
+  --theme-accent-2: #7c3aed;
+  --theme-wash: color-mix(in oklab, #6d28d9 7%, transparent);
+}
+[data-theme="inbox"] {
+  --theme-accent: #0f766e;
+  --theme-accent-2: #0d9488;
+  --theme-wash: color-mix(in oklab, #0d9488 8%, transparent);
+}
+[data-theme="mehr"] {
+  --theme-accent: #b45309;
+  --theme-accent-2: #c2410c;
+  --theme-wash: color-mix(in oklab, #b45309 7%, transparent);
+}
+
+html[data-scheme="dark"] {
+  color-scheme: dark;
+  --color-surface: #0a0a0a;
+  --color-surface-2: #111111;
+  --color-surface-3: #171717;
+  --color-border: #262626;
+  --color-cyan: #2dd4bf;
+  --color-teal: #14b8a6;
+  --color-muted: #a3a3a3;
+  --color-ink: #f5f5f4;
+  --color-ink-soft: #d6d3d1;
+  --theme-accent: #2dd4bf;
+  --theme-accent-2: #14b8a6;
+  --theme-on-accent: #111111;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-violet-200: #ddd6fe;
+  --color-violet-300: #c4b5fd;
+  --color-rose-300: #fda4af;
+  --color-emerald-300: #6ee7b7;
+}
+html[data-scheme="dark"] [data-theme="home"] {
+  --theme-accent: #2dd4bf;
+  --theme-accent-2: #5eead4;
+  --theme-wash: color-mix(in oklab, #2dd4bf 8%, transparent);
+}
+html[data-scheme="dark"] [data-theme="match"] {
   --theme-accent: #fb7185;
   --theme-accent-2: #f472b6;
   --theme-wash: color-mix(in oklab, #fb7185 8%, transparent);
 }
-[data-theme="mein"] {
+html[data-scheme="dark"] [data-theme="mein"] {
   --theme-accent: #a78bfa;
   --theme-accent-2: #818cf8;
   --theme-wash: color-mix(in oklab, #a78bfa 9%, transparent);
 }
-[data-theme="inbox"] {
+html[data-scheme="dark"] [data-theme="inbox"] {
   --theme-accent: #2dd4bf;
   --theme-accent-2: #67e8f9;
   --theme-wash: color-mix(in oklab, #2dd4bf 8%, transparent);
 }
-[data-theme="mehr"] {
+html[data-scheme="dark"] [data-theme="mehr"] {
   --theme-accent: #fbbf24;
   --theme-accent-2: #fb923c;
   --theme-wash: color-mix(in oklab, #fbbf24 7%, transparent);
@@ -105,7 +176,7 @@
   z-index: 80;
   border-radius: 0.75rem;
   background: var(--theme-accent);
-  color: #111;
+  color: var(--theme-on-accent, #faf8f5);
   padding: 0.6rem 1rem;
   font-weight: 600;
   font-size: 0.875rem;
@@ -156,10 +227,10 @@ textarea:focus-visible,
       linear-gradient(160deg, var(--color-surface-2), var(--color-surface) 45%, var(--color-surface-3));
   }
   .card-elevated {
-    background: linear-gradient(165deg, color-mix(in oklab, var(--color-surface-2) 92%, #1a2a2e), var(--color-surface-2));
+    background: linear-gradient(165deg, color-mix(in oklab, var(--color-surface-2) 92%, var(--color-surface-3)), var(--color-surface-2));
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 6%, transparent),
-      0 4px 20px rgba(0, 0, 0, 0.28);
+      inset 0 1px 0 color-mix(in oklab, white 40%, transparent),
+      0 4px 20px color-mix(in oklab, var(--color-ink) 8%, transparent);
   }
   .card-hover {
     transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
@@ -234,7 +305,7 @@ textarea:focus-visible,
     padding: 0.125rem 0.5rem;
     font-size: 0.6875rem;
     line-height: 1.25rem;
-    color: #d4d4d4;
+    color: var(--color-ink-soft);
   }
   .chip-cyan {
     border-color: color-mix(in oklab, var(--color-cyan) 35%, transparent);
@@ -244,12 +315,12 @@ textarea:focus-visible,
   .chip-teal {
     border-color: color-mix(in oklab, var(--color-teal) 35%, transparent);
     background: color-mix(in oklab, var(--color-teal) 10%, transparent);
-    color: #5eead4;
+    color: var(--color-teal);
   }
   .chip-trust {
-    border-color: color-mix(in oklab, #34d399 35%, transparent);
-    background: color-mix(in oklab, #34d399 10%, transparent);
-    color: #6ee7b7;
+    border-color: color-mix(in oklab, #047857 35%, transparent);
+    background: color-mix(in oklab, #047857 10%, transparent);
+    color: #047857;
   }
 }
 
@@ -355,6 +426,24 @@ textarea:focus-visible,
     transform-origin: center;
     animation: orbit-blink 4.4s ease-in-out infinite;
   }
+  @keyframes orbit-tap-bounce {
+    0% { transform: translateY(0) scale(1); }
+    28% { transform: translateY(-10px) scale(1.12); }
+    50% { transform: translateY(2px) scale(0.94); }
+    72% { transform: translateY(-4px) scale(1.04); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  @keyframes orbit-tap-blink {
+    0%, 35%, 100% { transform: scaleY(1); }
+    16% { transform: scaleY(0.08); }
+    52% { transform: scaleY(0.08); }
+  }
+  .orbit-robot.is-tapped {
+    animation: orbit-tap-bounce 0.62s ease;
+  }
+  .orbit-robot.is-tapped .orbit-robot-eye {
+    animation: orbit-tap-blink 0.5s ease;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -386,8 +475,11 @@ textarea:focus-visible,
 
 /* Safe Ideen-Box tweak — only when user asked for readability */
 html.tweak-contrast {
-  --color-muted: #c4c4c4;
+  --color-muted: #57534e;
 }
 html.tweak-contrast body {
-  color: #fafafa;
+  color: var(--color-ink);
+}
+html[data-scheme="dark"].tweak-contrast {
+  --color-muted: #c4c4c4;
 }

@@ -10,7 +10,7 @@ export function BurnTable() {
     <div className="rounded-xl border border-violet-400/20 bg-black/20 p-3">
       <h3 className="text-sm font-semibold">{t('credits.burnTitle')}</h3>
       <p className="mt-0.5 text-[11px] text-muted">{t('credits.burnHint')}</p>
-      <p className="mt-2 text-lg font-bold tabular-nums text-white">
+      <p className="mt-2 text-lg font-bold tabular-nums text-ink">
         {protocol.burned.toLocaleString('de-DE')}{' '}
         <span className="text-xs font-normal text-muted">{t('credits.burnedTotal')}</span>
       </p>

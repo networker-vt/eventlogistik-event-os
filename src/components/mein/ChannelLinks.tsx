@@ -36,7 +36,7 @@ export function ChannelLinks() {
                 {ch.emoji}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-white">{ch.label}</p>
+                <p className="text-sm font-medium text-ink">{ch.label}</p>
                 <p className="text-[11px] text-muted">{t(`channels.benefit.${ch.id}`)}</p>
               </div>
               {on ? <Badge tone="green">{t('channels.connected')}</Badge> : <Badge>{t('channels.off')}</Badge>}

@@ -168,7 +168,7 @@ export function WalletPage() {
       <section className="relative overflow-hidden rounded-3xl border border-cyan/30 bg-gradient-to-br from-cyan/15 via-surface-2 to-black p-5">
         <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-cyan/20 blur-3xl" />
         <p className="text-[11px] uppercase tracking-wider text-cyan">Verfügbar (Demo)</p>
-        <div className="mt-1 text-4xl font-bold tabular-nums tracking-tight text-white">
+        <div className="mt-1 text-4xl font-bold tabular-nums tracking-tight text-ink">
           {formatPrice(wallet.balanceEur)}
         </div>
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-neutral-300">
@@ -221,7 +221,7 @@ export function WalletPage() {
                   className="flex items-center justify-between gap-3 rounded-xl border border-border/80 px-3 py-2 hover:border-[var(--theme-accent)]/40"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white">{tk.title}</p>
+                    <p className="truncate text-sm font-medium text-ink">{tk.title}</p>
                     <p className="truncate text-xs text-muted">
                       {tk.ref} · {tk.status} · {formatDateTime(tk.whenIso)}
                     </p>
@@ -275,7 +275,7 @@ export function WalletPage() {
             </span>
           )}
         </div>
-        <p className="text-3xl font-bold tabular-nums text-white">
+        <p className="text-3xl font-bold tabular-nums text-ink">
           {credits.balance}{' '}
           <span className="text-sm font-normal text-muted">
             ≈ {creditsToEur(credits.balance).toFixed(2)} € indikativ ({CREDITS_PER_EUR} Cr / €)
@@ -349,7 +349,7 @@ export function WalletPage() {
                   onClick={() => setPackPick(pack.id)}
                   className="rounded-xl border border-violet-400/30 bg-black/25 px-3 py-3 text-left hover:border-violet-300/60"
                 >
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-ink">
                     {resolved === 'de' ? pack.labelDe : pack.labelEn}
                   </p>
                   <p className="text-lg font-bold tabular-nums">{pack.credits}</p>
@@ -371,7 +371,7 @@ export function WalletPage() {
                     className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-violet-400/25 bg-black/25 px-3 py-2"
                   >
                     <div>
-                      <p className="text-sm font-medium text-white">{order.seller}</p>
+                      <p className="text-sm font-medium text-ink">{order.seller}</p>
                       <p className="text-[11px] text-muted">
                         {order.credits} Credits · {order.priceEur.toFixed(2)} € · {order.note}
                       </p>
@@ -751,7 +751,7 @@ export function WalletPage() {
               return (
                 <li key={tx.id} className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm text-white">{tx.label}</p>
+                    <p className="truncate text-sm text-ink">{tx.label}</p>
                     <p className="text-[11px] text-muted">
                       {meta?.label} · {formatDateTime(tx.createdAt)} · Demo
                     </p>

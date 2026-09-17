@@ -23,7 +23,7 @@ export function SoftPaywall({
   const free = resolved === 'de' ? CREDITS_FREE_DE : CREDITS_FREE_EN
   return (
     <div className="fixed inset-x-4 bottom-28 z-40 mx-auto max-w-sm rounded-2xl border border-violet-400/40 bg-surface-2 p-4 shadow-xl md:bottom-8">
-      <p className="text-sm font-semibold text-white">{title}</p>
+      <p className="text-sm font-semibold text-ink">{title}</p>
       <p className="mt-1 text-xs text-muted">{hint || t('paywall.hint')}</p>
       <p className="mt-2 text-[11px] text-neutral-400">{t('paywall.freeLane')}</p>
       <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] text-neutral-400">

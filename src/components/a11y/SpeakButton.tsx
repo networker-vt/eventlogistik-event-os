@@ -49,7 +49,7 @@ export function SpeakButton({
       aria-pressed={speaking}
       aria-label={speaking ? t('speak.stop') : t('speak.label')}
       className={cn(
-        'tap-target inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-surface-3/80 text-neutral-200 hover:border-[var(--theme-accent)] hover:text-white',
+        'tap-target inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-surface-3/80 text-neutral-200 hover:border-[var(--theme-accent)] hover:text-ink',
         compact ? 'h-10 w-10' : 'min-h-10 px-3 py-2 text-xs font-medium',
         className,
       )}

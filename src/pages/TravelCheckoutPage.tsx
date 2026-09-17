@@ -27,7 +27,7 @@ export function TravelCheckoutPage() {
     return (
       <div className="space-y-3">
         <p className="text-sm text-muted">{t('checkout.missing')}</p>
-        <Link to="/reise" className="text-sm text-[var(--theme-accent)] hover:underline">
+        <Link to="/abflug" className="text-sm text-[var(--theme-accent)] hover:underline">
           {t('travel.title')}
         </Link>
       </div>
@@ -83,7 +83,7 @@ export function TravelCheckoutPage() {
         <div className="flex items-start gap-3">
           <span className="text-2xl">{offer.imageEmoji}</span>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-white">{offer.title}</p>
+            <p className="font-semibold text-ink">{offer.title}</p>
             <p className="text-xs text-muted">
               {resolved === 'de' ? meta.de : meta.en} · {offer.provider}
             </p>

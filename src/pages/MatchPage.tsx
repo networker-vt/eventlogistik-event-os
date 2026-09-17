@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Heart, SkipForward, SlidersHorizontal, MessageSquare } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
@@ -49,6 +49,9 @@ export function MatchPage() {
   useStoreVersion()
   const { t } = useI18n()
   const navigate = useNavigate()
+  const location = useLocation()
+  const forceCrew = location.pathname.startsWith('/crew')
+  const forceTreffer = location.pathname.startsWith('/treffer')
   const { user, loginDemo, profile } = useAuth()
   const [prefs, setPrefs] = useState(getPrefs)
   const [company, setCompany] = useState(getCompany)
@@ -57,9 +60,21 @@ export function MatchPage() {
   const [explain, setExplain] = useState(false)
   const [capOpen, setCapOpen] = useState(false)
   const [budget, setBudget] = useState(getSwipeBudget)
-  const [deckMode, setDeckMode] = useState<MatchDeckMode>(() =>
-    getMatchDeckMode(getPrefs().side === 'employer' ? 'company' : 'seeker'),
-  )
+  const [deckMode, setDeckMode] = useState<MatchDeckMode>(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/crew')) return 'company'
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/treffer')) return 'seeker'
+    return getMatchDeckMode(getPrefs().side === 'employer' ? 'company' : 'seeker')
+  })
+
+  useEffect(() => {
+    if (forceCrew) {
+      setDeckMode('company')
+      setMatchDeckMode('company')
+    } else if (forceTreffer) {
+      setDeckMode('seeker')
+      setMatchDeckMode('seeker')
+    }
+  }, [forceCrew, forceTreffer])
 
   useEffect(() => {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
@@ -74,8 +89,12 @@ export function MatchPage() {
     }
   }, [])
 
-  const both = prefs.side === 'both'
-  const useSeekerDeck = prefs.side === 'seeker' || (prefs.side === 'both' && deckMode === 'seeker')
+  const both = prefs.side === 'both' && !forceCrew && !forceTreffer
+  const useSeekerDeck = forceCrew
+    ? false
+    : forceTreffer
+      ? true
+      : prefs.side === 'seeker' || (prefs.side === 'both' && deckMode === 'seeker')
 
   const deck = useMemo((): DeckCard[] => {
     if (useSeekerDeck) {
@@ -240,14 +259,14 @@ export function MatchPage() {
         <div className="flex flex-wrap justify-center gap-3 text-sm">
           <button
             type="button"
-            className="text-neutral-300 hover:text-white hover:underline"
+            className="text-neutral-300 hover:text-ink hover:underline"
             onClick={() => completePrefs(prefs.side)}
           >
             {t('match.anyway')}
           </button>
           <button
             type="button"
-            className="text-muted hover:text-white hover:underline"
+            className="text-muted hover:text-ink hover:underline"
             onClick={() => navigate('/')}
           >
             {t('match.askOrbit')}
@@ -291,7 +310,7 @@ export function MatchPage() {
               }}
               className={cn(
                 'min-h-10 flex-1 rounded-full text-xs font-medium',
-                deckMode === m ? 'bg-[var(--theme-accent)] text-black' : 'text-neutral-300',
+                deckMode === m ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-neutral-300',
               )}
             >
               {m === 'seeker' ? t('match.jobs') : t('match.companyDeck')}
@@ -349,7 +368,7 @@ export function MatchPage() {
             type="button"
             aria-label={t('match.interest')}
             onClick={() => swipe('interested')}
-            className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--theme-accent)] text-black shadow-[0_0_28px_color-mix(in_oklab,var(--theme-accent)_40%,transparent)]"
+            className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--theme-accent)] text-[var(--theme-on-accent)] shadow-[0_0_28px_color-mix(in_oklab,var(--theme-accent)_40%,transparent)]"
           >
             <Heart size={28} fill="currentColor" />
           </button>
@@ -473,7 +492,7 @@ function JobCard({
   const { t } = useI18n()
   const L = listing
   return (
-    <article className="relative flex flex-1 flex-col overflow-hidden rounded-3xl border border-cyan/30 bg-gradient-to-b from-surface-2 to-black p-5 shadow-[0_0_40px_rgba(0,240,255,0.08)]">
+    <article className="relative flex flex-1 flex-col overflow-hidden rounded-3xl border border-[var(--theme-accent)]/25 bg-gradient-to-b from-surface-2 to-surface p-5 shadow-[0_8px_32px_color-mix(in_oklab,var(--color-ink)_8%,transparent)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap gap-1.5">
@@ -484,7 +503,7 @@ function JobCard({
             {L.workMode && <Badge>{L.workMode}</Badge>}
             {L.source && <Badge tone="violet">{L.source}</Badge>}
           </div>
-          <h2 className="text-xl font-bold leading-snug text-white">{listing.title}</h2>
+          <h2 className="text-xl font-bold leading-snug text-ink">{listing.title}</h2>
           <p className="mt-1 text-sm text-muted">
             {listing.city}
             {listing.ownerName ? ` · ${listing.ownerName}` : ''}
@@ -505,7 +524,7 @@ function JobCard({
           )}
           <div className="mt-1 flex flex-wrap gap-1">
             {(listing.crafts || []).slice(0, 3).map((c) => (
-              <span key={c} className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-neutral-400">
+              <span key={c} className="rounded-md bg-ink/5 px-2 py-0.5 text-[10px] text-neutral-400">
                 {c}
               </span>
             ))}
@@ -552,11 +571,11 @@ function CandidateCard({
 }) {
   const { t } = useI18n()
   return (
-    <article className="relative flex flex-1 flex-col overflow-hidden rounded-3xl border border-teal/30 bg-gradient-to-b from-surface-2 to-black p-5">
+    <article className="relative flex flex-1 flex-col overflow-hidden rounded-3xl border border-teal/30 bg-gradient-to-b from-surface-2 to-surface p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <Badge tone="teal">{profile.role}</Badge>
-          <h2 className="mt-2 text-xl font-bold text-white">{profile.name}</h2>
+          <h2 className="mt-2 text-xl font-bold text-ink">{profile.name}</h2>
           <p className="text-sm text-muted">
             {profile.city} · ★ {profile.rating.toFixed(1)} ({profile.reviewCount})
           </p>
@@ -566,7 +585,7 @@ function CandidateCard({
       <p className="mt-4 line-clamp-5 flex-1 text-sm text-neutral-300">{profile.bio}</p>
       <div className="mt-3 flex flex-wrap gap-1">
         {profile.crafts.map((c) => (
-          <span key={c} className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-neutral-400">
+          <span key={c} className="rounded-md bg-ink/5 px-2 py-0.5 text-[10px] text-neutral-400">
             {c}
           </span>
         ))}

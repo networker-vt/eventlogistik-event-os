@@ -93,7 +93,7 @@ export function GiftSheet({
       )}
 
       {picked && (
-        <p className="text-sm text-white">
+        <p className="text-sm text-ink">
           {t('gift.to')}: <span className="font-semibold">{picked.label}</span>
           {picked.hint && <span className="text-muted"> · {picked.hint}</span>}
         </p>
@@ -108,7 +108,7 @@ export function GiftSheet({
             className={cn(
               'rounded-full border px-3 py-1 text-xs',
               filter === k.id
-                ? 'border-violet-300 bg-violet-500/20 text-white'
+                ? 'border-violet-300 bg-violet-500/20 text-ink'
                 : 'border-border text-muted',
             )}
           >
@@ -135,7 +135,7 @@ export function GiftSheet({
                   : 'border-border/70 bg-black/20 hover:border-violet-300/50',
               )}
             >
-              <span className="font-medium text-white">{r.label}</span>
+              <span className="font-medium text-ink">{r.label}</span>
               <span className="mt-0.5 block text-[11px] text-muted">
                 {t(`gift.kind.${r.kind}`)}
                 {r.hint ? ` · ${r.hint}` : ''}

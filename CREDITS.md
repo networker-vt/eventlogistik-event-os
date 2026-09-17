@@ -64,12 +64,12 @@ When **remainingReserve = 0**: no system minting. Users can (1) **earn** from wh
 
 - Assist ask
 - Browse Match + **20 swipes / day**
-- **Look analysis (basic)** — photo/video, two demo variants (Look is a **stub**)
+- **Kabine base (photo + 1–2 variants)** — photo/video, free demo filters (Kabine is a **stub**)
 - Basic chat (Match / Booking / Support)
 - Wallet view
 - Social read
 
-Credits are required for: listing boosts, extra swipes, travel deep-scan, featured social, priority interview, Look extras. Pack checkout is a stub (no Stripe/PayPal).
+Credits are required for: listing boosts, extra swipes, travel deep-scan, featured social, priority interview, Kabine extra variants / nearby shop boosts. Pack checkout is a stub (no Stripe/PayPal).
 
 ## Welcome / Early testers
 
@@ -114,8 +114,8 @@ While the **packs pool** has remainder, packs debit that pool:
 | Travel deep-scan | 15 | 12 |
 | Social featured | 20 | 16 |
 | Priority interview | 30 | 24 |
-| Look extra try-on variants (today) | 15 | 12 |
-| Look nearby shop featured | 20 | 16 |
+| Kabine extra try-on variants (today) | 15 | 12 |
+| Kabine nearby shop featured | 20 | 16 |
 | Gift / sponsoring | peer transfer, **1 burned** | — |
 
 ### Gift / Sponsoring (Demo stub)

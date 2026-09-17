@@ -141,7 +141,7 @@ export function SocialPage() {
                 className="flex items-center gap-3 rounded-2xl border border-border bg-surface-2/60 px-3 py-2"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-white">{p.name}</p>
+                  <p className="truncate text-sm font-medium text-ink">{p.name}</p>
                   <p className="truncate text-xs text-muted">
                     {p.companyName || p.city} · {p.role}
                   </p>
@@ -160,7 +160,7 @@ export function SocialPage() {
                 </button>
                 <button
                   type="button"
-                  className="text-xs text-muted hover:text-white"
+                  className="text-xs text-muted hover:text-ink"
                   onClick={() => {
                     const me = ensureUser()
                     const thread = startSocialDm({
@@ -206,7 +206,7 @@ export function SocialPage() {
                       </>
                     ) : null}
                   </p>
-                  <p className="mt-2 text-sm text-white whitespace-pre-wrap">{post.body}</p>
+                  <p className="mt-2 text-sm text-ink whitespace-pre-wrap">{post.body}</p>
                   {post.listingId && (
                     <Link
                       to={`/listings/${post.listingId}`}

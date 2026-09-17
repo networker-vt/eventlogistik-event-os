@@ -147,7 +147,7 @@ export function PrefsPage() {
                   : 'border-border bg-surface-2 hover:border-cyan/40',
               )}
             >
-              <div className="font-semibold text-white">{opt.title}</div>
+              <div className="font-semibold text-ink">{opt.title}</div>
               <p className="mt-1 text-xs text-muted">{opt.hint}</p>
               {side === opt.id && <Check size={16} className="mt-2 text-cyan" />}
             </button>

@@ -52,7 +52,7 @@ export function rankFuerDich(
         kicker: de ? 'Top Deal · Demo' : 'Top deal · demo',
         reason: d.reason,
         emoji: d.offer.imageEmoji,
-        to: `/reise/${d.offer.id}`,
+        to: `/abflug/${d.offer.id}`,
         action: 'book',
       })
     } else if (d.listing) {
@@ -86,7 +86,7 @@ export function rankFuerDich(
       emoji: s.emoji,
       to: s.to,
       percent: s.percent,
-      action: s.to.startsWith('/reise/') ? 'book' : 'contact',
+      action: s.to.startsWith('/abflug/') || s.to.startsWith('/reise/') ? 'book' : 'contact',
       gift: s.to.startsWith('/listings/')
         ? { kind: 'listing', id: s.id, label: s.title, to: s.to }
         : s.to.startsWith('/profiles/')
@@ -122,7 +122,7 @@ export function rankFuerDich(
       ? 'Foto oder Video — Orbit schlägt Varianten + Shops vor.'
       : 'Photo or video — Orbit suggests variants + shops.',
     emoji: '🪞',
-    to: '/look',
+    to: '/kabine',
     action: 'look',
   })
 

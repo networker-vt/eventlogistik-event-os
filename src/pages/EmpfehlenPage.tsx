@@ -41,7 +41,7 @@ export function EmpfehlenPage() {
 
       <section className="relative overflow-hidden rounded-3xl border border-cyan/30 bg-gradient-to-br from-cyan/15 via-surface-2 to-black p-5">
         <p className="text-[11px] uppercase tracking-wider text-cyan">Dein Code</p>
-        <div className="mt-1 font-mono text-3xl font-bold tracking-widest text-white">{referral.code}</div>
+        <div className="mt-1 font-mono text-3xl font-bold tracking-widest text-ink">{referral.code}</div>
         <p className="mt-2 break-all text-xs text-neutral-300">{url}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button size="sm" onClick={() => void copy()}>

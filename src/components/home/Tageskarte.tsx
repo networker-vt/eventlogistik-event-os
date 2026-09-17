@@ -48,7 +48,7 @@ export function Tageskarte({
 
       {plan ? (
         <>
-          <h2 className="mt-1 text-base font-semibold text-white">{plan.summary}</h2>
+          <h2 className="mt-1 text-base font-semibold text-ink">{plan.summary}</h2>
           {action && <p className="mt-1 text-sm text-neutral-300">{action.title}</p>}
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
             {action?.actionTo && (
@@ -78,7 +78,7 @@ export function Tageskarte({
         </>
       ) : (
         <>
-          <h2 className="mt-1 text-base font-semibold text-white">{daily.title}</h2>
+          <h2 className="mt-1 text-base font-semibold text-ink">{daily.title}</h2>
           <p className="mt-1 text-sm text-neutral-300">{daily.body}</p>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
             <button

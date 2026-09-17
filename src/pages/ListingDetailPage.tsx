@@ -119,7 +119,7 @@ export function ListingDetailPage() {
         {isJob && (
           <div className="mt-4 rounded-2xl border border-cyan/30 bg-cyan/10 px-4 py-3">
             <div className="text-xs uppercase tracking-wider text-cyan">Tagessatz / Budget</div>
-            <div className="text-2xl font-bold text-white">{rate}</div>
+            <div className="text-2xl font-bold text-ink">{rate}</div>
             <p className="text-xs text-muted">Transparent · kein Bait — Rate steht im Inserat</p>
             <MarketRateHint compact className="mt-1" />
           </div>

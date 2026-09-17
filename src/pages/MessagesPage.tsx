@@ -100,7 +100,7 @@ export function MessagesPage() {
             <Link
               key={th.id}
               to={`/messages/${th.id}`}
-              className={`block min-h-14 border-b border-border/60 px-4 py-3 hover:bg-white/5 ${active?.id === th.id ? 'bg-cyan/10' : ''}`}
+              className={`block min-h-14 border-b border-border/60 px-4 py-3 hover:bg-ink/5 ${active?.id === th.id ? 'bg-cyan/10' : ''}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="truncate text-sm font-medium">

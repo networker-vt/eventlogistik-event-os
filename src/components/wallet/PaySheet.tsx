@@ -66,7 +66,7 @@ export function PaySheet({
           <button
             type="button"
             onClick={onClose}
-            className="tap-target flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-white/5"
+            className="tap-target flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-ink/5"
           >
             <X size={16} />
           </button>
@@ -77,7 +77,7 @@ export function PaySheet({
 
           <div className="rounded-2xl border border-cyan/25 bg-cyan/10 px-4 py-3">
             <div className="text-[11px] uppercase tracking-wider text-cyan">Zu zahlen</div>
-            <div className="text-3xl font-bold tabular-nums text-white">{formatPrice(amount)}</div>
+            <div className="text-3xl font-bold tabular-nums text-ink">{formatPrice(amount)}</div>
             <p className="mt-1 line-clamp-2 text-xs text-neutral-300">{title}</p>
           </div>
 

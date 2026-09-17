@@ -33,7 +33,7 @@ export function FuerDichCard({ item }: { item: FuerDichItem }) {
           </span>
         )}
       </div>
-      <p className="mt-2 line-clamp-2 text-sm font-medium leading-snug text-white">{item.title}</p>
+      <p className="mt-2 line-clamp-2 text-sm font-medium leading-snug text-ink">{item.title}</p>
       <p className="mt-1 truncate text-[11px] text-muted">{item.kicker}</p>
       {item.reason && <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-neutral-400">{item.reason}</p>}
     </>
