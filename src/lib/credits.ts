@@ -413,14 +413,40 @@ export async function grantWelcomeAllocation(): Promise<CreditsState | null> {
 /** Contributor grant: merged PR only, 1/PR, op `contributor:pr:{n}`, fail-closed. Never client-mint from a URL. */
 export const CONTRIBUTOR_MERGED_PR_GRANT = 120
 
+export type ContributorMergedPrProof = {
+  merged: true
+  /** GitHub PR number from Server/CI. Must equal `prNumber`. */
+  serverOrdinal: number
+}
+
 export function contributorPrOpId(prNumber: number) {
   return `contributor:pr:${Math.trunc(prNumber)}`
 }
 
-export async function grantMergedPrFromRewardsPool(prNumber: number): Promise<CreditsState | null> {
+function isPositiveInt(n: unknown): n is number {
+  return typeof n === 'number' && Number.isInteger(n) && n >= 1
+}
+
+/** Fail-closed: merged + positive integer ordinal that equals the PR number. */
+export function contributorProofMatches(
+  prNumber: unknown,
+  proof: unknown,
+): proof is ContributorMergedPrProof {
+  if (proof == null || typeof proof !== 'object') return false
+  const p = proof as { merged?: unknown; serverOrdinal?: unknown }
+  if (p.merged !== true) return false
+  if (!isPositiveInt(p.serverOrdinal)) return false
+  if (!isPositiveInt(prNumber)) return false
+  return p.serverOrdinal === prNumber
+}
+
+/**
+ * Private mint. Not exported — callers must go through `grantContributorMergedPrFromServer`.
+ */
+async function mintMergedPrFromRewardsPool(prNumber: number): Promise<CreditsState | null> {
   if (kidsCreditsFrozen()) return null
-  const n = Math.trunc(Number(prNumber))
-  if (!Number.isFinite(n) || n < 1) return null
+  const n = Math.trunc(prNumber)
+  if (!isPositiveInt(n)) return null
   const op = contributorPrOpId(n)
   if (get().txs.some((t) => t.id === op) || getProtocol().seenOpIds.includes(op)) {
     return null
@@ -439,6 +465,19 @@ export async function grantMergedPrFromRewardsPool(prNumber: number): Promise<Cr
     return null
   }
   return credited
+}
+
+/**
+ * Server/CI path only. Requires `proof.serverOrdinal === prNumber` and `proof.merged === true`.
+ * Naked `grantMergedPrFromRewardsPool` is not a public export.
+ */
+export async function grantContributorMergedPrFromServer(
+  prNumber: number,
+  proof: ContributorMergedPrProof,
+): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return null
+  if (!contributorProofMatches(prNumber, proof)) return null
+  return mintMergedPrFromRewardsPool(prNumber)
 }
 
 function applySpendSideEffects(next: CreditsState, kind: CreditSpendKind) {
