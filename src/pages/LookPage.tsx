@@ -25,6 +25,8 @@ import {
   type LookIntent,
 } from '../lib/look'
 import { getPrefs, subscribePrefs } from '../lib/prefs'
+import { kidsHideAdultTryOn, subscribeKids } from '../lib/kids'
+import { KidsBlocked } from '../components/kids/KidsBlocked'
 import { cn } from '../lib/utils'
 
 function todayKey() {
@@ -48,6 +50,7 @@ export function LookPage() {
   const [prefsTick, setPrefsTick] = useState(0)
   const [paywall, setPaywall] = useState<null | 'tryon' | 'shop'>(null)
   const [pendingShop, setPendingShop] = useState<{ id: string; name: string } | null>(null)
+  const [kids, setKids] = useState(kidsHideAdultTryOn)
 
   useEffect(() => {
     const q = params.get('intent') || params.get('q') || ''
@@ -61,10 +64,12 @@ export function LookPage() {
     const u1 = subscribeCredits(() => setCredits(getCredits()))
     const u2 = subscribeLook(() => setLook(getLook()))
     const u3 = subscribePrefs(() => setPrefsTick((n) => n + 1))
+    const u4 = subscribeKids(() => setKids(kidsHideAdultTryOn()))
     return () => {
       u1()
       u2()
       u3()
+      u4()
     }
   }, [])
 
@@ -223,7 +228,7 @@ export function LookPage() {
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold">{t('look.tryon')}</h2>
-              {!extraOn && (
+              {!extraOn && !kids && (
                 <Button
                   size="sm"
                   variant="secondary"
@@ -244,6 +249,7 @@ export function LookPage() {
               )}
             </div>
             <p className="text-[11px] text-muted">{t('look.tryonHint')}</p>
+            {kids && <KidsBlocked title={t('kids.tryonBlocked')} />}
             <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:thin]">
               <ul className="flex snap-x gap-2">
                 {variants.map((v) => (

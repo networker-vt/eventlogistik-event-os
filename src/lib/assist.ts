@@ -12,6 +12,7 @@ import {
   type TravelOffer,
 } from './travel'
 import { uid } from './utils'
+import { detectCampusIntent } from './campus'
 import { detectLookIntent } from './look'
 
 const KEY = 'orbit_assist_v1'
@@ -27,6 +28,7 @@ export type AssistKind =
   | 'partnership'
   | 'travel'
   | 'look'
+  | 'campus'
 
 export interface ParsedIntent {
   text: string
@@ -314,8 +316,10 @@ export function parseIntent(raw: string): ParsedIntent {
   const travelKinds = detectTravelKinds(lower)
   const cheapest = /billigst|günstigst|guenstigst|cheapest|lowest/i.test(lower)
   const lookIntent = detectLookIntent(lower)
+  const campusIntent = detectCampusIntent(lower)
   let kind: AssistKind = 'everyday'
-  if (lookIntent && !TRAVEL_ANY.some((w) => lower.includes(w))) kind = 'look'
+  if (campusIntent) kind = 'campus'
+  else if (lookIntent && !TRAVEL_ANY.some((w) => lower.includes(w))) kind = 'look'
   else if (travelKinds.length || TRAVEL_ANY.some((w) => lower.includes(w))) kind = 'travel'
   else if (EVENT_WORDS.some((w) => lower.includes(w))) kind = 'event'
   else if (B2B_WORDS.some((w) => lower.includes(w)) && (STAFF_WORDS.some((w) => lower.includes(w)) || peopleCount))
@@ -344,6 +348,8 @@ export function parseIntent(raw: string): ParsedIntent {
                 ? ['partnership', 'b2b']
               : kind === 'look'
                 ? ['asset', 'service']
+                : kind === 'campus'
+                  ? ['minijob', 'service']
                 : ['service', 'job']
 
   return {
@@ -384,7 +390,31 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
   const steps: PlanStep[] = []
   let summary = ''
 
-  if (intent.kind === 'look') {
+  if (intent.kind === 'campus') {
+    summary = de
+      ? 'Campus: ein Kurs, Weiterlernen, Filter nach Stufe — Entdecken bleibt frei.'
+      : 'Campus: one course, resume, filter by level — discovery stays free.'
+    steps.push(
+      step(
+        de ? 'Katalog öffnen' : 'Open the catalog',
+        de
+          ? 'Grundschule bis Skills. Kids sehen nur safeForKids-Kurse.'
+          : 'Primary school through skills. Kids only see safeForKids courses.',
+        { actionTo: '/campus', actionLabel: de ? 'Campus' : 'Campus', remindable: false },
+      ),
+      step(
+        de ? 'Weiterlernen' : 'Resume learning',
+        de ? 'Orbit merkt den letzten Kurs auf diesem Gerät.' : 'Orbit remembers the last course on this device.',
+        { actionTo: '/campus', actionLabel: de ? 'Weiterlernen' : 'Resume' },
+      ),
+    )
+    tips.push({
+      title: de ? 'Orbit berät (Campus)' : 'Orbit advises (Campus)',
+      body: de
+        ? 'Demo-Katalog, keine echten Schulabschlüsse. Premium-Unlock kommt später über SoftPaywall — Entdecken bleibt frei.'
+        : 'Demo catalog, no real diplomas. Premium unlock comes later via SoftPaywall — discovery stays free.',
+    })
+  } else if (intent.kind === 'look') {
     const look = intent.lookIntent || 'kleidung'
     const qs = new URLSearchParams({ intent: look })
     summary = de

@@ -4,7 +4,7 @@ const KEY = 'el_ideas_v1'
 const TWEAK_KEY = 'el_safe_tweaks_v1'
 const EVT = 'el-ideas-changed'
 
-export type IdeaCategory = 'idee' | 'bug' | 'ux' | 'feature'
+export type IdeaCategory = 'idee' | 'bug' | 'ux' | 'feature' | 'verbessern'
 export type IdeaPriority = 'low' | 'medium' | 'high'
 export type IdeaStatus = 'neu' | 'geplant' | 'geprüft'
 
@@ -13,6 +13,7 @@ export const IDEA_CATEGORY_LABEL: Record<IdeaCategory, string> = {
   bug: 'Bug',
   ux: 'UX',
   feature: 'Feature',
+  verbessern: 'Verbessern / PR',
 }
 
 export interface IdeaItem {

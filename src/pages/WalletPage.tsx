@@ -54,7 +54,7 @@ import {
 } from '../lib/credits'
 import { ledgerModeLine } from '../lib/creditLedger'
 import { canPayout, subscribeVerify } from '../lib/verify'
-import { REWARD_RULES_DE } from '../lib/rewards'
+import { REWARD_RULES_DE, REWARD_RULES_EN, CONTRIBUTOR_REWARDS, grantPrContributeReward, isVerbesserer, getRewardFlags, subscribeRewards } from '../lib/rewards'
 import {
   WALLET_METHODS,
   connectMethod,
@@ -99,6 +99,8 @@ export function WalletPage() {
   const [packPick, setPackPick] = useState<CreditPackId | null>(null)
   const [protocol, setProtocol] = useState(getProtocol)
   const [payoutOk, setPayoutOk] = useState(canPayout)
+  const [prUrl, setPrUrl] = useState('')
+  const [verbesserer, setVerbesserer] = useState(isVerbesserer)
   const identity = getSignupIdentity()
   const p2pOnly = isPackMarketP2P()
 
@@ -112,6 +114,7 @@ export function WalletPage() {
   )
   useEffect(() => subscribeTickets(() => setTickets(listTickets())), [])
   useEffect(() => subscribeVerify(() => setPayoutOk(canPayout())), [])
+  useEffect(() => subscribeRewards(() => setVerbesserer(isVerbesserer())), [])
 
   useEffect(() => {
     if (hash !== '#gift') return
@@ -528,12 +531,62 @@ export function WalletPage() {
           ))}
         </ul>
         <div className="rounded-xl border border-border/70 bg-black/20 p-3">
-          <h3 className="text-sm font-semibold">Faire Rewards (Demo)</h3>
-          <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-neutral-300">
-            {REWARD_RULES_DE.map((r) => (
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
+            Faire Rewards (Demo)
+            {verbesserer && (
+              <Badge tone="amber" data-verbesserer="1">
+                {t('rewards.verbesserer')}
+              </Badge>
+            )}
+          </h3>
+          <p className="mt-1 text-[11px] text-muted">{t('rewards.verbessererHint')}</p>
+          <table className="mt-3 w-full text-left text-xs">
+            <caption className="sr-only">{t('rewards.tableTitle')}</caption>
+            <thead>
+              <tr className="text-muted">
+                <th className="pb-1 font-medium">{t('rewards.tableTitle')}</th>
+                <th className="pb-1 font-medium">Credits</th>
+                <th className="pb-1 font-medium">Cap</th>
+              </tr>
+            </thead>
+            <tbody>
+              {CONTRIBUTOR_REWARDS.map((row) => (
+                <tr key={row.id} className="border-t border-border/50">
+                  <td className="py-1">{resolved === 'de' ? row.de : row.en}</td>
+                  <td className="py-1 tabular-nums">{row.amount}</td>
+                  <td className="py-1 tabular-nums">{row.cap}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <form
+            className="mt-3 space-y-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              void grantPrContributeReward(prUrl).then((ok) => {
+                note(ok ? t('rewards.prOk') : t('rewards.prFail'))
+                if (ok) setPrUrl('')
+              })
+            }}
+          >
+            <Input
+              label={t('rewards.prCta')}
+              value={prUrl}
+              onChange={(e) => setPrUrl(e.target.value)}
+              placeholder={t('rewards.prPh')}
+            />
+            <Button type="submit" size="sm" variant="secondary">
+              {t('rewards.prCta')}
+            </Button>
+          </form>
+          <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-neutral-300">
+            {(resolved === 'de' ? REWARD_RULES_DE : REWARD_RULES_EN).map((r) => (
               <li key={r}>{r}</li>
             ))}
           </ul>
+          <p className="mt-2 text-[11px] text-muted">
+            Flags: ideas {getRewardFlags().ideas} · contribute {getRewardFlags().contribute} · PR {getRewardFlags().prClaims}
+          </p>
         </div>
       </section>
 
@@ -555,7 +608,7 @@ export function WalletPage() {
             <Button size="sm" onClick={() => runCash(sheet)}>
               {sheet === 'topup' ? '+250 € Demo' : '−100 € Demo'}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setSheet(null)}>
+            <Button size="sm" variant="secondary" onClick={() => setSheet(null)}>
               Abbrechen
             </Button>
           </div>

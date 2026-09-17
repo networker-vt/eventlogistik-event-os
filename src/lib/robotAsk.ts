@@ -6,9 +6,9 @@
  */
 import { berlinOrLocalClock, slotFromHour, type DaySlot } from './tageskarte'
 
-export type RobotAskKind = 'reise' | 'job' | 'frisur' | 'mitarbeiter' | 'schuhe'
+export type RobotAskKind = 'reise' | 'job' | 'frisur' | 'mitarbeiter' | 'schuhe' | 'lernen'
 
-export type RobotAskArea = 'treffer' | 'abflug' | 'crew' | 'kabine'
+export type RobotAskArea = 'treffer' | 'abflug' | 'crew' | 'kabine' | 'campus'
 
 export interface RobotAsk {
   id: string
@@ -78,12 +78,51 @@ export const ROBOT_ASK_POOL: RobotAsk[] = [
     yesEn: 'Open Kabine',
     to: '/kabine?intent=schuhe',
   },
+  {
+    id: 'tg-lernen',
+    slot: 'tag',
+    kind: 'lernen',
+    area: 'campus',
+    questionDe: 'Heute auf dem Campus weiterlernen?',
+    questionEn: 'Keep learning on Campus today?',
+    yesDe: 'Zu Campus',
+    yesEn: 'Open Campus',
+    to: '/campus',
+  },
+  {
+    id: 'mo-lernen',
+    slot: 'morgen',
+    kind: 'lernen',
+    area: 'campus',
+    questionDe: 'Vormittag: eine Lektion auf Campus?',
+    questionEn: 'This morning: one Campus lesson?',
+    yesDe: 'Zu Campus',
+    yesEn: 'Open Campus',
+    to: '/campus',
+  },
+  {
+    id: 'ab-lernen',
+    slot: 'abend',
+    kind: 'lernen',
+    area: 'campus',
+    questionDe: 'Abend: Sprachen oder Skills auf Campus?',
+    questionEn: 'Evening: languages or skills on Campus?',
+    yesDe: 'Zu Campus',
+    yesEn: 'Open Campus',
+    to: '/campus',
+  },
 ]
 
 const SLOT_KINDS: Record<DaySlot, RobotAskKind[]> = {
   morgen: ['job'],
   tag: ['reise', 'mitarbeiter'],
   abend: ['frisur', 'schuhe'],
+}
+
+const KIDS_SLOT_KINDS: Record<DaySlot, RobotAskKind[]> = {
+  morgen: ['lernen', 'job'],
+  tag: ['lernen'],
+  abend: ['lernen'],
 }
 
 export function robotAskSeed(dateKey: string, slot: DaySlot): number {
@@ -96,12 +135,15 @@ export function robotAskSeed(dateKey: string, slot: DaySlot): number {
   return h >>> 0
 }
 
-export function robotAskPoolForSlot(slot: DaySlot): RobotAsk[] {
-  const allowed = new Set(SLOT_KINDS[slot])
+export function robotAskPoolForSlot(slot: DaySlot, kids = false): RobotAsk[] {
+  const allowed = new Set(kids ? KIDS_SLOT_KINDS[slot] : SLOT_KINDS[slot])
   return ROBOT_ASK_POOL.filter((item) => item.slot === slot && allowed.has(item.kind))
 }
 
-export function pickRobotAsk(now = new Date()): {
+export function pickRobotAsk(
+  now = new Date(),
+  opts?: { kids?: boolean },
+): {
   item: RobotAsk
   slot: DaySlot
   dateKey: string
@@ -109,7 +151,7 @@ export function pickRobotAsk(now = new Date()): {
 } {
   const clock = berlinOrLocalClock(now)
   const slot = slotFromHour(clock.hour)
-  const pool = robotAskPoolForSlot(slot)
+  const pool = robotAskPoolForSlot(slot, opts?.kids)
   const seed = robotAskSeed(clock.dateKey, slot)
   const item = pool.length ? pool[seed % pool.length] : ROBOT_ASK_POOL[0]
   return { item, slot, dateKey: clock.dateKey, hour: clock.hour }

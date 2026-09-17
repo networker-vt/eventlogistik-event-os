@@ -9,7 +9,7 @@
 
 export type DaySlot = 'morgen' | 'tag' | 'abend'
 
-export type TageskarteTheme = 'job' | 'laune' | 'alltag' | 'familie' | 'kids' | 'look' | 'freizeit'
+export type TageskarteTheme = 'job' | 'laune' | 'alltag' | 'familie' | 'kids' | 'look' | 'freizeit' | 'lernen'
 
 export interface TageskarteItem {
   id: string
@@ -182,6 +182,19 @@ export const TAGESKARTE_POOL: TageskarteItem[] = [
     promptDe: 'Kurzer Eltern-Tipp für den Rest des Tages',
     promptEn: 'A short parent tip for the rest of the day',
   },
+  {
+    id: 'tg-lernen-1',
+    slot: 'tag',
+    themes: ['lernen', 'kids'],
+    parentKids: true,
+    titleDe: 'Campus: eine Lektion',
+    titleEn: 'Campus: one lesson',
+    bodyDe: 'Grundschule bis Skills — Entdecken frei, kein Paywall-Druck.',
+    bodyEn: 'Primary through skills — discovery free, no paywall pressure.',
+    promptDe: 'Ich will heute auf dem Campus weiterlernen',
+    promptEn: 'I want to keep learning on Campus today',
+    to: '/campus',
+  },
 
   // Abend — Look / Laune / Freizeit
   {
@@ -265,12 +278,31 @@ export const TAGESKARTE_POOL: TageskarteItem[] = [
     promptDe: 'Ich will den Abend easy halten — was schlägst du vor?',
     promptEn: 'I want to keep the evening easy — what do you suggest?',
   },
+  {
+    id: 'ab-lernen-1',
+    slot: 'abend',
+    themes: ['lernen', 'kids'],
+    parentKids: true,
+    titleDe: 'Campus am Abend',
+    titleEn: 'Campus in the evening',
+    bodyDe: 'Sprachen oder Skills — eine Lektion, kein Adult-Chat.',
+    bodyEn: 'Languages or skills — one lesson, no adult chat.',
+    promptDe: 'Abend auf dem Campus: Sprachen oder Skills',
+    promptEn: 'Evening on Campus: languages or skills',
+    to: '/campus',
+  },
 ]
 
 const SLOT_THEMES: Record<DaySlot, TageskarteTheme[]> = {
   morgen: ['job', 'laune'],
-  tag: ['alltag', 'familie', 'kids'],
+  tag: ['alltag', 'familie', 'kids', 'lernen'],
   abend: ['look', 'laune', 'freizeit'],
+}
+
+const KIDS_SLOT_THEMES: Record<DaySlot, TageskarteTheme[]> = {
+  morgen: ['job', 'lernen'],
+  tag: ['kids', 'familie', 'lernen', 'alltag'],
+  abend: ['kids', 'lernen'],
 }
 
 export function berlinOrLocalClock(now = new Date()): {
@@ -314,9 +346,15 @@ export function slotFromHour(hour: number): DaySlot {
   return 'abend'
 }
 
-export function poolForSlot(slot: DaySlot): TageskarteItem[] {
-  const allowed = new Set(SLOT_THEMES[slot])
-  return TAGESKARTE_POOL.filter((item) => item.slot === slot && item.themes.some((th) => allowed.has(th)))
+export function poolForSlot(slot: DaySlot, kids = false): TageskarteItem[] {
+  const allowed = new Set(kids ? KIDS_SLOT_THEMES[slot] : SLOT_THEMES[slot])
+  return TAGESKARTE_POOL.filter((item) => {
+    if (item.slot !== slot) return false
+    if (!item.themes.some((th) => allowed.has(th))) return false
+    if (kids && item.to?.startsWith('/kabine')) return false
+    if (kids && item.to?.startsWith('/abflug')) return false
+    return true
+  })
 }
 
 /** FNV-1a — stable daily seed, no Math.random. */
@@ -335,7 +373,10 @@ export function pickFromPool(pool: TageskarteItem[], seed: number): TageskarteIt
   return pool[seed % pool.length]
 }
 
-export function pickTageskarte(now = new Date()): {
+export function pickTageskarte(
+  now = new Date(),
+  opts?: { kids?: boolean },
+): {
   item: TageskarteItem
   slot: DaySlot
   dateKey: string
@@ -345,7 +386,7 @@ export function pickTageskarte(now = new Date()): {
 } {
   const clock = berlinOrLocalClock(now)
   const slot = slotFromHour(clock.hour)
-  const pool = poolForSlot(slot)
+  const pool = poolForSlot(slot, opts?.kids)
   const seed = dailySeed(clock.dateKey, slot)
   return { item: pickFromPool(pool, seed), slot, dateKey: clock.dateKey, hour: clock.hour, zone: clock.zone, seed }
 }

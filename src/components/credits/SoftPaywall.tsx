@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
-import { Button } from '../ui/Button'
+import { Button, ButtonLink } from '../ui/Button'
 import { CREDITS_FREE_DE, CREDITS_FREE_EN } from '../../lib/credits'
 import { useI18n } from '../../lib/i18n'
+import { kidsHideSoftPaywall } from '../../lib/kids'
 
 /** Soft paywall — only at money moments (boosts, extra swipes, travel deep, priority interview). */
 export function SoftPaywall({
@@ -20,6 +20,18 @@ export function SoftPaywall({
   walletTo?: string
 }) {
   const { t, resolved } = useI18n()
+  if (kidsHideSoftPaywall()) {
+    return (
+      <div className="fixed inset-x-4 bottom-28 z-40 mx-auto max-w-sm rounded-2xl border border-border bg-surface-2 p-4 shadow-xl md:bottom-8">
+        <p className="text-sm font-semibold text-ink">{t('kids.paywallQuiet')}</p>
+        <div className="mt-3 flex flex-col gap-2">
+          <Button size="sm" variant="secondary" className="w-full" onClick={onClose}>
+            {t('paywall.later')}
+          </Button>
+        </div>
+      </div>
+    )
+  }
   const free = resolved === 'de' ? CREDITS_FREE_DE : CREDITS_FREE_EN
   return (
     <div className="fixed inset-x-4 bottom-28 z-40 mx-auto max-w-sm rounded-2xl border border-violet-400/40 bg-surface-2 p-4 shadow-xl md:bottom-8">
@@ -35,12 +47,12 @@ export function SoftPaywall({
         <Button size="sm" className="w-full" onClick={onBuy}>
           {t('paywall.buy')} · {cost} Credits
         </Button>
-        <Link to={walletTo} className="text-center text-xs text-[var(--theme-accent)] hover:underline">
+        <ButtonLink to={walletTo} size="sm" variant="secondary" className="w-full">
           {t('paywall.wallet')}
-        </Link>
-        <button type="button" className="text-xs text-muted hover:underline" onClick={onClose}>
+        </ButtonLink>
+        <Button type="button" size="sm" variant="ghost" onClick={onClose}>
           {t('paywall.later')}
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -23,7 +23,7 @@ describe('Tageskarte Money Boy rotation', () => {
     const morgenThemes = new Set(poolForSlot('morgen').flatMap((i) => i.themes))
     expect([...morgenThemes].every((t) => t === 'job' || t === 'laune')).toBe(true)
     const tagThemes = new Set(poolForSlot('tag').flatMap((i) => i.themes))
-    expect([...tagThemes].every((t) => t === 'alltag' || t === 'familie' || t === 'kids')).toBe(true)
+    expect([...tagThemes].every((t) => t === 'alltag' || t === 'familie' || t === 'kids' || t === 'lernen')).toBe(true)
     const abendThemes = new Set(poolForSlot('abend').flatMap((i) => i.themes))
     expect([...abendThemes].every((t) => t === 'look' || t === 'laune' || t === 'freizeit' || t === 'kids')).toBe(
       true,
@@ -66,5 +66,13 @@ describe('Tageskarte Money Boy rotation', () => {
       }),
     )
     expect(ids.size).toBeGreaterThan(1)
+  })
+
+  it('Kids mode Tageskarte stays off adult Kabine try-on and Abflug booking', () => {
+    const kidsTag = poolForSlot('tag', true)
+    expect(kidsTag.some((i) => i.themes.includes('lernen') || i.parentKids)).toBe(true)
+    expect(kidsTag.every((i) => !i.to?.startsWith('/abflug'))).toBe(true)
+    const evening = pickTageskarte(new Date('2026-09-17T19:40:00+02:00'), { kids: true })
+    expect(evening.item.to?.startsWith('/kabine')).not.toBe(true)
   })
 })

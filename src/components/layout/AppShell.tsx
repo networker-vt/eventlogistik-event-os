@@ -20,6 +20,9 @@ import { copyrightLine } from '../../lib/legal'
 import { getPrefs, isCompanySide, subscribePrefs } from '../../lib/prefs'
 import { touchResume } from '../../lib/resume'
 import { SchemeToggle } from '../theme/SchemeToggle'
+import { KidsBanner } from '../kids/KidsBanner'
+import { ParentalGateHost } from '../kids/ParentalGate'
+import { isKidsMode, subscribeKids } from '../../lib/kids'
 
 function documentTitleFor(pathname: string, t: (key: string) => string) {
   if (pathname === '/' || pathname === '') return `Orbit — ${t('brand.tagline')}`
@@ -29,6 +32,8 @@ function documentTitleFor(pathname: string, t: (key: string) => string) {
   if (pathname.startsWith('/treffer') || pathname.startsWith('/match')) return `${t('match.kicker')} · Orbit`
   if (pathname.startsWith('/wallet')) return `${t('nav.wallet')} · Orbit`
   if (pathname.startsWith('/messages')) return `${t('nav.inbox')} · Orbit`
+  if (pathname.startsWith('/campus') || pathname.startsWith('/lernen')) return `${t('campus.title')} · Orbit`
+  if (pathname.startsWith('/kids')) return `${t('kids.title')} · Orbit`
   if (pathname.startsWith('/mehr')) return `${t('mehr.title')} · Orbit`
   if (pathname.startsWith('/impressum')) return `${t('footer.impressum')} · Orbit`
   return `Orbit — ${t('brand.tagline')}`
@@ -41,12 +46,14 @@ export function AppShell() {
   const location = useLocation()
   const [createOpen, setCreateOpen] = useState(false)
   const [prefs, setPrefs] = useState(getPrefs)
+  const [kids, setKids] = useState(isKidsMode)
   const theme = themeForPath(location.pathname)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const matchTo = prefs.completed ? (companyView ? '/crew' : '/treffer') : '/prefs'
   const matchLabel = companyView ? t('nav.crew') : t('nav.match')
 
   useEffect(() => subscribePrefs(() => setPrefs(getPrefs())), [])
+  useEffect(() => subscribeKids(() => setKids(isKidsMode())), [])
   useEffect(() => {
     document.title = documentTitleFor(location.pathname, t)
     touchResume(`${location.pathname}${location.hash}`, document.title)
@@ -74,6 +81,7 @@ export function AppShell() {
       className="theme-shell mx-auto flex min-h-dvh max-w-6xl flex-col overflow-x-hidden"
     >
       <SkipLink />
+      {kids && <KidsBanner />}
       {stub && location.pathname !== '/' && (
         <p className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-100">
           {t('stub.banner')}
@@ -207,6 +215,7 @@ export function AppShell() {
 
       <CreateSheet open={createOpen} onClose={() => setCreateOpen(false)} />
       <PwaInstallBanner />
+      <ParentalGateHost />
 
       <nav
         className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface/95 safe-pb backdrop-blur md:hidden"

@@ -30,8 +30,18 @@ import { pickRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotAsk'
 import { canListen, listenOnce } from '../lib/speech'
 import { pickTageskarte, tageskarteCopy } from '../lib/tageskarte'
 import { cn } from '../lib/utils'
+import {
+  AGE_BANDS,
+  isKidsMode,
+  kidsAgeBand,
+  kidsHideTravel,
+  kidsMaySeeJobs,
+  setAgeBand,
+  subscribeKids,
+} from '../lib/kids'
+import { getCampusProgress, getCourse } from '../lib/campus'
 
-type WarmChip = 'seek' | 'offer' | 'resume'
+type WarmChip = 'seek' | 'offer' | 'resume' | 'campus'
 
 export function HomePage() {
   useStoreVersion()
@@ -55,9 +65,11 @@ export function HomePage() {
   const [assistNote, setAssistNote] = useState<string | null>(null)
   const [robotTapped, setRobotTapped] = useState(false)
   const [robotAsk, setRobotAsk] = useState<RobotAsk | null>(null)
+  const [kids, setKids] = useState(isKidsMode)
+  const [ageBand, setAge] = useState(kidsAgeBand)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const { listings: raw } = useListings({})
-  const daily = useMemo(() => pickTageskarte(), [])
+  const daily = useMemo(() => pickTageskarte(new Date(), { kids }), [kids])
   const dailyCopy = tageskarteCopy(daily.item, resolved)
   const robotCopy = robotAsk ? robotAskCopy(robotAsk, resolved) : null
 
@@ -70,6 +82,10 @@ export function HomePage() {
     const u6 = subscribeChannels(() => setBehaviorTick((n) => n + 1))
     const u7 = subscribeResume(() => setResume(getResume()))
     const u8 = subscribeReminders(() => setReminders(dueReminders()))
+    const u9 = subscribeKids(() => {
+      setKids(isKidsMode())
+      setAge(kidsAgeBand())
+    })
     return () => {
       u1()
       u2()
@@ -79,14 +95,17 @@ export function HomePage() {
       u6()
       u7()
       u8()
+      u9()
       abortRef.current?.abort()
     }
   }, [])
 
-  const fuerDich = useMemo(
-    () => rankFuerDich(raw, prefs, resolved, 8),
-    [raw, prefs, behaviorTick, resolved],
-  )
+  const fuerDich = useMemo(() => {
+    const ranked = rankFuerDich(raw, prefs, resolved, 8)
+    if (!kids) return ranked
+    if (!kidsMaySeeJobs()) return []
+    return ranked.filter((item) => item.action !== 'look' && item.action !== 'book')
+  }, [raw, prefs, behaviorTick, resolved, kids])
   const newsItems = useMemo(() => rankHomeNews(prefs, resolved, 2), [prefs, behaviorTick, resolved])
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
@@ -101,12 +120,15 @@ export function HomePage() {
     seek: t('home.stemSeek'),
     offer: t('home.stemOffer'),
     resume: resume ? `${t('home.stemResume')}${resume.title}` : t('home.stemThink'),
+    campus: t('home.stemCampus'),
   }
   const placeholder =
     warm === 'offer'
       ? t('home.phOffer')
       : warm === 'resume'
         ? t('home.phResume')
+        : warm === 'campus'
+          ? t('home.phCampus')
         : companyView
           ? t('assist.phCompany')
           : t('home.phSeek')
@@ -178,7 +200,7 @@ export function HomePage() {
   }
 
   const onRobotTap = () => {
-    const next = pickRobotAsk().item
+    const next = pickRobotAsk(new Date(), { kids }).item
     setRobotAsk(next)
     setRobotTapped(true)
     window.setTimeout(() => setRobotTapped(false), 700)
@@ -188,15 +210,26 @@ export function HomePage() {
     { id: 'seek', title: t('home.tileSeek') },
     { id: 'offer', title: t('home.tileOffer') },
     { id: 'resume', title: t('home.tileResume') },
+    { id: 'campus', title: t('home.tileCampus') },
   ]
+
+  const campusResume = getCampusProgress()
+  const campusCourse = campusResume ? getCourse(campusResume.courseId) : null
 
   const discover = [
     { to: matchTo, label: matchLabel, hint: t('home.discoverTrefferHint') },
-    { to: '/abflug', label: t('travel.nav'), hint: t('home.discoverAbflugHint') },
-    { to: '/crew', label: t('nav.crew'), hint: t('home.discoverCrewHint') },
+    ...(!kidsHideTravel()
+      ? [{ to: '/abflug', label: t('travel.nav'), hint: t('home.discoverAbflugHint') }]
+      : []),
+    ...(!kids ? [{ to: '/crew', label: t('nav.crew'), hint: t('home.discoverCrewHint') }] : []),
+    { to: '/campus', label: t('campus.nav'), hint: t('home.discoverCampusHint') },
     { to: '/wallet', label: t('nav.wallet'), hint: t('home.discoverWalletHint') },
-    { to: '/firma', label: t('firma.nav'), hint: t('firma.hint') },
-    { to: '/social', label: t('social.title'), hint: t('social.kicker') },
+    ...(!kids
+      ? [
+          { to: '/firma', label: t('firma.nav'), hint: t('firma.hint') },
+          { to: '/social', label: t('social.title'), hint: t('social.kicker') },
+        ]
+      : [{ to: '/kids', label: t('kids.title'), hint: t('kids.settings') }]),
   ]
 
   return (
@@ -219,6 +252,30 @@ export function HomePage() {
           </div>
         </div>
 
+        {ageBand === null && (
+          <section className="rounded-2xl border-2 border-[var(--theme-accent)]/40 bg-surface-2/80 p-4" data-kids-age="1">
+            <p className="text-sm font-semibold text-ink">{t('kids.ageTitle')}</p>
+            <p className="mt-1 text-xs text-muted">{t('kids.agePrompt')}</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {AGE_BANDS.map((id) => (
+                <Button
+                  key={id}
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setAgeBand(id)
+                    setAge(id)
+                    setKids(id !== '18+')
+                  }}
+                >
+                  {t(`kids.band.${id}`)}
+                </Button>
+              ))}
+            </div>
+          </section>
+        )}
+
         {robotAsk && robotCopy && (
           <div
             className="rounded-2xl border border-border/80 bg-surface-2/60 px-3 py-3"
@@ -226,21 +283,13 @@ export function HomePage() {
             data-robot-ask={robotAsk.kind}
           >
             <p className="text-sm text-ink">{robotCopy.question}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-              <button
-                type="button"
-                className="text-[var(--theme-accent)] hover:underline"
-                onClick={() => navigate(robotAsk.to)}
-              >
-                {robotCopy.yes} →
-              </button>
-              <button
-                type="button"
-                className="text-muted hover:underline"
-                onClick={() => setRobotAsk(null)}
-              >
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Button type="button" size="sm" variant="secondary" onClick={() => navigate(robotAsk.to)}>
+                {robotCopy.yes}
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => setRobotAsk(null)}>
                 {t('home.robotDismiss')}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -260,19 +309,19 @@ export function HomePage() {
           </p>
         )}
 
-        <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-1.5">
-          {chips.map((chip) => (
-            <button
+        <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-2">
+          {chips
+            .filter((chip) => !(kids && chip.id === 'offer'))
+            .map((chip) => (
+            <Button
               key={chip.id}
               type="button"
+              size="sm"
+              variant={warm === chip.id ? 'tonal' : 'secondary'}
               onClick={() => pickWarm(chip.id)}
-              className={cn(
-                'rounded-full px-2.5 py-1 text-xs tracking-wide',
-                warm === chip.id ? 'text-ink-soft' : 'text-muted hover:text-ink-soft',
-              )}
             >
               {chip.title}
-            </button>
+            </Button>
           ))}
         </nav>
 
@@ -297,17 +346,16 @@ export function HomePage() {
           {assistNote && <p className="text-[11px] text-amber-200">{assistNote}</p>}
           <div className="flex items-center gap-2">
             {canListen() && (
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="md"
                 onClick={() => void onMic()}
                 aria-label={t('assist.voice')}
-                className={cn(
-                  'tap-target flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface-3 text-ink-soft',
-                  listening && 'border-[var(--theme-accent)] text-[var(--theme-accent)]',
-                )}
+                className={cn('h-11 w-11 shrink-0 px-0', listening && 'bg-[var(--theme-accent)]/15')}
               >
                 <Mic size={18} />
-              </button>
+              </Button>
             )}
             <Button type="submit" className="flex-1" disabled={busy}>
               {busy ? t('assist.thinking') : t('assist.submit')} <Send size={16} />
@@ -337,6 +385,19 @@ export function HomePage() {
               </Link>
             </li>
           ))}
+          {campusCourse && (
+            <li>
+              <Link
+                to="/campus"
+                className="flex items-baseline justify-between gap-3 py-2.5 text-sm text-ink-soft hover:text-ink"
+              >
+                <span>
+                  {t('campus.resume')}: {resolved === 'de' ? campusCourse.titleDe : campusCourse.titleEn}
+                </span>
+                <span className="text-[11px] text-muted">{t('home.tileCampusHint')}</span>
+              </Link>
+            </li>
+          )}
           {resume && (
             <li>
               <Link

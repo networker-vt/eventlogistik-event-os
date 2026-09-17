@@ -340,11 +340,11 @@ export function PrefsPage() {
 
       <div className="flex flex-wrap gap-2 pt-2">
         {step > 0 && (
-          <Button variant="ghost" onClick={() => setStep((s) => s - 1)}>
+        <Button variant="secondary" onClick={() => setStep((s) => s - 1)}>
             Zurück
           </Button>
         )}
-        <Button variant="ghost" onClick={finish}>
+        <Button variant="secondary" onClick={finish}>
           Überspringen
         </Button>
         <div className="flex-1" />

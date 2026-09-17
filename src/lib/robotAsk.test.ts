@@ -8,11 +8,22 @@ import {
 } from './robotAsk'
 
 describe('Robot tap — one time-of-day question', () => {
-  it('never exposes a five-equal-question menu; each slot has a small pool', () => {
+  it('never exposes a five-equal-question menu; each adult slot has a small pool', () => {
     expect(robotAskPoolForSlot('morgen').length).toBe(1)
     expect(robotAskPoolForSlot('tag').length).toBe(2)
     expect(robotAskPoolForSlot('abend').length).toBe(2)
-    expect(ROBOT_ASK_POOL).toHaveLength(5)
+    expect(ROBOT_ASK_POOL.filter((q) => q.kind !== 'lernen')).toHaveLength(5)
+  })
+
+  it('routes Kids robot questions into Campus, not adult Kabine/Abflug chat', () => {
+    const morning = pickRobotAsk(new Date('2026-09-17T07:30:00+02:00'), { kids: true })
+    expect(['lernen', 'job']).toContain(morning.item.kind)
+    const day = pickRobotAsk(new Date('2026-09-17T13:00:00+02:00'), { kids: true })
+    expect(day.item.area).toBe('campus')
+    expect(day.item.to).toBe('/campus')
+    const evening = pickRobotAsk(new Date('2026-09-17T19:40:00+02:00'), { kids: true })
+    expect(evening.item.area).toBe('campus')
+    expect(isKabineAsk(evening.item)).toBe(false)
   })
 
   it('picks exactly one question for a given instant', () => {

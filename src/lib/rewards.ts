@@ -18,7 +18,16 @@ export interface RewardFlags {
   reviews: number
   searchDays: string[]
   completedJobs: string[]
+  contribute: number
+  prClaims: number
 }
+
+/** Higher grants for people who improve the app (fail-closed via rewards pool). */
+export const CONTRIBUTOR_REWARDS = [
+  { id: 'idea', amount: 8, cap: 3, de: 'Ideen-Box (Feedback)', en: 'Ideas box (feedback)' },
+  { id: 'contribute', amount: 40, cap: 5, de: 'Verbesserung / Contribute', en: 'Improvement / contribute' },
+  { id: 'pr', amount: 120, cap: 3, de: 'PR / Patch (Verbesserer)', en: 'PR / patch (improver)' },
+] as const
 
 function defaultFlags(): RewardFlags {
   return {
@@ -31,6 +40,8 @@ function defaultFlags(): RewardFlags {
     reviews: 0,
     searchDays: [],
     completedJobs: [],
+    contribute: 0,
+    prClaims: 0,
   }
 }
 
@@ -154,6 +165,45 @@ export async function grantIdeaReward() {
   return next
 }
 
+/** App-improvement feedback (Ideen-Box Kategorie Verbessern). Higher than casual ideas. */
+export async function grantContributeReward() {
+  const flags = structuredClone(get())
+  if (flags.contribute >= 5) return null
+  const next = await earnCredits(
+    40,
+    `Verbesserer-Feedback (${flags.contribute + 1}/5, Demo) — Rewards-Pool`,
+  )
+  if (!next) return null
+  flags.contribute += 1
+  commit(flags)
+  return next
+}
+
+/** Claim a higher grant for a public PR / patch URL. Fail-closed if pool empty. */
+export async function grantPrContributeReward(prUrl: string) {
+  const flags = structuredClone(get())
+  if (flags.prClaims >= 3) return null
+  const url = prUrl.trim()
+  if (!/^https?:\/\/\S+/i.test(url)) return null
+  const next = await earnCredits(
+    120,
+    `PR/Patch Verbesserer (${flags.prClaims + 1}/3, Demo) — Rewards-Pool`,
+  )
+  if (!next) return null
+  flags.prClaims += 1
+  commit(flags)
+  return next
+}
+
+export function isVerbesserer(flags = get()) {
+  return flags.contribute > 0 || flags.prClaims > 0
+}
+
+export function __resetRewardsForTests() {
+  cache = null
+  localStorage.removeItem(KEY)
+}
+
 export async function grantReviewReward() {
   const flags = structuredClone(get())
   if (flags.reviews >= 5) return null
@@ -194,7 +244,20 @@ export const REWARD_RULES_DE = [
   'Erstes erfolgreiches Match: 15 Credits, einmalig.',
   'Empfehlen: 40 Credits pro Demo-Signup aus dem Rewards-Pool — nicht fürs Leerspammen.',
   'Ideen-Box und Reviews: kleine Credits, gedeckelt (3 / 5).',
+  'Verbesserer: 40 Credits pro App-Verbesserungs-Feedback (max. 5) und 120 Credits pro PR/Patch-URL (max. 3) — höher als Casual-Feedback, immer aus dem Rewards-Pool, fail-closed.',
   'Suche/Match: 5 Credits pro Tag, max. 7 Tage.',
   'Job abschließen: 25 Credits, max. 5.',
   'Ist der Rewards-Pool leer, schlagen Grants fehl. Packs leer → nur noch P2P. Alles Demo-Ledger; echte 21M-Enforcement braucht später Server/Chain.',
+]
+
+export const REWARD_RULES_EN = [
+  'Early testers (signups 1–50): 2,000 credits from the early pool plus −20% boost forever. Later 200 welcome (17,000 seats) — both from the 21M reserve, no extra mint.',
+  'Prefs + profile (skills, radius, at least 1 proof): one-time bonuses from the rewards pool.',
+  'First successful match: 15 credits, once.',
+  'Referrals: 40 credits per demo signup from the rewards pool — not for spam.',
+  'Ideas box and reviews: small credits, capped (3 / 5).',
+  'Improvers: 40 credits per app-improvement feedback (max 5) and 120 credits per PR/patch URL (max 3) — higher than casual feedback, always from the rewards pool, fail-closed.',
+  'Search/match: 5 credits per day, max 7 days.',
+  'Job completed: 25 credits, max 5.',
+  'If the rewards pool is empty, grants fail. Packs empty → P2P only. Demo ledger; real 21M enforcement needs server/chain later.',
 ]

@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import {
   clearPlan,
   primaryAssistAction,
@@ -11,6 +10,7 @@ import {
   type TageskarteItem,
 } from '../../lib/tageskarte'
 import { useI18n } from '../../lib/i18n'
+import { Button, ButtonLink } from '../ui/Button'
 
 /** Exactly one Home product card — daily suggestion, with Assist plan merged in when present. */
 export function Tageskarte({
@@ -40,9 +40,9 @@ export function Tageskarte({
           <span className="text-neutral-600"> · {t(`home.slot.${slot}`)}</span>
         </p>
         {plan && (
-          <button type="button" className="text-[11px] text-muted hover:underline" onClick={() => clearPlan()}>
+          <Button type="button" size="sm" variant="ghost" onClick={() => clearPlan()}>
             {t('assist.clear')}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -50,16 +50,17 @@ export function Tageskarte({
         <>
           <h2 className="mt-1 text-base font-semibold text-ink">{plan.summary}</h2>
           {action && <p className="mt-1 text-sm text-neutral-300">{action.title}</p>}
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {action?.actionTo && (
-              <Link to={action.actionTo} className="text-sm text-[var(--theme-accent)] hover:underline">
-                {action.actionLabel || t('home.next')} →
-              </Link>
+              <ButtonLink to={action.actionTo} size="sm" variant="secondary">
+                {action.actionLabel || t('home.next')}
+              </ButtonLink>
             )}
             {action?.actionTo && (
-              <button
+              <Button
                 type="button"
-                className="text-[11px] text-muted hover:underline"
+                size="sm"
+                variant="ghost"
                 onClick={() => {
                   enqueueReminder({
                     title: plan.summary,
@@ -69,7 +70,7 @@ export function Tageskarte({
                 }}
               >
                 {t('assist.remind')}
-              </button>
+              </Button>
             )}
           </div>
           <p className="mt-3 border-t border-border/60 pt-2 text-[11px] text-muted">
@@ -80,18 +81,14 @@ export function Tageskarte({
         <>
           <h2 className="mt-1 text-base font-semibold text-ink">{daily.title}</h2>
           <p className="mt-1 text-sm text-neutral-300">{daily.body}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <button
-              type="button"
-              className="text-sm text-[var(--theme-accent)] hover:underline"
-              onClick={() => onUsePrompt(daily.prompt)}
-            >
-              {t('home.tageskarteDo')} →
-            </button>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button type="button" size="sm" variant="secondary" onClick={() => onUsePrompt(daily.prompt)}>
+              {t('home.tageskarteDo')}
+            </Button>
             {item.to && (
-              <Link to={item.to} className="text-[11px] text-muted hover:underline">
+              <ButtonLink to={item.to} size="sm" variant="ghost">
                 {t('home.next')}
-              </Link>
+              </ButtonLink>
             )}
           </div>
         </>

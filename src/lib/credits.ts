@@ -424,6 +424,11 @@ export async function spendCredits(
   kind: CreditSpendKind,
   label: string,
 ): Promise<CreditsState | null> {
+  const { emitParentalRequired, needsParentalGate } = await import('./kids')
+  if (needsParentalGate('credits_spend')) {
+    emitParentalRequired('credits_spend')
+    return null
+  }
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(amount))
   if (next.balance < amt) return null

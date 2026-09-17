@@ -11,7 +11,8 @@ export function themeForPath(pathname: string): SectionTheme {
     pathname.startsWith('/reise') ||
     pathname.startsWith('/abflug') ||
     pathname.startsWith('/treffer') ||
-    pathname.startsWith('/crew')
+    pathname.startsWith('/crew') ||
+    pathname.startsWith('/campus')
   ) {
     return 'match'
   }
