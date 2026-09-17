@@ -1,0 +1,1 @@
+import{g as e,p as t}from"./jsx-runtime-uYZKBatT.js";import{B as n,N as r}from"./credits-YBFu-oyo.js";var i=e(t(),1);function a(){let[e,t]=(0,i.useState)(0);return(0,i.useEffect)(()=>n(()=>t(e=>e+1)),[]),{version:e,wallet:r()}}export{a as t};
