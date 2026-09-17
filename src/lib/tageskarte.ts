@@ -182,19 +182,6 @@ export const TAGESKARTE_POOL: TageskarteItem[] = [
     promptDe: 'Kurzer Eltern-Tipp für den Rest des Tages',
     promptEn: 'A short parent tip for the rest of the day',
   },
-  {
-    id: 'tg-lernen-1',
-    slot: 'tag',
-    themes: ['lernen', 'kids'],
-    parentKids: true,
-    titleDe: 'Campus: eine Lektion',
-    titleEn: 'Campus: one lesson',
-    bodyDe: 'Grundschule bis Skills — Entdecken frei, kein Paywall-Druck.',
-    bodyEn: 'Primary through skills — discovery free, no paywall pressure.',
-    promptDe: 'Ich will heute auf dem Campus weiterlernen',
-    promptEn: 'I want to keep learning on Campus today',
-    to: '/campus',
-  },
 
   // Abend — Look / Laune / Freizeit
   {
@@ -278,31 +265,18 @@ export const TAGESKARTE_POOL: TageskarteItem[] = [
     promptDe: 'Ich will den Abend easy halten — was schlägst du vor?',
     promptEn: 'I want to keep the evening easy — what do you suggest?',
   },
-  {
-    id: 'ab-lernen-1',
-    slot: 'abend',
-    themes: ['lernen', 'kids'],
-    parentKids: true,
-    titleDe: 'Campus am Abend',
-    titleEn: 'Campus in the evening',
-    bodyDe: 'Sprachen oder Skills — eine Lektion, kein Adult-Chat.',
-    bodyEn: 'Languages or skills — one lesson, no adult chat.',
-    promptDe: 'Abend auf dem Campus: Sprachen oder Skills',
-    promptEn: 'Evening on Campus: languages or skills',
-    to: '/campus',
-  },
 ]
 
 const SLOT_THEMES: Record<DaySlot, TageskarteTheme[]> = {
   morgen: ['job', 'laune'],
-  tag: ['alltag', 'familie', 'kids', 'lernen'],
+  tag: ['alltag', 'familie', 'kids'],
   abend: ['look', 'laune', 'freizeit'],
 }
 
 const KIDS_SLOT_THEMES: Record<DaySlot, TageskarteTheme[]> = {
-  morgen: ['job', 'lernen'],
-  tag: ['kids', 'familie', 'lernen', 'alltag'],
-  abend: ['kids', 'lernen'],
+  morgen: ['job', 'laune'],
+  tag: ['kids', 'familie', 'alltag'],
+  abend: ['kids', 'laune', 'freizeit'],
 }
 
 export function berlinOrLocalClock(now = new Date()): {
@@ -353,6 +327,7 @@ export function poolForSlot(slot: DaySlot, kids = false): TageskarteItem[] {
     if (!item.themes.some((th) => allowed.has(th))) return false
     if (kids && item.to?.startsWith('/kabine')) return false
     if (kids && item.to?.startsWith('/abflug')) return false
+    if (item.to?.startsWith('/campus')) return false
     return true
   })
 }

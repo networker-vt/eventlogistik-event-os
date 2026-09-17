@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Briefcase,
+  GraduationCap,
   Home,
   MessageSquare,
   MoreHorizontal,
   Plus,
+  Shield,
   Wallet,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
@@ -22,7 +24,7 @@ import { touchResume } from '../../lib/resume'
 import { SchemeToggle } from '../theme/SchemeToggle'
 import { KidsBanner } from '../kids/KidsBanner'
 import { ParentalGateHost } from '../kids/ParentalGate'
-import { isKidsMode, subscribeKids } from '../../lib/kids'
+import { isKidsMode, kidsHidePublicChat, kidsHideWallet, subscribeKids } from '../../lib/kids'
 
 function documentTitleFor(pathname: string, t: (key: string) => string) {
   if (pathname === '/' || pathname === '') return `Orbit — ${t('brand.tagline')}`
@@ -59,21 +61,39 @@ export function AppShell() {
     touchResume(`${location.pathname}${location.hash}`, document.title)
   }, [location.pathname, location.hash, t])
 
-  const mobileNav = [
-    { to: '/', label: t('nav.home'), icon: Home, end: true },
-    { to: matchTo, label: matchLabel, icon: Briefcase },
-    { to: '/messages', label: t('nav.inbox'), icon: MessageSquare },
-    { to: '/wallet', label: t('nav.wallet'), icon: Wallet },
-    { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal },
-  ] as const
+  const hideWallet = kidsHideWallet()
+  const hideChat = kidsHidePublicChat()
+  const mobileNav = kids
+    ? [
+        { to: '/', label: t('nav.home'), icon: Home, end: true },
+        { to: matchTo, label: matchLabel, icon: Briefcase },
+        { to: '/campus', label: t('campus.nav'), icon: GraduationCap },
+        { to: '/kids', label: t('kids.title'), icon: Shield },
+        { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal },
+      ]
+    : [
+        { to: '/', label: t('nav.home'), icon: Home, end: true },
+        { to: matchTo, label: matchLabel, icon: Briefcase },
+        { to: '/messages', label: t('nav.inbox'), icon: MessageSquare },
+        { to: '/wallet', label: t('nav.wallet'), icon: Wallet },
+        { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal },
+      ]
 
-  const desktopPrimary = [
-    { to: '/', label: t('nav.home'), end: true },
-    { to: matchTo, label: matchLabel },
-    { to: '/messages', label: t('nav.inbox') },
-    { to: '/wallet', label: t('nav.wallet') },
-    { to: '/mehr', label: t('nav.mehr') },
-  ]
+  const desktopPrimary = kids
+    ? [
+        { to: '/', label: t('nav.home'), end: true },
+        { to: matchTo, label: matchLabel },
+        { to: '/campus', label: t('campus.nav') },
+        { to: '/kids', label: t('kids.title') },
+        { to: '/mehr', label: t('nav.mehr') },
+      ]
+    : [
+        { to: '/', label: t('nav.home'), end: true },
+        { to: matchTo, label: matchLabel },
+        ...(!hideChat ? [{ to: '/messages', label: t('nav.inbox') }] : []),
+        ...(!hideWallet ? [{ to: '/wallet', label: t('nav.wallet') }] : []),
+        { to: '/mehr', label: t('nav.mehr') },
+      ]
 
   return (
     <div
@@ -125,7 +145,7 @@ export function AppShell() {
 
           <div className="flex shrink-0 items-center gap-2">
             <SchemeToggle compact />
-            {location.pathname !== '/' && (
+            {location.pathname !== '/' && !kids && (
               <button
                 type="button"
                 onClick={() => setCreateOpen(true)}
@@ -161,7 +181,7 @@ export function AppShell() {
         </button>
         <div className="flex items-center gap-2">
           <SchemeToggle compact />
-          {location.pathname !== '/' && (
+          {location.pathname !== '/' && !kids && (
             <button
               type="button"
               onClick={() => setCreateOpen(true)}

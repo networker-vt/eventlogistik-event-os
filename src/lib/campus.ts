@@ -1,7 +1,10 @@
 /**
  * Orbit Lernen — product name „Campus“.
- * Free discovery. Premium unlock is a later SoftPaywall, not in 2.6.0.
+ * Super veto: pick one path → one CTA „Lektion starten“.
+ * 1 lesson/day free; extras SoftPaywall/Credits on adult accounts only.
  */
+import { isKidsMode } from './kids'
+
 export type CampusLevel =
   | 'grundschule'
   | 'weiterfuehrend'
@@ -20,7 +23,7 @@ export interface CampusCourse {
   durationDe: string
   durationEn: string
   safeForKids: boolean
-  /** Shown, but unlocking later costs credits — not gated in 2.6.0. */
+  /** Extra lessons after the free daily one: adult SoftPaywall / Credits. */
   premium?: boolean
   emoji: string
 }
@@ -31,8 +34,27 @@ export interface CampusProgress {
   at: string
 }
 
+export interface CampusState {
+  path: CampusLevel | null
+  selectedCourseId: string | null
+  progress: CampusProgress | null
+  lessonDay?: string
+  lessonsToday?: number
+}
+
+export type LessonStartResult = 'started' | 'need_credits' | 'kids_quota' | 'no_path' | 'unknown_course'
+
 const KEY = 'orbit_campus_v1'
 const EVT = 'orbit-campus-changed'
+const FREE_LESSONS_PER_DAY = 1
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function defaultCampusState(): CampusState {
+  return { path: null, selectedCourseId: null, progress: null }
+}
 
 export const CAMPUS_LEVELS: CampusLevel[] = [
   'grundschule',
@@ -192,34 +214,47 @@ export const CAMPUS_CATALOG: CampusCourse[] = [
   },
 ]
 
-function loadProgress(): CampusProgress | null {
+function loadState(): CampusState {
   try {
     const raw = localStorage.getItem(KEY)
-    if (!raw) return null
-    const p = JSON.parse(raw) as CampusProgress
-    return p?.courseId ? p : null
+    if (!raw) return defaultCampusState()
+    const parsed = JSON.parse(raw) as Partial<CampusState> & Partial<CampusProgress> & {
+      path?: CampusLevel | null
+    }
+    const path = CAMPUS_LEVELS.includes(parsed.path as CampusLevel) ? (parsed.path as CampusLevel) : null
+    const progress: CampusProgress | null = parsed.progress?.courseId
+      ? parsed.progress
+      : parsed.courseId
+        ? { courseId: parsed.courseId, step: parsed.step ?? 1, at: parsed.at || new Date().toISOString() }
+        : null
+    return {
+      path,
+      selectedCourseId: parsed.selectedCourseId ?? progress?.courseId ?? null,
+      progress,
+      lessonDay: parsed.lessonDay,
+      lessonsToday: parsed.lessonsToday,
+    }
   } catch {
-    return null
+    return defaultCampusState()
   }
 }
 
-let cache: CampusProgress | null | undefined
+let cache: CampusState | null = null
 
-function getProgress(): CampusProgress | null {
-  if (cache === undefined) cache = loadProgress()
+function getState(): CampusState {
+  if (!cache) cache = loadState()
   return cache
 }
 
-function commit(next: CampusProgress | null) {
+function commit(next: CampusState) {
   cache = next
-  if (next) localStorage.setItem(KEY, JSON.stringify(next))
-  else localStorage.removeItem(KEY)
+  localStorage.setItem(KEY, JSON.stringify(next))
   window.dispatchEvent(new CustomEvent(EVT))
 }
 
 export function subscribeCampus(cb: () => void) {
   const h = () => {
-    cache = undefined
+    cache = null
     cb()
   }
   window.addEventListener(EVT, h)
@@ -230,8 +265,53 @@ export function subscribeCampus(cb: () => void) {
   }
 }
 
+export function getCampusState(): CampusState {
+  return { ...getState() }
+}
+
 export function getCampusProgress(): CampusProgress | null {
-  return getProgress()
+  return getState().progress
+}
+
+export function getCampusPath(): CampusLevel | null {
+  return getState().path
+}
+
+export function pickCampusPath(level: CampusLevel) {
+  const prev = getState()
+  const selected =
+    prev.selectedCourseId && getCourse(prev.selectedCourseId)?.level === level
+      ? prev.selectedCourseId
+      : filterCourses(level)[0]?.id ?? null
+  const next: CampusState = {
+    ...prev,
+    path: level,
+    selectedCourseId: selected,
+  }
+  commit(next)
+  return next
+}
+
+export function selectCampusCourse(courseId: string) {
+  const course = getCourse(courseId)
+  if (!course) return getCampusState()
+  const prev = getState()
+  const next: CampusState = {
+    ...prev,
+    path: course.level,
+    selectedCourseId: courseId,
+  }
+  commit(next)
+  return next
+}
+
+export function lessonsUsedToday() {
+  const s = getState()
+  return s.lessonDay === todayKey() ? s.lessonsToday ?? 0 : 0
+}
+
+export function campusFreeLessonRemaining() {
+  return Math.max(0, FREE_LESSONS_PER_DAY - lessonsUsedToday())
 }
 
 export function getCourse(id: string) {
@@ -249,9 +329,50 @@ export function filterCourses(level: CampusLevel | 'all', kidsOnly = false) {
 export function resumeCampus(courseId: string, step = 1) {
   const course = getCourse(courseId)
   if (!course) return null
-  const next: CampusProgress = { courseId, step, at: new Date().toISOString() }
-  commit(next)
-  return next
+  const prev = getState()
+  const progress: CampusProgress = { courseId, step, at: new Date().toISOString() }
+  commit({
+    ...prev,
+    path: prev.path ?? course.level,
+    selectedCourseId: courseId,
+    progress,
+  })
+  return progress
+}
+
+/**
+ * Start the selected lesson. Requires a chosen path.
+ * First lesson each UTC day is free. Further lessons: adult SoftPaywall (`need_credits`);
+ * kids stay at the free quota (`kids_quota`) — never Credits.
+ */
+export function startLesson(courseId: string, opts?: { paid?: boolean }): LessonStartResult {
+  const course = getCourse(courseId)
+  if (!course) return 'unknown_course'
+  const prev = getState()
+  if (!prev.path) return 'no_path'
+  if (course.level !== prev.path) return 'no_path'
+  const used = lessonsUsedToday()
+  const paid = Boolean(opts?.paid)
+  if (used >= FREE_LESSONS_PER_DAY && !paid) {
+    if (isKidsMode()) return 'kids_quota'
+    return 'need_credits'
+  }
+  const day = todayKey()
+  const lessonsToday = prev.lessonDay === day ? used + 1 : 1
+  const progress: CampusProgress = {
+    courseId,
+    step: (prev.progress?.courseId === courseId ? prev.progress.step : 0) + 1,
+    at: new Date().toISOString(),
+  }
+  commit({
+    ...prev,
+    path: course.level,
+    selectedCourseId: courseId,
+    progress,
+    lessonDay: day,
+    lessonsToday,
+  })
+  return 'started'
 }
 
 export function campusCopy(course: CampusCourse, locale: 'de' | 'en') {
@@ -285,6 +406,6 @@ export function detectCampusIntent(text: string) {
 }
 
 export function __resetCampusForTests() {
-  cache = undefined
+  cache = null
   localStorage.removeItem(KEY)
 }

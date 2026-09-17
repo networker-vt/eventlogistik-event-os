@@ -1,6 +1,7 @@
 /**
- * Orbit Kids — age bands, kids mode, parental gate, content filter.
+ * Orbit Kids — age bands, kids mode, parental PIN, content filter.
  * Kids mode is on for every band under 18. 18+ is adult. Unset age is adult (no lock-in).
+ * Super veto: parental PIN/gate first, then kid UI. 0 Credits (no mint/spend/P2P). Hide Wallet.
  */
 export type AgeBand = 'under13' | '13-15' | '16-17' | '18+'
 
@@ -10,6 +11,8 @@ export interface KidsState {
   ageBand: AgeBand | null
   /** Explicit kids mode; derived from age unless an adult session unlocked leave. */
   kidsMode: boolean
+  /** FNV-1a hash of the parental PIN — never store the PIN in plaintext. */
+  pinHash?: string
   parentalVerifiedUntil?: string
 }
 
@@ -17,6 +20,7 @@ const KEY = 'orbit_kids_v1'
 const EVT = 'orbit-kids-changed'
 const GATE_EVT = 'orbit-parental-gate'
 const SESSION_MS = 15 * 60 * 1000
+const PIN_SALT = 'orbit-kids-pin-v1:'
 
 export const AGE_BANDS: AgeBand[] = ['under13', '13-15', '16-17', '18+']
 
@@ -24,26 +28,26 @@ export const AGE_BAND_COPY: Record<AgeBand, { de: string; en: string; hintDe: st
   under13: {
     de: 'unter 13',
     en: 'under 13',
-    hintDe: 'Campus + Assist. Keine Jobs, keine Buchung.',
-    hintEn: 'Campus + Assist. No jobs, no booking.',
+    hintDe: 'Campus + Assist. Keine Jobs, keine Buchung, 0 Credits.',
+    hintEn: 'Campus + Assist. No jobs, no booking, 0 credits.',
   },
   '13-15': {
     de: '13–15',
     en: '13–15',
-    hintDe: 'Lernen + altersgerechte Minijob-Stubs.',
-    hintEn: 'Learning + age-safe minijob stubs.',
+    hintDe: 'Lernen + altersgerechte Minijob-Stubs. Wallet aus.',
+    hintEn: 'Learning + age-safe minijob stubs. Wallet hidden.',
   },
   '16-17': {
     de: '16–17',
     en: '16–17',
-    hintDe: 'Mehr Minijobs, weiter ohne Adult-Chat/Reise/Kabine-Try-on.',
-    hintEn: 'More minijobs, still no adult chat/travel/Kabine try-on.',
+    hintDe: 'Mehr Minijobs, weiter ohne Adult-Chat/Reise/Kabine-Try-on/Credits.',
+    hintEn: 'More minijobs, still no adult chat/travel/Kabine try-on/credits.',
   },
   '18+': {
     de: '18+',
     en: '18+',
-    hintDe: 'Voller Orbit. Eltern-Gate beim Verlassen von Kids.',
-    hintEn: 'Full Orbit. Parental gate when leaving Kids.',
+    hintDe: 'Voller Orbit. Eltern-PIN beim Verlassen von Kids.',
+    hintEn: 'Full Orbit. Parental PIN when leaving Kids.',
   },
 }
 
@@ -61,6 +65,7 @@ function load(): KidsState {
     return {
       ageBand,
       kidsMode,
+      pinHash: typeof parsed.pinHash === 'string' ? parsed.pinHash : undefined,
       parentalVerifiedUntil: parsed.parentalVerifiedUntil,
     }
   } catch {
@@ -109,6 +114,53 @@ export function kidsAgeBand(): AgeBand | null {
   return get().ageBand
 }
 
+export function isValidPinFormat(pin: string) {
+  return /^\d{4}$/.test(String(pin).trim())
+}
+
+/** Demo hash — not a KDF. PIN never stored in plaintext. */
+export function hashPin(pin: string) {
+  const s = `${PIN_SALT}${String(pin).trim()}`
+  let h = 2166136261
+  for (let i = 0; i < s.length; i += 1) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return (h >>> 0).toString(16)
+}
+
+export function hasParentalPin() {
+  return Boolean(get().pinHash)
+}
+
+export function setParentalPin(pin: string): boolean {
+  if (!isValidPinFormat(pin)) return false
+  commit({ ...get(), pinHash: hashPin(pin) })
+  return true
+}
+
+export function verifyPin(pin: string): boolean {
+  const hash = get().pinHash
+  if (!hash || !isValidPinFormat(pin)) return false
+  if (hashPin(pin) !== hash) return false
+  unlockParentalSession()
+  return true
+}
+
+/** Parent configures PIN + age band, then kid UI may appear. Fail-closed. */
+export function enableKids(band: AgeBand, pin: string): KidsState | null {
+  if (!isUnder18(band)) return null
+  if (!isValidPinFormat(pin)) return null
+  const next: KidsState = {
+    ...get(),
+    ageBand: band,
+    kidsMode: true,
+    pinHash: hashPin(pin),
+  }
+  commit(next)
+  return next
+}
+
 export function hasParentalSession(now = Date.now()) {
   const until = get().parentalVerifiedUntil
   if (!until) return false
@@ -131,7 +183,7 @@ export function setAgeBand(band: AgeBand) {
   return next
 }
 
-/** Leave kids mode only after a valid parental session. Fail-closed. */
+/** Leave kids mode only after a valid parental session (PIN). Fail-closed. */
 export function leaveKidsMode(): boolean {
   if (!hasParentalSession()) return false
   const next: KidsState = {
@@ -157,7 +209,7 @@ export type ParentalChallenge = {
   promptEn: string
 }
 
-/** Adult math — not a kids quiz. Deterministic from a seed so tests stay stable. */
+/** Kept for tests / fallback copy. Product gate is PIN. */
 export function makeParentalChallenge(seed = Date.now()): ParentalChallenge {
   const n = Math.abs(seed) || 1
   const a = 11 + (n % 17)
@@ -231,6 +283,19 @@ export function kidsHideAdultTryOn() {
 }
 
 export function kidsHideSoftPaywall() {
+  return isKidsMode()
+}
+
+/** Super veto: kids never mint, spend, or P2P. Wallet is hidden. */
+export function kidsCreditsFrozen() {
+  return isKidsMode()
+}
+
+export function kidsHideWallet() {
+  return isKidsMode()
+}
+
+export function kidsHidePublicChat() {
   return isKidsMode()
 }
 

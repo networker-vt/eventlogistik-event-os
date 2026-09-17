@@ -28,11 +28,7 @@ export function IdeenPage() {
       return
     }
     const item = addIdea({ category, text, email })
-    if (category === 'verbessern') {
-      void import('../lib/rewards').then((m) => m.grantContributeReward()).catch(() => undefined)
-    } else {
-      void import('../lib/rewards').then((m) => m.grantIdeaReward()).catch(() => undefined)
-    }
+    void import('../lib/rewards').then((m) => m.grantIdeaReward()).catch(() => undefined)
     setText('')
     const extra = item.status === 'geplant' ? ` Als „geplant“ markiert: ${item.plannedReason}.` : ''
     const tweak =

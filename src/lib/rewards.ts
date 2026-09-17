@@ -1,8 +1,14 @@
 /**
  * Orbit Credits rewards — fair, once-per-action, from the pre-allocated rewards pool.
  * Welcome / early-tester grants debit their own pools inside the 21M cap.
+ *
+ * Super veto — Contributor-Rewards:
+ * ONLY from the Rewards-Pool after a **merged** PR.
+ * Anti-farm: 1 grant / PR (`contributor:pr:{n}`).
+ * Server-ordinal / fail-closed. NEVER client-mint. NEVER in the Home flow.
  */
-import { earnCredits, getCredits, grantWelcomeAllocation } from './credits'
+import { earnCredits, getCredits, grantMergedPrFromRewardsPool, grantWelcomeAllocation } from './credits'
+import { kidsCreditsFrozen } from './kids'
 import { getPrefs } from './prefs'
 
 const KEY = 'orbit_rewards_flags_v1'
@@ -18,15 +24,13 @@ export interface RewardFlags {
   reviews: number
   searchDays: string[]
   completedJobs: string[]
-  contribute: number
-  prClaims: number
+  /** Merged PR numbers already granted (anti-farm). */
+  grantedPrs: number[]
 }
 
-/** Higher grants for people who improve the app (fail-closed via rewards pool). */
+/** Contributor table — merged PRs only. Casual ideas stay a separate small reward. */
 export const CONTRIBUTOR_REWARDS = [
-  { id: 'idea', amount: 8, cap: 3, de: 'Ideen-Box (Feedback)', en: 'Ideas box (feedback)' },
-  { id: 'contribute', amount: 40, cap: 5, de: 'Verbesserung / Contribute', en: 'Improvement / contribute' },
-  { id: 'pr', amount: 120, cap: 3, de: 'PR / Patch (Verbesserer)', en: 'PR / patch (improver)' },
+  { id: 'pr', amount: 120, cap: 1, de: 'Merged PR (1 Grant / PR)', en: 'Merged PR (1 grant / PR)' },
 ] as const
 
 function defaultFlags(): RewardFlags {
@@ -40,8 +44,7 @@ function defaultFlags(): RewardFlags {
     reviews: 0,
     searchDays: [],
     completedJobs: [],
-    contribute: 0,
-    prClaims: 0,
+    grantedPrs: [],
   }
 }
 
@@ -49,7 +52,10 @@ function load(): RewardFlags {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return defaultFlags()
-    return { ...defaultFlags(), ...(JSON.parse(raw) as RewardFlags) }
+    const parsed = JSON.parse(raw) as Partial<RewardFlags> & { contribute?: number; prClaims?: number }
+    const next = { ...defaultFlags(), ...parsed }
+    if (!Array.isArray(next.grantedPrs)) next.grantedPrs = []
+    return next
   } catch {
     return defaultFlags()
   }
@@ -116,6 +122,7 @@ export async function grantWelcomeOnSignup() {
 }
 
 export async function maybeGrantPrefsComplete() {
+  if (kidsCreditsFrozen()) return
   const flags = structuredClone(get())
   if (flags.prefs) return
   if (!getPrefs().completed) return
@@ -125,6 +132,7 @@ export async function maybeGrantPrefsComplete() {
 }
 
 export async function maybeGrantProfileComplete() {
+  if (kidsCreditsFrozen()) return
   const flags = structuredClone(get())
   if (flags.profileComplete) return
   try {
@@ -146,6 +154,7 @@ export async function maybeGrantProfileComplete() {
 }
 
 export async function grantSuccessfulMatch() {
+  if (kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   if (flags.successfulMatch) return null
   const next = await earnCredits(15, 'Erfolgreiches Match (Demo) — Rewards-Pool')
@@ -156,6 +165,7 @@ export async function grantSuccessfulMatch() {
 }
 
 export async function grantIdeaReward() {
+  if (kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   if (flags.ideas >= 3) return null
   const next = await earnCredits(8, `Feedback / Ideen-Box (${flags.ideas + 1}/3, Demo) — Rewards-Pool`)
@@ -165,38 +175,29 @@ export async function grantIdeaReward() {
   return next
 }
 
-/** App-improvement feedback (Ideen-Box Kategorie Verbessern). Higher than casual ideas. */
-export async function grantContributeReward() {
+/**
+ * Contributor-Reward after a merged PR. Not callable from Home or a pasted URL.
+ * `proof.merged` must be true (server/CI). Anti-farm: 1 grant per PR number.
+ */
+export async function grantContributorMergedPr(
+  prNumber: number,
+  proof: { merged: true; serverOrdinal?: number },
+) {
+  if (kidsCreditsFrozen()) return null
+  if (!proof || proof.merged !== true) return null
+  const n = Math.trunc(Number(prNumber))
+  if (!Number.isFinite(n) || n < 1) return null
   const flags = structuredClone(get())
-  if (flags.contribute >= 5) return null
-  const next = await earnCredits(
-    40,
-    `Verbesserer-Feedback (${flags.contribute + 1}/5, Demo) — Rewards-Pool`,
-  )
+  if (flags.grantedPrs.includes(n)) return null
+  const next = await grantMergedPrFromRewardsPool(n)
   if (!next) return null
-  flags.contribute += 1
-  commit(flags)
-  return next
-}
-
-/** Claim a higher grant for a public PR / patch URL. Fail-closed if pool empty. */
-export async function grantPrContributeReward(prUrl: string) {
-  const flags = structuredClone(get())
-  if (flags.prClaims >= 3) return null
-  const url = prUrl.trim()
-  if (!/^https?:\/\/\S+/i.test(url)) return null
-  const next = await earnCredits(
-    120,
-    `PR/Patch Verbesserer (${flags.prClaims + 1}/3, Demo) — Rewards-Pool`,
-  )
-  if (!next) return null
-  flags.prClaims += 1
+  flags.grantedPrs = [...flags.grantedPrs, n]
   commit(flags)
   return next
 }
 
 export function isVerbesserer(flags = get()) {
-  return flags.contribute > 0 || flags.prClaims > 0
+  return flags.grantedPrs.length > 0
 }
 
 export function __resetRewardsForTests() {
@@ -205,6 +206,7 @@ export function __resetRewardsForTests() {
 }
 
 export async function grantReviewReward() {
+  if (kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   if (flags.reviews >= 5) return null
   const next = await earnCredits(10, `Erfahrungs-Review (${flags.reviews + 1}/5, Demo) — Rewards-Pool`)
@@ -216,6 +218,7 @@ export async function grantReviewReward() {
 
 /** Small daily bonus for actually searching / swiping — capped, not spammy. */
 export async function grantSearchActivity() {
+  if (kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   const day = todayKey()
   if (flags.searchDays.includes(day)) return null
@@ -228,6 +231,7 @@ export async function grantSearchActivity() {
 }
 
 export async function grantJobCompleted(bookingId: string) {
+  if (kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   if (flags.completedJobs.includes(bookingId)) return null
   if (flags.completedJobs.length >= 5) return null
@@ -243,8 +247,8 @@ export const REWARD_RULES_DE = [
   'Prefs + Profil (Skills, Radius, mind. 1 Nachweis): einmalige Boni aus dem Rewards-Pool.',
   'Erstes erfolgreiches Match: 15 Credits, einmalig.',
   'Empfehlen: 40 Credits pro Demo-Signup aus dem Rewards-Pool — nicht fürs Leerspammen.',
-  'Ideen-Box und Reviews: kleine Credits, gedeckelt (3 / 5).',
-  'Verbesserer: 40 Credits pro App-Verbesserungs-Feedback (max. 5) und 120 Credits pro PR/Patch-URL (max. 3) — höher als Casual-Feedback, immer aus dem Rewards-Pool, fail-closed.',
+  'Ideen-Box und Reviews: kleine Credits, gedeckelt (3 / 5). Kein Contributor-Grant.',
+  'Contributor-Rewards: NUR nach einem **gemergten** PR, 1 Grant pro PR, Op `contributor:pr:{n}`, server-ordinal, fail-closed aus dem Rewards-Pool. Nie Client-Mint, nie URL-Claim, nie im Home-Flow. Kids: 0 Credits.',
   'Suche/Match: 5 Credits pro Tag, max. 7 Tage.',
   'Job abschließen: 25 Credits, max. 5.',
   'Ist der Rewards-Pool leer, schlagen Grants fehl. Packs leer → nur noch P2P. Alles Demo-Ledger; echte 21M-Enforcement braucht später Server/Chain.',
@@ -255,8 +259,8 @@ export const REWARD_RULES_EN = [
   'Prefs + profile (skills, radius, at least 1 proof): one-time bonuses from the rewards pool.',
   'First successful match: 15 credits, once.',
   'Referrals: 40 credits per demo signup from the rewards pool — not for spam.',
-  'Ideas box and reviews: small credits, capped (3 / 5).',
-  'Improvers: 40 credits per app-improvement feedback (max 5) and 120 credits per PR/patch URL (max 3) — higher than casual feedback, always from the rewards pool, fail-closed.',
+  'Ideas box and reviews: small credits, capped (3 / 5). Not a contributor grant.',
+  'Contributor rewards: ONLY after a **merged** PR, 1 grant per PR, op `contributor:pr:{n}`, server-ordinal, fail-closed from the rewards pool. Never client-mint, never URL-claim, never in the Home flow. Kids: 0 credits.',
   'Search/match: 5 credits per day, max 7 days.',
   'Job completed: 25 credits, max 5.',
   'If the rewards pool is empty, grants fail. Packs empty → P2P only. Demo ledger; real 21M enforcement needs server/chain later.',

@@ -3,10 +3,9 @@ import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { useI18n } from '../../lib/i18n'
 import {
-  checkParentalAnswer,
-  makeParentalChallenge,
+  hasParentalPin,
   subscribeParentalGate,
-  unlockParentalSession,
+  verifyPin,
   type ParentalReason,
 } from '../../lib/kids'
 
@@ -27,38 +26,39 @@ export function ParentalGate({
   onClose: () => void
   onUnlocked: () => void
 }) {
-  const { t, resolved } = useI18n()
-  const [challenge] = useState(() => makeParentalChallenge(Date.now()))
-  const [answer, setAnswer] = useState('')
+  const { t } = useI18n()
+  const [pin, setPin] = useState('')
   const [tries, setTries] = useState(0)
   const [err, setErr] = useState<string | null>(null)
 
   if (!open) return null
 
-  const prompt = resolved === 'de' ? challenge.promptDe : challenge.promptEn
   const locked = tries >= 3
+  const ready = hasParentalPin()
 
   const submit = () => {
     if (locked) return
-    if (!checkParentalAnswer(challenge, answer)) {
+    if (!ready) {
+      setErr(t('kids.pinMissing'))
+      return
+    }
+    if (!verifyPin(pin)) {
       const next = tries + 1
       setTries(next)
       setErr(next >= 3 ? t('kids.gateLocked') : t('kids.gateWrong'))
       return
     }
-    unlockParentalSession()
     onUnlocked()
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="parental-gate-title">
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-4 shadow-xl">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-4 shadow-xl" data-parental-pin="1">
         <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">{t('kids.gateKicker')}</p>
         <h2 id="parental-gate-title" className="mt-1 text-lg font-semibold text-ink">
           {t('kids.gateTitle')}
         </h2>
         <p className="mt-1 text-sm text-muted">{t(REASON_KEY[reason])}</p>
-        <p className="mt-3 text-sm font-medium text-ink">{prompt}</p>
         <form
           className="mt-3 space-y-3"
           onSubmit={(e) => {
@@ -67,11 +67,13 @@ export function ParentalGate({
           }}
         >
           <Input
-            label={t('kids.gateAnswer')}
+            label={t('kids.pinLabel')}
+            type="password"
             inputMode="numeric"
             autoComplete="off"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
+            maxLength={4}
+            value={pin}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
             disabled={locked}
           />
           {err && <p className="text-xs text-rose-300">{err}</p>}
@@ -89,7 +91,7 @@ export function ParentalGate({
   )
 }
 
-/** App-level listener: opens the gate when credits/social/leave request it. */
+/** App-level listener: opens the gate when leave/social request it. */
 export function ParentalGateHost({
   onUnlocked,
 }: {

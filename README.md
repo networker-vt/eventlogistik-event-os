@@ -13,13 +13,13 @@ Global all-industry marketplace OS (v2.6.0): 90-day focus **DE Freelancer/KMU �
 
 ## IA (v2.6.0)
 
-**Start · Treffer · Chat · Wallet · Mehr** — Create in the header (not on Home). Mein via avatar / Mehr. Home: robot + greeting + **Was brauchst du?** → outlined **Suchen / Anbieten / Weitermachen / Campus** → one filled **Orbit fragen** → **one Tageskarte** → below-fold **Mehr entdecken**. Orbit Kids age picker + parental gate. Campus under Mehr. Light parchment default.
+**Start · Treffer · Chat · Wallet · Mehr** — Create in the header (not on Home). Mein via avatar / Mehr. Home: robot + greeting + **Was brauchst du?** → outlined **Suchen / Anbieten / Weitermachen** → one filled **Orbit fragen** → **one Tageskarte** → below-fold **Mehr entdecken**. **Campus and Kids live under Mehr** (two quiet tiles), never on Home. Kids: PIN first, 0 Credits, hide Wallet. Light parchment default.
 
 ## Core routes (v2.6.0)
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Start — robot + Was brauchst du?, quiet Suchen / Anbieten / Weitermachen, one Tageskarte, one filled Orbit fragen, Mehr entdecken below |
+| `/` | Start — robot + Was brauchst du?, quiet Suchen / Anbieten / Weitermachen, one Tageskarte, one filled Orbit fragen, Mehr entdecken below. No Campus / Kids / contributor CTA. |
 | `/treffer` (`/match`) | Treffer — jobs/services swipe |
 | `/crew` | Crew — B2B hiring / employer match |
 | `/kabine` (`/look`) | Kabine — photo/video try-on (base free) |
@@ -30,9 +30,9 @@ Global all-industry marketplace OS (v2.6.0): 90-day focus **DE Freelancer/KMU �
 | `/mein` | Prefs, **Kanäle verbinden** (Amazon/Netflix… stubs), hub |
 | `/firma` | Company hub |
 | `/marktplatz` | Unified marketplace |
-| `/mehr` | Kabine, Social, Abflug, Firma, Channels, Wallet, Legal |
-| `/campus` (`/lernen`) | Campus — Orbit Lernen catalog + Weiterlernen |
-| `/kids` | Orbit Kids — age bands + parental gate |
+| `/mehr` | Two quiet tiles Campus + Kids; remaining routes as a quiet list; Legal |
+| `/campus` (`/lernen`) | Campus — pick one path, one „Lektion starten“, 1/day free |
+| `/kids` | Orbit Kids — parental PIN first, then kid UI; 0 Credits |
 | `/impressum` | Mirco Küßner |
 
 Bottom nav: **Start · Treffer · Chat · Wallet · Mehr**

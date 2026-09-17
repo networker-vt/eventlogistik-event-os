@@ -2,20 +2,22 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   __resetKidsForTests,
   AGE_BANDS,
-  checkParentalAnswer,
+  enableKids,
+  hasParentalPin,
   isKidsMode,
   isUnder18,
+  kidsCreditsFrozen,
   kidsHideAdultTryOn,
+  kidsHidePublicChat,
   kidsHideSoftPaywall,
   kidsHideSocialChat,
   kidsHideTravel,
+  kidsHideWallet,
   kidsMaySeeJobs,
   leaveKidsMode,
   listingIsSafeForKids,
-  makeParentalChallenge,
-  needsParentalGate,
   setAgeBand,
-  unlockParentalSession,
+  verifyPin,
 } from './kids'
 
 describe('Orbit Kids', () => {
@@ -36,35 +38,33 @@ describe('Orbit Kids', () => {
     expect(kidsHideSocialChat()).toBe(true)
     expect(kidsHideAdultTryOn()).toBe(true)
     expect(kidsHideSoftPaywall()).toBe(true)
+    expect(kidsHideWallet()).toBe(true)
+    expect(kidsHidePublicChat()).toBe(true)
+    expect(kidsCreditsFrozen()).toBe(true)
     setAgeBand('13-15')
     expect(kidsMaySeeJobs()).toBe(true)
     setAgeBand('18+')
     expect(isKidsMode()).toBe(false)
     expect(kidsHideTravel()).toBe(false)
+    expect(kidsCreditsFrozen()).toBe(false)
   })
 
-  it('requires a parental session before leaving kids mode (fail-closed)', () => {
-    setAgeBand('under13')
+  it('requires parental PIN before kid UI and before leaving kids mode (fail-closed)', () => {
+    expect(enableKids('18+', '1234')).toBeNull()
+    expect(enableKids('under13', '12')).toBeNull()
+    expect(hasParentalPin()).toBe(false)
+    expect(enableKids('under13', '1234')).not.toBeNull()
+    expect(hasParentalPin()).toBe(true)
+    expect(isKidsMode()).toBe(true)
     expect(leaveKidsMode()).toBe(false)
     expect(isKidsMode()).toBe(true)
-    unlockParentalSession()
+    expect(verifyPin('0000')).toBe(false)
+    expect(verifyPin('1234')).toBe(true)
     expect(leaveKidsMode()).toBe(true)
     expect(isKidsMode()).toBe(false)
   })
 
-  it('gates credits spend and external/social while in kids mode without a session', () => {
-    setAgeBand('16-17')
-    expect(needsParentalGate('credits_spend')).toBe(true)
-    expect(needsParentalGate('external_social')).toBe(true)
-    expect(needsParentalGate('leave_kids')).toBe(true)
-    unlockParentalSession()
-    expect(needsParentalGate('credits_spend')).toBe(false)
-  })
-
-  it('accepts the adult math challenge and flags age-safe listings', () => {
-    const ch = makeParentalChallenge(42)
-    expect(checkParentalAnswer(ch, String(ch.answer))).toBe(true)
-    expect(checkParentalAnswer(ch, '0')).toBe(false)
+  it('flags age-safe listings', () => {
     expect(
       listingIsSafeForKids({
         safeForKids: true,

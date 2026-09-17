@@ -1,35 +1,92 @@
 import { useEffect, useMemo, useState } from 'react'
 import { GraduationCap } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
-import { Button, ButtonLink } from '../components/ui/Button'
+import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
+import { SoftPaywall } from '../components/credits/SoftPaywall'
 import { useI18n } from '../lib/i18n'
 import {
   CAMPUS_LEVELS,
   campusCopy,
+  campusFreeLessonRemaining,
   filterCourses,
+  getCampusPath,
   getCampusProgress,
+  getCampusState,
   getCourse,
-  resumeCampus,
+  pickCampusPath,
+  selectCampusCourse,
+  startLesson,
   subscribeCampus,
   type CampusLevel,
 } from '../lib/campus'
+import { CREDITS_COSTS, spendCredits } from '../lib/credits'
 import { isKidsMode, subscribeKids } from '../lib/kids'
 import { cn } from '../lib/utils'
 
 export function CampusPage() {
   const { t, resolved } = useI18n()
-  const [level, setLevel] = useState<CampusLevel | 'all'>('all')
   const [kids, setKids] = useState(isKidsMode)
+  const [path, setPath] = useState<CampusLevel | null>(getCampusPath)
+  const [selectedId, setSelectedId] = useState<string | null>(getCampusState().selectedCourseId)
   const [progress, setProgress] = useState(getCampusProgress)
-  const [openId, setOpenId] = useState<string | null>(progress?.courseId ?? null)
+  const [freeLeft, setFreeLeft] = useState(campusFreeLessonRemaining)
+  const [paywall, setPaywall] = useState(false)
+  const [note, setNote] = useState<string | null>(null)
+
+  const sync = () => {
+    const state = getCampusState()
+    setPath(state.path)
+    setSelectedId(state.selectedCourseId)
+    setProgress(state.progress)
+    setFreeLeft(campusFreeLessonRemaining())
+  }
 
   useEffect(() => subscribeKids(() => setKids(isKidsMode())), [])
-  useEffect(() => subscribeCampus(() => setProgress(getCampusProgress())), [])
+  useEffect(() => subscribeCampus(sync), [])
 
-  const courses = useMemo(() => filterCourses(level, kids), [level, kids])
+  const courses = useMemo(() => (path ? filterCourses(path, kids) : []), [path, kids])
+  const selected = selectedId ? getCourse(selectedId) : null
+  const selectedCopy = selected ? campusCopy(selected, resolved) : null
   const resume = progress ? getCourse(progress.courseId) : null
-  const resumeCopy = resume ? campusCopy(resume, resolved) : null
+
+  const runStart = async (paid = false) => {
+    if (!selectedId) return
+    const result = startLesson(selectedId, { paid })
+    if (result === 'started') {
+      setPaywall(false)
+      setNote(t('campus.started'))
+      sync()
+      return
+    }
+    if (result === 'kids_quota') {
+      setNote(t('campus.kidsQuota'))
+      return
+    }
+    if (result === 'need_credits') {
+      if (kids) {
+        setNote(t('campus.kidsQuota'))
+        return
+      }
+      setPaywall(true)
+      return
+    }
+    if (result === 'no_path') setNote(t('campus.pickPathFirst'))
+  }
+
+  const buyExtra = () => {
+    void spendCredits(
+      CREDITS_COSTS.assist_priority.credits,
+      'assist_priority',
+      t('campus.extraHint'),
+    ).then((ok) => {
+      if (!ok) {
+        setNote(t('credits.notEnough'))
+        return
+      }
+      void runStart(true)
+    })
+  }
 
   return (
     <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome">
@@ -38,104 +95,93 @@ export function CampusPage() {
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <GraduationCap size={22} /> {t('campus.title')}
         </h1>
-        <p className="text-sm text-muted">{t('campus.lead')}</p>
+        <p className="text-sm text-muted">{t('campus.leadVeto')}</p>
       </header>
 
-      {resume && resumeCopy && (
-        <section className="rounded-2xl border border-[var(--theme-accent)]/35 bg-[var(--theme-accent)]/8 p-4" data-campus-resume="1">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">{t('campus.resume')}</p>
-          <h2 className="mt-1 text-base font-semibold text-ink">
-            {resume.emoji} {resumeCopy.title}
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            {t('campus.resumeStep')} {progress?.step ?? 1}
-          </p>
-          <Button
-            className="mt-3"
-            variant="secondary"
-            onClick={() => {
-              setOpenId(resume.id)
-              resumeCampus(resume.id, (progress?.step ?? 1) + 1)
-            }}
-          >
-            {t('campus.continue')}
-          </Button>
-        </section>
-      )}
-
-      <nav aria-label={t('campus.filters')} className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant={level === 'all' ? 'tonal' : 'secondary'}
-          onClick={() => setLevel('all')}
-        >
-          {t('campus.all')}
-        </Button>
+      <nav aria-label={t('campus.pickPath')} className="flex flex-wrap gap-2">
         {CAMPUS_LEVELS.map((id) => (
           <Button
             key={id}
             size="sm"
-            variant={level === id ? 'tonal' : 'secondary'}
-            onClick={() => setLevel(id)}
+            variant={path === id ? 'tonal' : 'secondary'}
+            onClick={() => {
+              pickCampusPath(id)
+              sync()
+              setNote(null)
+            }}
           >
             {t(`campus.level.${id}`)}
           </Button>
         ))}
       </nav>
 
-      {courses.length === 0 ? (
+      {!path ? (
+        <Empty emoji="📚" title={t('campus.pickPathFirst')} hint={t('campus.pickPathHint')} />
+      ) : courses.length === 0 ? (
         <Empty emoji="📚" title={t('campus.empty')} hint={t('campus.emptyHint')} />
       ) : (
-        <ul className="space-y-2">
-          {courses.map((course) => {
-            const copy = campusCopy(course, resolved)
-            const open = openId === course.id
-            return (
-              <li key={course.id}>
-                <article
-                  className={cn(
-                    'rounded-2xl border bg-surface-2/60 p-4',
-                    open ? 'border-[var(--theme-accent)]' : 'border-border',
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className="text-base font-semibold text-ink">
-                        {course.emoji} {copy.title}
-                      </h2>
-                      <p className="mt-1 text-sm text-muted">{copy.blurb}</p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        <Badge>{t(`campus.level.${course.level}`)}</Badge>
-                        <Badge>{copy.duration}</Badge>
-                        {course.premium && <Badge tone="amber">{t('campus.premiumLater')}</Badge>}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => {
-                        setOpenId(course.id)
-                        resumeCampus(course.id, 1)
-                      }}
-                    >
-                      {t('campus.start')}
-                    </Button>
-                    {course.premium && (
-                      <ButtonLink to="/wallet" size="sm" variant="ghost">
-                        {t('campus.premiumHint')}
-                      </ButtonLink>
+        <>
+          <ul className="space-y-2">
+            {courses.map((course) => {
+              const copy = campusCopy(course, resolved)
+              const open = selectedId === course.id
+              return (
+                <li key={course.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      selectCampusCourse(course.id)
+                      sync()
+                    }}
+                    className={cn(
+                      'btn-press w-full rounded-2xl border bg-surface-2/60 p-4 text-left',
+                      open ? 'border-[var(--theme-accent)]' : 'border-border',
                     )}
-                  </div>
-                  {open && (
-                    <p className="mt-3 border-t border-border/70 pt-3 text-sm text-ink-soft">{t('campus.lessonStub')}</p>
-                  )}
-                </article>
-              </li>
-            )
-          })}
-        </ul>
+                  >
+                    <h2 className="text-base font-semibold text-ink">
+                      {course.emoji} {copy.title}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted">{copy.blurb}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <Badge>{t(`campus.level.${course.level}`)}</Badge>
+                      <Badge>{copy.duration}</Badge>
+                    </div>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+
+          {selected && selectedCopy && (
+            <section className="rounded-2xl border border-border bg-surface-2/80 p-4" data-campus-cta="1">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">
+                {t('campus.freeToday')}: {freeLeft}
+              </p>
+              <h2 className="mt-1 text-base font-semibold text-ink">
+                {selected.emoji} {selectedCopy.title}
+              </h2>
+              {resume && progress?.courseId === selected.id && (
+                <p className="mt-1 text-sm text-muted">
+                  {t('campus.resumeStep')} {progress.step}
+                </p>
+              )}
+              <Button className="mt-3 w-full" onClick={() => void runStart(false)}>
+                {t('campus.start')}
+              </Button>
+              {note && <p className="mt-2 text-xs text-muted">{note}</p>}
+            </section>
+          )}
+        </>
+      )}
+
+      {paywall && !kids && (
+        <SoftPaywall
+          title={t('campus.extraTitle')}
+          hint={t('campus.extraHint')}
+          cost={CREDITS_COSTS.assist_priority.credits}
+          onBuy={buyExtra}
+          onClose={() => setPaywall(false)}
+        />
       )}
     </div>
   )

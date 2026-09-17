@@ -79,37 +79,26 @@ export const ROBOT_ASK_POOL: RobotAsk[] = [
     to: '/kabine?intent=schuhe',
   },
   {
-    id: 'tg-lernen',
+    id: 'tg-job-kids',
     slot: 'tag',
-    kind: 'lernen',
-    area: 'campus',
-    questionDe: 'Heute auf dem Campus weiterlernen?',
-    questionEn: 'Keep learning on Campus today?',
-    yesDe: 'Zu Campus',
-    yesEn: 'Open Campus',
-    to: '/campus',
+    kind: 'job',
+    area: 'treffer',
+    questionDe: 'Ein altersgerechter Mini-Job für heute?',
+    questionEn: 'An age-safe mini-job for today?',
+    yesDe: 'Zu Treffer',
+    yesEn: 'Open Treffer',
+    to: '/treffer',
   },
   {
-    id: 'mo-lernen',
-    slot: 'morgen',
-    kind: 'lernen',
-    area: 'campus',
-    questionDe: 'Vormittag: eine Lektion auf Campus?',
-    questionEn: 'This morning: one Campus lesson?',
-    yesDe: 'Zu Campus',
-    yesEn: 'Open Campus',
-    to: '/campus',
-  },
-  {
-    id: 'ab-lernen',
+    id: 'ab-job-kids',
     slot: 'abend',
-    kind: 'lernen',
-    area: 'campus',
-    questionDe: 'Abend: Sprachen oder Skills auf Campus?',
-    questionEn: 'Evening: languages or skills on Campus?',
-    yesDe: 'Zu Campus',
-    yesEn: 'Open Campus',
-    to: '/campus',
+    kind: 'job',
+    area: 'treffer',
+    questionDe: 'Noch ein Mini-Job am Abend?',
+    questionEn: 'A mini-job this evening?',
+    yesDe: 'Zu Treffer',
+    yesEn: 'Open Treffer',
+    to: '/treffer',
   },
 ]
 
@@ -120,9 +109,9 @@ const SLOT_KINDS: Record<DaySlot, RobotAskKind[]> = {
 }
 
 const KIDS_SLOT_KINDS: Record<DaySlot, RobotAskKind[]> = {
-  morgen: ['lernen', 'job'],
-  tag: ['lernen'],
-  abend: ['lernen'],
+  morgen: ['job'],
+  tag: ['job'],
+  abend: ['job'],
 }
 
 export function robotAskSeed(dateKey: string, slot: DaySlot): number {

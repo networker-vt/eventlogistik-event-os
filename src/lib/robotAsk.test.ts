@@ -12,17 +12,18 @@ describe('Robot tap — one time-of-day question', () => {
     expect(robotAskPoolForSlot('morgen').length).toBe(1)
     expect(robotAskPoolForSlot('tag').length).toBe(2)
     expect(robotAskPoolForSlot('abend').length).toBe(2)
-    expect(ROBOT_ASK_POOL.filter((q) => q.kind !== 'lernen')).toHaveLength(5)
+    expect(ROBOT_ASK_POOL.filter((q) => q.area === 'campus')).toHaveLength(0)
   })
 
-  it('routes Kids robot questions into Campus, not adult Kabine/Abflug chat', () => {
+  it('routes Kids robot questions into Treffer, not Campus / Kabine / Abflug', () => {
     const morning = pickRobotAsk(new Date('2026-09-17T07:30:00+02:00'), { kids: true })
-    expect(['lernen', 'job']).toContain(morning.item.kind)
+    expect(morning.item.kind).toBe('job')
+    expect(morning.item.to).toBe('/treffer')
     const day = pickRobotAsk(new Date('2026-09-17T13:00:00+02:00'), { kids: true })
-    expect(day.item.area).toBe('campus')
-    expect(day.item.to).toBe('/campus')
+    expect(day.item.area).toBe('treffer')
+    expect(day.item.to).not.toBe('/campus')
     const evening = pickRobotAsk(new Date('2026-09-17T19:40:00+02:00'), { kids: true })
-    expect(evening.item.area).toBe('campus')
+    expect(evening.item.to).not.toBe('/campus')
     expect(isKabineAsk(evening.item)).toBe(false)
   })
 

@@ -11,21 +11,30 @@ Forks are welcome if they improve **Orbit** — the global job-matching OS.
 5. Keep impressum attribution to Mirco Küßner unless legal ownership changes.
 6. Run `npm test` and `npm run build` before opening a PR.
 
-### Contributor rewards (Verbesserer)
+### Contributor rewards (HARD — Super veto)
 
-Improving the app is worth **more** than casual ideas-box notes. Grants always debit the pre-allocated **rewards pool** inside the 21M cap and **fail closed** if the pool is empty (no extra mint, demo ≠ prod).
+Contributor credits are **not** a Home feature and **not** a client mint.
 
-| Action | Credits | Cap |
-|--------|---------|-----|
-| Ideas box (casual) | 8 | 3 |
-| **Verbessern / contribute feedback** | **40** | 5 |
-| **PR / patch URL** | **120** | 3 |
+| Rule | Detail |
+|------|--------|
+| Source | Pre-allocated **rewards pool** inside the 21M cap |
+| Trigger | A GitHub PR that is **merged** into `main` |
+| Amount | 120 Credits |
+| Anti-farm | **1 grant per PR number** |
+| Ordinal | Server/CI op id `contributor:pr:{n}` (`seenOpIds` + wallet tx id) |
+| Fail-closed | Empty pool, duplicate PR, unmerged PR, kids mode, or ledger reject → **no credit** |
+| Never | Client-mint, pasted URL claim, Ideen-Box “Verbessern”, Home CTA, Kids accounts |
 
-How to claim in the demo app:
+How a grant happens (operators / CI only):
 
-1. **Feedback:** Mehr → Ideen-Box → category **Verbessern / PR**.
-2. **PR:** Wallet → Verbesserer table → paste the GitHub PR / patch `https://…` URL → claim (demo ledger).
-3. A visible **Verbesserer** badge appears after the first successful contribute or PR grant.
+1. PR is **merged**.
+2. Server or trusted CI calls `grantContributorMergedPr(prNumber, { merged: true, serverOrdinal })`.
+3. That debit uses `mintFromPool('rewards', 120, 'contributor:pr:{n}')` then `creditWallet` with the same op id (welcome-style). If the wallet write fails, the protocol snapshot is restored.
+4. The demo app has **no** claim form. Wallet only documents the rule. A **Verbesserer** badge appears after a successful merged-PR grant on that device/ledger.
+
+Casual ideas-box notes (8 Credits, cap 3) are **not** contributor rewards.
+
+Kids accounts: **0 Credits** — no mint, no spend, no P2P.
 
 Ledger rules unchanged: RPC-first in prod, local demo ledger, `MAX_SUPPLY` 21M. See [CREDITS.md](./CREDITS.md).
 
@@ -40,16 +49,10 @@ Forks sind willkommen, wenn sie **Orbit** verbessern.
 5. Impressum: Mirco Küßner belassen, solange die Betreiberrolle so bleibt.
 6. Vor dem PR: `npm test` und `npm run build`.
 
-### Contributor-Rewards (Verbesserer)
+### Contributor-Rewards (HARD — Super-Veto)
 
-Wer die App verbessert, bekommt **höhere** Credits als Casual-Feedback. Grants gehen nur aus dem **Rewards-Pool** (21M-Cap) und **schlagen fehl**, wenn der Pool leer ist — kein Extra-Mint.
+Contributor-Credits kommen **nur** aus dem Rewards-Pool **nach einem gemergten PR**. Anti-Farm: **1 Grant pro PR**. Op `contributor:pr:{n}`, server-ordinal, fail-closed. **Nie** Client-Mint, **nie** URL-Claim, **nie** im Home-Flow, **nie** in Kids.
 
-| Aktion | Credits | Cap |
-|--------|---------|-----|
-| Ideen-Box (casual) | 8 | 3 |
-| **Verbessern / Contribute** | **40** | 5 |
-| **PR / Patch-URL** | **120** | 3 |
-
-In der Demo: Ideen-Box-Kategorie **Verbessern / PR**, oder Wallet → Verbesserer-Tabelle mit PR-URL. Badge **Verbesserer** nach dem ersten erfolgreichen Grant. Ledger bleibt RPC-first / Demo≠Prod / MAX_SUPPLY.
+In der Demo gibt es kein Claim-Formular. Operator/CI ruft `grantContributorMergedPr(n, { merged: true })` nach dem Merge. Ideen-Box bleibt Casual (8 Credits), kein Verbesserer-Grant. Ledger: RPC-first / Demo≠Prod / MAX_SUPPLY 21M.
 
 Danke — Matching statt Spam.

@@ -1,47 +1,19 @@
 import { useEffect, type ComponentType } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import {
-  Building2,
-  Camera,
-  FileText,
-  Gift,
-  GraduationCap,
-  Hash,
-  Lightbulb,
-  Plane,
-  Plus,
-  Scale,
-  Shield,
-  Sparkles,
-  Star,
-  Store,
-  UserRound,
-  Users,
-  Video,
-  Wallet,
-  Cable,
-  Link2,
-} from 'lucide-react'
+import { GraduationCap, Shield } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
+import { isKidsMode, kidsHidePublicChat, kidsHideTravel, kidsHideWallet } from '../lib/kids'
 
-type HubLink = {
+type QuietLink = {
   to: string
   label: string
   hint?: string
-  icon: ComponentType<{ size?: number; className?: string }>
-}
-
-type HubSection = {
-  id: string
-  title: string
-  subtitle: string
-  accent: string
-  links: HubLink[]
 }
 
 export function MehrPage() {
   const { t } = useI18n()
   const { hash } = useLocation()
+  const kids = isKidsMode()
   useEffect(() => {
     if (!hash) return
     const id = hash.replace(/^#/, '')
@@ -49,97 +21,74 @@ export function MehrPage() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [hash])
 
-  const sections: HubSection[] = [
-    {
-      id: 'entdecken',
-      title: 'Entdecken',
-      subtitle: 'Jobs finden oder anbieten — DE Freelancer/KMU',
-      accent: 'border-[var(--theme-accent)]/35 bg-[var(--theme-accent)]/5',
-      links: [
-        { to: '/kabine', label: t('look.nav'), hint: t('look.hint'), icon: Sparkles },
-        { to: '/firma', label: t('firma.nav'), hint: t('firma.hint'), icon: Building2 },
-        { to: '/marktplatz', label: t('market.nav'), hint: t('market.hint'), icon: Store },
-        { to: '/abflug', label: t('travel.nav'), hint: t('travel.lead'), icon: Plane },
-        { to: '/social', label: t('social.title'), hint: t('social.kicker'), icon: Users },
-        { to: '/channels', label: t('channels.nav'), hint: t('channels.hint'), icon: Hash },
-        { to: '/mein', label: t('nav.mein'), hint: t('mein.lead'), icon: UserRound },
-        { to: '/listings/new', label: t('nav.create'), hint: t('create.lead'), icon: Plus },
-        { to: '/foto', label: t('photo.title'), hint: 'Kamera · Demo-Vision', icon: Camera },
-        { to: '/interview', label: t('interview.title'), hint: 'Chat · Slot · Video-Stub', icon: Video },
-        { to: '/erfahrungen', label: t('reviews.title'), hint: 'Sterne + Kurztext', icon: Star },
-        { to: '/quellen', label: 'Quellen', hint: 'LinkedIn, StepStone… Stubs', icon: Cable },
-        { to: '/campus', label: t('campus.nav'), hint: t('campus.lead'), icon: GraduationCap },
-        { to: '/kids', label: t('kids.title'), hint: t('kids.lead'), icon: Shield },
-      ],
-    },
-    {
-      id: 'ideen',
-      title: 'Ideen & Credits',
-      subtitle: 'Feedback, Referral, Wallet · Cap 21M',
-      accent: 'border-violet-500/35 bg-violet-500/5',
-      links: [
-        { to: '/ideen', label: 'Ideen-Box', hint: 'Feedback an den Operator', icon: Lightbulb },
-        { to: '/empfehlen', label: 'Empfehlen', hint: 'Referral aus dem Rewards-Pool', icon: Gift },
-        { to: '/wallet#gift', label: t('gift.title'), hint: t('gift.lead'), icon: Gift },
-        { to: '/mein#kanaele', label: t('channels.linkTitle'), hint: t('channels.linkLead'), icon: Link2 },
-        { to: '/wallet', label: 'Wallet & Credits', hint: '21M Cap · Demo-Ledger', icon: Wallet },
-      ],
-    },
-    {
-      id: 'legal',
-      title: 'Legal',
-      subtitle: 'Impressum Mirco Küßner · Datenschutz · AGB',
-      accent: 'border-border bg-surface-2/60',
-      links: [
-        { to: '/impressum', label: t('footer.impressum'), icon: FileText },
-        { to: '/datenschutz', label: t('footer.privacy'), icon: Scale },
-        { to: '/agb', label: t('footer.terms'), icon: FileText },
-      ],
-    },
+  const tiles: { to: string; label: string; hint: string; icon: ComponentType<{ size?: number }> }[] = [
+    { to: '/campus', label: t('campus.nav'), hint: t('campus.lead'), icon: GraduationCap },
+    { to: '/kids', label: t('kids.title'), hint: t('kids.lead'), icon: Shield },
+  ]
+
+  const rest: QuietLink[] = [
+    { to: '/kabine', label: t('look.nav'), hint: t('look.hint') },
+    { to: '/firma', label: t('firma.nav'), hint: t('firma.hint') },
+    { to: '/marktplatz', label: t('market.nav'), hint: t('market.hint') },
+    ...(!kidsHideTravel() ? [{ to: '/abflug', label: t('travel.nav'), hint: t('travel.lead') }] : []),
+    ...(!kids ? [{ to: '/social', label: t('social.title'), hint: t('social.kicker') }] : []),
+    { to: '/channels', label: t('channels.nav'), hint: t('channels.hint') },
+    { to: '/mein', label: t('nav.mein'), hint: t('mein.lead') },
+    ...(!kids ? [{ to: '/listings/new', label: t('nav.create'), hint: t('create.lead') }] : []),
+    { to: '/ideen', label: t('mehr.ideas'), hint: t('mehr.ideasHint') },
+    ...(!kidsHideWallet()
+      ? [
+          { to: '/empfehlen', label: t('mehr.refer'), hint: t('mehr.referHint') },
+          { to: '/wallet', label: t('nav.wallet'), hint: t('mehr.walletHint') },
+        ]
+      : []),
+    ...(!kidsHidePublicChat() ? [{ to: '/messages', label: t('nav.inbox'), hint: t('mehr.chatHint') }] : []),
+    { to: '/impressum', label: t('footer.impressum') },
+    { to: '/datenschutz', label: t('footer.privacy') },
+    { to: '/agb', label: t('footer.terms') },
   ]
 
   return (
     <div className="space-y-6 pb-scroll-chrome">
       <header className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">{t('mehr.title')}</h1>
-        <p className="text-sm text-muted">{t('mehr.lead')}</p>
+        <p className="text-sm text-muted">{t('mehr.leadQuiet')}</p>
       </header>
 
-      {sections.map((section) => (
-        <section
-          key={section.id}
-          id={section.id}
-          className={`scroll-mt-20 rounded-2xl border p-4 md:p-5 ${section.accent}`}
-        >
-          <div className="mb-3">
-            <h2 className="text-lg font-semibold text-ink">{section.title}</h2>
-            <p className="text-xs text-neutral-400">{section.subtitle}</p>
-          </div>
-          <HubLinkGrid links={section.links} />
-        </section>
-      ))}
-    </div>
-  )
-}
+      <section aria-label={t('mehr.quietTiles')} data-mehr-quiet-tiles="2">
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {tiles.map((tile) => (
+            <li key={tile.to}>
+              <Link
+                to={tile.to}
+                className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-surface-2/60 px-3 py-3"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-ink-soft">
+                  <tile.icon size={18} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium text-ink">{tile.label}</span>
+                  <span className="block truncate text-[11px] text-muted">{tile.hint}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-function HubLinkGrid({ links }: { links: HubLink[] }) {
-  return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      {links.map((link) => (
-        <Link
-          key={link.to + link.label}
-          to={link.to}
-          className="card-hover flex min-h-12 items-center gap-3 rounded-xl border border-border/80 bg-surface-2 px-3 py-3"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-3 text-[var(--theme-accent)]">
-            <link.icon size={18} />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-sm font-medium text-ink">{link.label}</span>
-            {link.hint && <span className="block truncate text-[11px] text-muted">{link.hint}</span>}
-          </span>
-        </Link>
-      ))}
+      <ul className="divide-y divide-border/70">
+        {rest.map((item) => (
+          <li key={item.to + item.label}>
+            <Link
+              to={item.to}
+              className="flex items-baseline justify-between gap-3 py-2.5 text-sm text-ink-soft hover:text-ink"
+            >
+              <span>{item.label}</span>
+              {item.hint && <span className="min-w-0 truncate text-[11px] text-muted">{item.hint}</span>}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

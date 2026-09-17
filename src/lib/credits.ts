@@ -23,6 +23,7 @@ import {
   type CreditPoolId,
 } from './creditProtocol'
 import { __setAppModeForTests, isProdMode } from './flags'
+import { kidsCreditsFrozen } from './kids'
 import { getReferral, spendFeaturedCredits, simulateReferralSignup } from './referral'
 import { getWallet, mockAdjustBalance } from './wallet'
 import { uid } from './utils'
@@ -365,6 +366,7 @@ export async function mintFromPoolToWallet(
   label: string,
   type: CreditTxType = 'earn',
 ): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return null
   const amt = Math.max(0, Math.round(amount))
   if (amt === 0) return getCredits()
   const snap = snapshotProtocol()
@@ -383,6 +385,7 @@ export function earnCredits(amount: number, label: string): Promise<CreditsState
 }
 
 export async function grantWelcomeAllocation(): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return null
   const identity = ensureSignupIdentity()
   const grant = welcomeGrantFor(identity)
   const op = `welcome:${identity.ordinal}`
@@ -407,6 +410,37 @@ export async function grantWelcomeAllocation(): Promise<CreditsState | null> {
   return null
 }
 
+/** Contributor grant: merged PR only, 1/PR, op `contributor:pr:{n}`, fail-closed. Never client-mint from a URL. */
+export const CONTRIBUTOR_MERGED_PR_GRANT = 120
+
+export function contributorPrOpId(prNumber: number) {
+  return `contributor:pr:${Math.trunc(prNumber)}`
+}
+
+export async function grantMergedPrFromRewardsPool(prNumber: number): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return null
+  const n = Math.trunc(Number(prNumber))
+  if (!Number.isFinite(n) || n < 1) return null
+  const op = contributorPrOpId(n)
+  if (get().txs.some((t) => t.id === op) || getProtocol().seenOpIds.includes(op)) {
+    return null
+  }
+  const snap = snapshotProtocol()
+  if (!mintFromPool('rewards', CONTRIBUTOR_MERGED_PR_GRANT, op)) return null
+  const credited = await creditWallet(
+    CONTRIBUTOR_MERGED_PR_GRANT,
+    'earn',
+    `Contributor-Reward · merged PR #${n} — Rewards-Pool`,
+    undefined,
+    op,
+  )
+  if (!credited) {
+    restoreProtocolSnapshot(snap)
+    return null
+  }
+  return credited
+}
+
 function applySpendSideEffects(next: CreditsState, kind: CreditSpendKind) {
   if (kind === 'extra_swipes') {
     next.extraSwipes += EXTRA_SWIPES_PACK
@@ -424,11 +458,7 @@ export async function spendCredits(
   kind: CreditSpendKind,
   label: string,
 ): Promise<CreditsState | null> {
-  const { emitParentalRequired, needsParentalGate } = await import('./kids')
-  if (needsParentalGate('credits_spend')) {
-    emitParentalRequired('credits_spend')
-    return null
-  }
+  if (kidsCreditsFrozen()) return null
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(amount))
   if (next.balance < amt) return null
@@ -472,6 +502,7 @@ export async function spendCredits(
 
 /** Gift / sponsoring: peer transfer, no mint. Tiny fee burned. */
 export async function giftCredits(amount: number, toLabel = 'Orbit-Nutzer (Demo)'): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return null
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(amount))
   if (amt <= 0 || next.balance < amt) return null
@@ -500,6 +531,7 @@ export async function giftCredits(amount: number, toLabel = 'Orbit-Nutzer (Demo)
 
 /** Mock exchange: Wallet EUR → Credits. Draws from the packs pool (system mint) or fails. */
 export async function exchangeEurToCredits(eur: number): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return null
   const wallet = getWallet()
   const amt = Math.max(0, eur)
   if (wallet.balanceEur < amt) return null
@@ -521,6 +553,7 @@ export async function exchangeEurToCredits(eur: number): Promise<CreditsState | 
 }
 
 export async function exchangeCreditsToEur(credits: number): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return null
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(credits))
   if (next.balance < amt) return null
@@ -565,6 +598,7 @@ export async function claimReferralCreditsDemo() {
 
 /** Demo checkout — credits appear only if the packs pool still has room. */
 export function purchaseCreditPack(id: CreditPackId): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return Promise.resolve(null)
   const pack = CREDIT_PACKS.find((p) => p.id === id)
   if (!pack) return Promise.resolve(null)
   if (!packsRemain(pack.credits) || isPackMarketP2P()) return Promise.resolve(null)
@@ -577,6 +611,7 @@ export function purchaseCreditPack(id: CreditPackId): Promise<CreditsState | nul
 }
 
 export async function buyP2POrder(orderId: string): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return null
   const order = P2P_ORDERS.find((o) => o.id === orderId)
   if (!order) return null
   const snap = snapshotProtocol()
@@ -678,7 +713,7 @@ export function hasMeaningfulAction() {
   return Boolean(get().meaningfulAt)
 }
 
-/** Extra Assist after the free daily lane — money moment, not while scrolling. */
+/** Extra Assist after the free daily lane — money moment, not while scrolling. Kids never pay. */
 export async function consumeAssistTurn(): Promise<'ok' | 'paid' | 'need_credits'> {
   const next = structuredClone(get())
   const day = todayKey()
@@ -691,6 +726,7 @@ export async function consumeAssistTurn(): Promise<'ok' | 'paid' | 'need_credits
     commit(next)
     return 'ok'
   }
+  if (kidsCreditsFrozen()) return 'need_credits'
   const paid = await spendCredits(
     CREDITS_COSTS.assist_priority.credits,
     'assist_priority',

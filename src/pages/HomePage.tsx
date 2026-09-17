@@ -31,17 +31,14 @@ import { canListen, listenOnce } from '../lib/speech'
 import { pickTageskarte, tageskarteCopy } from '../lib/tageskarte'
 import { cn } from '../lib/utils'
 import {
-  AGE_BANDS,
   isKidsMode,
-  kidsAgeBand,
   kidsHideTravel,
+  kidsHideWallet,
   kidsMaySeeJobs,
-  setAgeBand,
   subscribeKids,
 } from '../lib/kids'
-import { getCampusProgress, getCourse } from '../lib/campus'
 
-type WarmChip = 'seek' | 'offer' | 'resume' | 'campus'
+type WarmChip = 'seek' | 'offer' | 'resume'
 
 export function HomePage() {
   useStoreVersion()
@@ -66,12 +63,12 @@ export function HomePage() {
   const [robotTapped, setRobotTapped] = useState(false)
   const [robotAsk, setRobotAsk] = useState<RobotAsk | null>(null)
   const [kids, setKids] = useState(isKidsMode)
-  const [ageBand, setAge] = useState(kidsAgeBand)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const { listings: raw } = useListings({})
   const daily = useMemo(() => pickTageskarte(new Date(), { kids }), [kids])
   const dailyCopy = tageskarteCopy(daily.item, resolved)
   const robotCopy = robotAsk ? robotAskCopy(robotAsk, resolved) : null
+  const hideWallet = kidsHideWallet()
 
   useEffect(() => {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
@@ -82,10 +79,7 @@ export function HomePage() {
     const u6 = subscribeChannels(() => setBehaviorTick((n) => n + 1))
     const u7 = subscribeResume(() => setResume(getResume()))
     const u8 = subscribeReminders(() => setReminders(dueReminders()))
-    const u9 = subscribeKids(() => {
-      setKids(isKidsMode())
-      setAge(kidsAgeBand())
-    })
+    const u9 = subscribeKids(() => setKids(isKidsMode()))
     return () => {
       u1()
       u2()
@@ -120,18 +114,9 @@ export function HomePage() {
     seek: t('home.stemSeek'),
     offer: t('home.stemOffer'),
     resume: resume ? `${t('home.stemResume')}${resume.title}` : t('home.stemThink'),
-    campus: t('home.stemCampus'),
   }
   const placeholder =
-    warm === 'offer'
-      ? t('home.phOffer')
-      : warm === 'resume'
-        ? t('home.phResume')
-        : warm === 'campus'
-          ? t('home.phCampus')
-        : companyView
-          ? t('assist.phCompany')
-          : t('home.phSeek')
+    warm === 'offer' ? t('home.phOffer') : warm === 'resume' ? t('home.phResume') : companyView ? t('assist.phCompany') : t('home.phSeek')
 
   const pickWarm = (id: WarmChip) => {
     setWarm(id)
@@ -210,11 +195,7 @@ export function HomePage() {
     { id: 'seek', title: t('home.tileSeek') },
     { id: 'offer', title: t('home.tileOffer') },
     { id: 'resume', title: t('home.tileResume') },
-    { id: 'campus', title: t('home.tileCampus') },
   ]
-
-  const campusResume = getCampusProgress()
-  const campusCourse = campusResume ? getCourse(campusResume.courseId) : null
 
   const discover = [
     { to: matchTo, label: matchLabel, hint: t('home.discoverTrefferHint') },
@@ -222,14 +203,15 @@ export function HomePage() {
       ? [{ to: '/abflug', label: t('travel.nav'), hint: t('home.discoverAbflugHint') }]
       : []),
     ...(!kids ? [{ to: '/crew', label: t('nav.crew'), hint: t('home.discoverCrewHint') }] : []),
-    { to: '/campus', label: t('campus.nav'), hint: t('home.discoverCampusHint') },
-    { to: '/wallet', label: t('nav.wallet'), hint: t('home.discoverWalletHint') },
+    ...(!hideWallet
+      ? [{ to: '/wallet', label: t('nav.wallet'), hint: t('home.discoverWalletHint') }]
+      : []),
     ...(!kids
       ? [
           { to: '/firma', label: t('firma.nav'), hint: t('firma.hint') },
           { to: '/social', label: t('social.title'), hint: t('social.kicker') },
         ]
-      : [{ to: '/kids', label: t('kids.title'), hint: t('kids.settings') }]),
+      : []),
   ]
 
   return (
@@ -251,30 +233,6 @@ export function HomePage() {
             </div>
           </div>
         </div>
-
-        {ageBand === null && (
-          <section className="rounded-2xl border-2 border-[var(--theme-accent)]/40 bg-surface-2/80 p-4" data-kids-age="1">
-            <p className="text-sm font-semibold text-ink">{t('kids.ageTitle')}</p>
-            <p className="mt-1 text-xs text-muted">{t('kids.agePrompt')}</p>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {AGE_BANDS.map((id) => (
-                <Button
-                  key={id}
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    setAgeBand(id)
-                    setAge(id)
-                    setKids(id !== '18+')
-                  }}
-                >
-                  {t(`kids.band.${id}`)}
-                </Button>
-              ))}
-            </div>
-          </section>
-        )}
 
         {robotAsk && robotCopy && (
           <div
@@ -357,7 +315,7 @@ export function HomePage() {
                 <Mic size={18} />
               </Button>
             )}
-            <Button type="submit" className="flex-1" disabled={busy}>
+            <Button type="submit" className="flex-1" disabled={busy} data-home-primary="1">
               {busy ? t('assist.thinking') : t('assist.submit')} <Send size={16} />
             </Button>
           </div>
@@ -385,19 +343,6 @@ export function HomePage() {
               </Link>
             </li>
           ))}
-          {campusCourse && (
-            <li>
-              <Link
-                to="/campus"
-                className="flex items-baseline justify-between gap-3 py-2.5 text-sm text-ink-soft hover:text-ink"
-              >
-                <span>
-                  {t('campus.resume')}: {resolved === 'de' ? campusCourse.titleDe : campusCourse.titleEn}
-                </span>
-                <span className="text-[11px] text-muted">{t('home.tileCampusHint')}</span>
-              </Link>
-            </li>
-          )}
           {resume && (
             <li>
               <Link
@@ -429,16 +374,18 @@ export function HomePage() {
           </div>
         )}
 
-        <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
-          <Link to="/wallet" className="tabular-nums text-ink hover:text-[var(--theme-accent)]">
-            {credits.balance} Credits
-          </Link>
-          <span>{formatSupplyLine()}</span>
-          {getSignupIdentity()?.earlyTester && (
-            <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
-          )}
-          <span>· {t('home.creditsPeek')}</span>
-        </p>
+        {!hideWallet && (
+          <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
+            <Link to="/wallet" className="tabular-nums text-ink hover:text-[var(--theme-accent)]">
+              {credits.balance} Credits
+            </Link>
+            <span>{formatSupplyLine()}</span>
+            {getSignupIdentity()?.earlyTester && (
+              <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
+            )}
+            <span>· {t('home.creditsPeek')}</span>
+          </p>
+        )}
       </section>
     </div>
   )

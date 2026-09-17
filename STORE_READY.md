@@ -42,7 +42,7 @@ GitHub Pages bleibt `base: /eventlogistik-event-os/`.
 
 ## Jugendschutz / Age rating (Orbit Kids in 2.6.0)
 
-In-App: Altersbänder unter13 / 13–15 / 16–17 / 18+, Eltern-Gate (Rechenaufgabe) vor Kids verlassen, Credits-Ausgabe und Social/extern. Kids blendet Adult-SoftPaywall, Abflug-Buchung, offenen Social-Chat und Kabine-Adult-Try-on aus. Content-Flag `safeForKids`.
+In-App: Altersbänder unter13 / 13–15 / 16–17 / 18+. **Eltern-PIN zuerst**, danach Kids-UI. Kids: **0 Credits** (kein Mint/Spend/P2P), Wallet und öffentlicher Chat aus. Kein Adult-SoftPaywall, keine Abflug-Buchung, kein Kabine-Adult-Try-on. Content-Flag `safeForKids`. Campus: 1 Lektion/Tag frei.
 
 **Store-Altersfreigabe — ehrlich:**
 
@@ -56,7 +56,7 @@ Das ersetzt **kein** Rechtsgutachten. Operator muss die Fragebögen selbst ausf�
 
 Stores akzeptieren keine Platzhalter. Benötigt:
 
-- [ ] iPhone 6.7" (1290×2796): Home (gefülltes „Orbit fragen“ + outlined chips), Kids-Gate, Campus, Treffer, Wallet mit Demo-Hinweis
+- [ ] iPhone 6.7" (1290×2796): Home (gefülltes „Orbit fragen“ + outlined chips, **ohne** Campus/Kids/Rewards), Kids-PIN-Gate, Campus (eine Stufe + „Lektion starten“), Treffer, Wallet mit Demo-Hinweis (Adult)
 - [ ] iPhone 6.5" / 5.5" (falls Zielgeräte)
 - [ ] iPad 13"
 - [ ] Android Phone + 7" + 10" Tablet
