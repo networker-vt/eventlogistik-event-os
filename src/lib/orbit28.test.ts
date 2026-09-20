@@ -3,7 +3,7 @@ import { tStatic } from './i18n'
 
 const META = /ruhig|quiet tiles|zwei Kachel|Discover-Liste|Nichts Lautes|Ruhige Links|Quiet links/i
 
-describe('Orbit 2.8.0 surface', () => {
+describe('Orbit 2.8.1 surface', () => {
   it('renames bottom nav to Start · Match · Social · Mein', () => {
     for (const locale of ['de', 'en'] as const) {
       expect(tStatic('nav.home', locale)).toMatch(/Start|Home/)
@@ -42,5 +42,12 @@ describe('Orbit 2.8.0 surface', () => {
     expect(tStatic('entdecker.explain', 'de')).toMatch(/Demo/)
     expect(tStatic('assist.submit', 'de')).toMatch(/Orbit fragen/)
     expect(tStatic('assist.submit', 'en')).toMatch(/Ask Orbit/)
+  })
+
+  it('Home discover copy no longer lists Mein / Social / Wallet', () => {
+    for (const locale of ['de', 'en'] as const) {
+      expect(tStatic('home.mehrHint', locale)).not.toMatch(/Social|Wallet|Mein/)
+      expect(tStatic('mein.lead', locale)).toMatch(/Wallet|Prefs|prefs|Kanäle|channels/)
+    }
   })
 })

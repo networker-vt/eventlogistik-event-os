@@ -12,6 +12,7 @@ import {
   kidsHideSoftPaywall,
   kidsHideSocialChat,
   kidsHideTravel,
+  kidsHideSocialConnects,
   kidsHideWallet,
   kidsMaySeeJobs,
   leaveKidsMode,
@@ -40,6 +41,7 @@ describe('Orbit Kids', () => {
     expect(kidsHideSoftPaywall()).toBe(true)
     expect(kidsHideWallet()).toBe(true)
     expect(kidsHidePublicChat()).toBe(true)
+    expect(kidsHideSocialConnects()).toBe(true)
     expect(kidsCreditsFrozen()).toBe(true)
     setAgeBand('13-15')
     expect(kidsMaySeeJobs()).toBe(true)

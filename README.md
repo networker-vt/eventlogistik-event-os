@@ -2,24 +2,24 @@
 
 **Dein Orbit für Arbeit — Matching statt Spam.**
 
-Global all-industry marketplace OS (v2.8.0): 90-day focus **DE Freelancer/KMU — Jobs finden oder anbieten**. Dual-sided plus Orbit Assist / Orbi trip cards. Kabine / Gift / Channels stay stubs. Event/VT catalog is not in the primary IA. **Orbit Kids** + **Campus** (Lernen) live under Mehr / Mein tiles.
+Global all-industry marketplace OS (v2.8.1): 90-day focus **DE Freelancer/KMU — Jobs finden oder anbieten**. Dual-sided plus Orbit Assist / Orbi trip cards. Kabine / Gift / Channels stay stubs. Event/VT catalog is not in the primary IA. **Orbit Kids** + **Campus** (Lernen) live under Home discover tiles.
 
 - **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
 - **Repo:** https://github.com/networker-vt/eventlogistik-event-os
 - **License:** MIT — forks welcome if they improve Orbit (see [CONTRIBUTING.md](./CONTRIBUTING.md))
-- **A11y notes:** [A11Y.md](./A11Y.md) · **2.8.0:** [RELEASE_NOTES_2.8.0.md](./RELEASE_NOTES_2.8.0.md) · **2.7.0:** [RELEASE_NOTES_2.7.0.md](./RELEASE_NOTES_2.7.0.md) · **Credits:** [CREDITS.md](./CREDITS.md)
+- **A11y notes:** [A11Y.md](./A11Y.md) · **2.8.1:** [RELEASE_NOTES_2.8.1.md](./RELEASE_NOTES_2.8.1.md) · **2.8.0:** [RELEASE_NOTES_2.8.0.md](./RELEASE_NOTES_2.8.0.md) · **Credits:** [CREDITS.md](./CREDITS.md)
 
 > Vite `base` **MUST** stay `/eventlogistik-event-os/` for GitHub Pages.
 
-## IA (v2.8.0)
+## IA (v2.8.1)
 
-**Start · Match · Social · Mein** — four-tab bottom nav. Create in the header (not on Home). Home: robot + greeting + **Was brauchst du?** → outlined **Suchen / Anbieten / Weitermachen** → one filled **Orbit fragen** → **one Tageskarte** → below-fold **Mehr entdecken** (Abflug, Crew/Firma, Social, Wallet, Mehr). **Campus, Kids, Entdecker (Demo)** live under Mehr / Mein tiles — not on the Home start surface. Kids: PIN first, 0 Credits, hide Wallet. Light parchment default.
+**Start · Match · Social · Mein** — four-tab bottom nav. Create in the header (not on Home). Home: robot + greeting + **Was brauchst du?** → outlined **Suchen / Anbieten / Weitermachen** → one filled **Orbit fragen** → **one Tageskarte** → below-fold **Mehr entdecken** (Abflug, Campus, Entdecker, Kabine, Firma/Crew — not Mein/Social/Wallet). **Mein** is account-only (Wallet adult, Prefs, Verify, Erstellen/Anbieten stubs, Ideen-Box, Channels). Kids: PIN first, 0 Credits, hide Wallet, no social channel connects. Light parchment default.
 
-## Core routes (v2.8.0)
+## Core routes (v2.8.1)
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Start — robot + Was brauchst du?, Suchen / Anbieten / Weitermachen, one Tageskarte, one filled Orbit fragen, Mehr entdecken tiles below. No Campus / Kids / Entdecker on the start surface. |
+| `/` | Start — robot + Was brauchst du?, Suchen / Anbieten / Weitermachen, one Tageskarte, one filled Orbit fragen, Mehr entdecken (Abflug, Campus, Entdecker, Kabine, Firma/Crew). No Mein / Social / Wallet tiles. |
 | `/match` | Match — algorithmic deck (jobs, services, travel, people) from prefs + behavior stubs |
 | `/treffer` | Treffer — jobs/services swipe |
 | `/crew` | Crew — B2B hiring / employer match |
@@ -28,8 +28,8 @@ Global all-industry marketplace OS (v2.8.0): 90-day focus **DE Freelancer/KMU �
 | `/messages` | Redirects to `/social/chat` |
 | `/wallet` | Credits (21M cap), gift/sponsoring, methods, bookings, tickets |
 | `/abflug` (`/reise`) | Abflug marketplace (demo, cheapest-first) |
-| `/channels` | Community channel link-stubs |
-| `/mein` | Hub tiles: Wallet (adult), Kabine, Channels, Prefs, Verify, Campus, Kids, Entdecker (Demo) |
+| `/channels` | Opt-in stubs (Meta, X, Steam/PlayStation/Xbox, …) + community link-stubs |
+| `/mein` | Account tiles: Wallet (adult), Prefs, Verify, Erstellen/Anbieten stubs, Ideen-Box, Channels |
 | `/firma` | Company hub |
 | `/marktplatz` | Unified marketplace |
 | `/mehr` | Tile grid (Campus, Kids, Abflug, Entdecker Demo, …); Legal |
@@ -46,7 +46,7 @@ Bottom nav: **Start · Match · Social · Mein**
 - **No real GDS / airline / hotel / rail / car booking.** Travel is mock search + checkout stub. Partner APIs later.
 - Orbit Credits: **21M hard cap**, append-only `credit_events` (`txn_id`, balance = sum). Demo = localStorage. Prod (`VITE_APP_MODE=prod` + keys) writes Supabase intents. Pack checkout does not charge anyone. See [CREDITS.md](./CREDITS.md).
 - **Orbit Kabine** is filters + labels + seed shops — not live virtual try-on ML.
-- **Channel linking** (Amazon, Netflix, YouTube, Spotify, Instagram) is a **connected flag only** on Mein. No OAuth, no scraping.
+- **Channel linking** (Amazon, Netflix, YouTube, Spotify, Instagram, Meta, X/Twitter, Steam, PlayStation, Xbox) is a **connected flag only** after explicit Connect + consent. Disconnect clears it. No OAuth, no scraping, no silent harvest. Kids: no social connects.
 - **Gift / Sponsoring** (Wallet → Verschenken / Sponsorn) moves demo Credits on this device; 1 Credit fee burned; nobody is paid in fiat. Recipients are listings / companies / profiles in the demo.
 - **Social is localStorage-only** — not a full social network.
 - Photo “vision” and in-app video calls are **stubs**. Real calling needs a provider (Daily / Twilio / LiveKit) later.

@@ -1,13 +1,16 @@
-import type { ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 
 export type TileTone = 'teal' | 'amber' | 'violet' | 'sky' | 'rose' | 'lime' | 'indigo' | 'slate' | 'orange'
 
 export interface HubTile {
+  id?: string
   to: string
   label: string
-  icon: ComponentType<{ size?: number; className?: string }>
+  /** Visible emoji — required so every tip tile has a thematic mark. */
+  emoji: string
+  /** Optional small thematic image; emoji still shown if image fails. */
+  image?: string
   tone: TileTone
   demo?: boolean
 }
@@ -40,16 +43,22 @@ export function TileGrid({
       className={cn('grid gap-3', columns === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-3')}
     >
       {tiles.map((tile) => (
-        <li key={`${tile.to}:${tile.label}`}>
+        <li key={`${tile.id ?? tile.to}:${tile.label}`}>
           <Link
             to={tile.to}
+            data-tile-id={tile.id}
+            data-tile-emoji={tile.emoji}
             className={cn(
               'btn-press flex min-h-[6.25rem] flex-col items-start justify-between rounded-2xl border-2 px-3 py-3',
               TONE[tile.tone],
             )}
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface/80 text-current shadow-sm">
-              <tile.icon size={20} aria-hidden />
+            <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-surface/80 text-[1.65rem] leading-none shadow-sm">
+              {tile.image ? (
+                <img src={tile.image} alt="" className="h-8 w-8 object-contain" />
+              ) : (
+                <span aria-hidden>{tile.emoji}</span>
+              )}
             </span>
             <span className="mt-3 flex w-full items-end justify-between gap-2">
               <span className="text-sm font-semibold leading-tight text-ink">{tile.label}</span>
