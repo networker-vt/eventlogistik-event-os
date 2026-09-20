@@ -299,6 +299,11 @@ export function kidsHidePublicChat() {
   return isKidsMode()
 }
 
+/** Super veto 2.8.1: kids never connect social channels (Meta / X / Instagram). */
+export function kidsHideSocialConnects() {
+  return isKidsMode()
+}
+
 export function __resetKidsForTests() {
   cache = null
   localStorage.removeItem(KEY)

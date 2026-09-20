@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Building2, Mic, MoreHorizontal, Plane, Send, Sparkles, Users, Wallet } from 'lucide-react'
-import { TileGrid, type HubTile } from '../components/ui/TileGrid'
+import { Mic, Send } from 'lucide-react'
+import { TileGrid } from '../components/ui/TileGrid'
+import { homeDiscoverTiles } from '../lib/hubTiles'
 import { TripOptionCards } from '../components/assist/TripOptionCards'
 import { FuerDichCard } from '../components/home/FuerDichCard'
 import { OrbitRobot } from '../components/home/OrbitRobot'
@@ -204,20 +205,11 @@ export function HomePage() {
     { id: 'resume', title: t('home.tileResume') },
   ]
 
-  const discover: HubTile[] = [
-    ...(!kidsHideTravel()
-      ? [{ to: '/abflug', label: t('travel.nav'), icon: Plane, tone: 'sky' as const }]
-      : []),
-    ...(!kids
-      ? [
-          { to: '/crew', label: t('nav.crew'), icon: Users, tone: 'amber' as const },
-          { to: '/firma', label: t('firma.nav'), icon: Building2, tone: 'slate' as const },
-          { to: '/social', label: t('nav.social'), icon: Sparkles, tone: 'violet' as const },
-        ]
-      : []),
-    ...(!hideWallet ? [{ to: '/wallet', label: t('nav.wallet'), icon: Wallet, tone: 'teal' as const }] : []),
-    { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal, tone: 'orange' },
-  ]
+  const discover = homeDiscoverTiles(t, {
+    kids,
+    hideTravel: kidsHideTravel(),
+    hideWallet,
+  })
 
   return (
     <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome pt-6 md:pt-10">

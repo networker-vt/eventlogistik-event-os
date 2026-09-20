@@ -2,22 +2,18 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Briefcase,
-  Camera,
   GraduationCap,
   Heart,
   Languages,
   LayoutDashboard,
-  MoreHorizontal,
-  Scan,
   ScrollText,
-  Share2,
-  Shield,
   SlidersHorizontal,
   UserRound,
   Wallet,
 } from 'lucide-react'
-import { TileGrid, type HubTile } from '../components/ui/TileGrid'
-import { kidsHideWallet } from '../lib/kids'
+import { TileGrid } from '../components/ui/TileGrid'
+import { meinAccountTiles } from '../lib/hubTiles'
+import { isKidsMode, kidsHideTravel, kidsHideWallet } from '../lib/kids'
 import { FavoriteButton } from '../components/favorites/FavoriteButton'
 import { ListingCard } from '../components/listings/ListingCard'
 import { Badge } from '../components/ui/Badge'
@@ -78,20 +74,11 @@ export function MeinPage() {
   const complete = profileCompleteness()
   const hideWallet = kidsHideWallet()
 
-  const hubTiles: HubTile[] = [
-    ...(!hideWallet ? [{ to: '/wallet', label: t('nav.wallet'), icon: Wallet, tone: 'teal' as const }] : []),
-    { to: '/kabine', label: t('look.nav'), icon: Scan, tone: 'rose' },
-    { to: '/channels', label: t('channels.nav'), icon: Share2, tone: 'violet' },
-    { to: '/prefs', label: t('match.tweakPrefs'), icon: SlidersHorizontal, tone: 'amber' },
-    { to: '/mein#verify', label: t('verify.title'), icon: Shield, tone: 'lime' },
-    { to: '/campus', label: t('campus.nav'), icon: GraduationCap, tone: 'indigo' },
-    { to: '/kids', label: t('kids.title'), icon: Shield, tone: 'orange' },
-    { to: '/entdecker', label: t('tile.entdecker'), icon: Camera, tone: 'lime', demo: true },
-    { to: '/profile', label: user?.name.split(' ')[0] ?? t('nav.mein'), icon: UserRound, tone: 'slate' },
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, tone: 'sky' },
-    { to: '/mein#sprache', label: t('mein.language'), icon: Languages, tone: 'amber' },
-    { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal, tone: 'orange' },
-  ]
+  const hubTiles = meinAccountTiles(
+    t,
+    { kids: isKidsMode(), hideTravel: kidsHideTravel(), hideWallet },
+    { profile: user?.name.split(' ')[0] ?? t('nav.mein') },
+  )
 
   useEffect(() => {
     const h = () => setCal(listLocalCalendar())
