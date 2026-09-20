@@ -1,4 +1,4 @@
-# Store-Ready — Orbit 2.7.0 (ehrlich, Stand 2026-09-20)
+# Store-Ready — Orbit 2.8.0 (ehrlich, Stand 2026-09-20)
 
 **Kein Store-Upload ist in diesem Repo passiert und wird hier nicht behauptet.**  
 PWA ist installierbar. Native App Store / Play-Einreichung braucht **morgen (und danach)** Klicks **vom Operator** in Apple Developer + Play Console. Dieses Dokument ist die Checkliste dafür — keine Fake-Submission.

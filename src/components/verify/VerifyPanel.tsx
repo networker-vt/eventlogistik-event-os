@@ -22,7 +22,7 @@ export function VerifyPanel({ focus }: { focus?: 'offer' | 'payout' }) {
   const level = verifyLevel()
 
   return (
-    <section className="space-y-3 rounded-2xl border border-border bg-surface-2 p-4">
+    <section id="verify" className="space-y-3 rounded-2xl border border-border bg-surface-2 p-4">
       <div>
         <h2 className="text-lg font-semibold">{t('verify.title')}</h2>
         <p className="mt-1 text-xs text-muted">{t('verify.lead')}</p>

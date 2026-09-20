@@ -12,6 +12,7 @@ import { formatDateTime, cn } from '../lib/utils'
 import type { ThreadKind } from '../types'
 import { KidsBlocked } from '../components/kids/KidsBlocked'
 import { kidsHidePublicChat } from '../lib/kids'
+import { chatHref } from '../lib/chatPath'
 
 const KINDS: { id: 'all' | ThreadKind; key: string }[] = [
   { id: 'all', key: 'chat.all' },
@@ -47,7 +48,7 @@ export function MessagesPage() {
   useEffect(() => {
     if (!user) return
     if (!threadId && visible[0] && window.matchMedia('(min-width: 768px)').matches) {
-      navigate(`/messages/${visible[0].id}`, { replace: true })
+      navigate(chatHref(visible[0].id), { replace: true })
     }
   }, [user, threadId, visible, navigate])
 
@@ -105,7 +106,7 @@ export function MessagesPage() {
           {visible.map((th) => (
             <Link
               key={th.id}
-              to={`/messages/${th.id}`}
+              to={chatHref(th.id)}
               className={`block min-h-14 border-b border-border/60 px-4 py-3 hover:bg-ink/5 ${active?.id === th.id ? 'bg-cyan/10' : ''}`}
             >
               <div className="flex items-center justify-between gap-2">
@@ -141,7 +142,7 @@ export function MessagesPage() {
               <button
                 type="button"
                 className="tap-target flex items-center justify-center rounded-lg text-muted md:hidden"
-                onClick={() => navigate('/messages')}
+                onClick={() => navigate(chatHref())}
                 aria-label="Zurück"
               >
                 <ArrowLeft size={20} />

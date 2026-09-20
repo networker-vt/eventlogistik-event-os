@@ -29,6 +29,7 @@ export function themeForPath(pathname: string): SectionTheme {
   }
   if (
     pathname.startsWith('/messages') ||
+    pathname.startsWith('/social') ||
     pathname.startsWith('/bookings') ||
     pathname.startsWith('/interview')
   ) {

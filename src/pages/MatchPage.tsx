@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Heart, SkipForward, SlidersHorizontal, MessageSquare } from 'lucide-react'
+import { Heart, SkipForward, SlidersHorizontal, MessageSquare, Plane } from 'lucide-react'
+import { rankPersonalizedMatch, type PersonalizedItem } from '../lib/personalizedMatch'
+import { chatHref } from '../lib/chatPath'
+import type { TravelOffer } from '../lib/travel'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { Empty } from '../components/ui/Empty'
@@ -42,17 +45,26 @@ import { listingIsSafeForKids, kidsMaySeeJobs, isKidsMode, subscribeKids } from 
 import type { Listing, Profile } from '../types'
 
 type DeckCard =
-  | { kind: 'job'; listing: Listing; score: MatchScore }
-  | { kind: 'company'; listing: Listing; score: MatchScore }
-  | { kind: 'candidate'; profile: Profile; score: MatchScore }
+  | { kind: 'job'; listing: Listing; score: MatchScore; reason?: string }
+  | { kind: 'company'; listing: Listing; score: MatchScore; reason?: string }
+  | { kind: 'candidate'; profile: Profile; score: MatchScore; reason?: string }
+  | { kind: 'travel'; offer: TravelOffer; score: MatchScore; reason?: string }
+
+function fromPersonalized(item: PersonalizedItem): DeckCard {
+  if (item.kind === 'travel') return { kind: 'travel', offer: item.offer, score: item.score, reason: item.reason }
+  if (item.kind === 'person') return { kind: 'candidate', profile: item.profile, score: item.score, reason: item.reason }
+  if (item.kind === 'job') return { kind: 'job', listing: item.listing, score: item.score, reason: item.reason }
+  return { kind: 'company', listing: item.listing, score: item.score, reason: item.reason }
+}
 
 export function MatchPage() {
   useStoreVersion()
-  const { t } = useI18n()
+  const { t, resolved } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
   const forceCrew = location.pathname.startsWith('/crew')
   const forceTreffer = location.pathname.startsWith('/treffer')
+  const personalized = !forceCrew && !forceTreffer
   const { user, loginDemo, profile } = useAuth()
   const [prefs, setPrefs] = useState(getPrefs)
   const [company, setCompany] = useState(getCompany)
@@ -101,6 +113,27 @@ export function MatchPage() {
       : prefs.side === 'seeker' || (prefs.side === 'both' && deckMode === 'seeker')
 
   const deck = useMemo((): DeckCard[] => {
+    if (personalized) {
+      const skip = new Set<string>([
+        ...swipedIds(['job', 'company', 'candidate']),
+      ])
+      const items = rankPersonalizedMatch({
+        listings: store.listListings({}).filter((l) => {
+          if (l.status !== 'active') return false
+          if (!kids) return true
+          if (!kidsMaySeeJobs()) return l.vertical !== 'job'
+          return listingIsSafeForKids(l)
+        }),
+        profiles: kids ? [] : store.listProfiles(),
+        prefs,
+        userId: user?.id,
+        locale: resolved,
+        skipIds: skip,
+      })
+      return items
+        .filter((item) => !(kids && (item.kind === 'travel' || item.kind === 'person')))
+        .map(fromPersonalized)
+    }
     if (kids && !useSeekerDeck) return []
     if (useSeekerDeck) {
       const done = swipedIds(['job', 'company'])
@@ -158,7 +191,7 @@ export function MatchPage() {
         score: scoreCandidateMatch(p, prefs, company),
       }))
     return loosePeople
-  }, [prefs, company, useSeekerDeck, toast, user?.id, kids])
+  }, [prefs, company, useSeekerDeck, toast, user?.id, kids, personalized, resolved])
 
   const current = deck[0]
 
@@ -179,6 +212,22 @@ export function MatchPage() {
       return
     }
     setBudget(getSwipeBudget())
+    if (current.kind === 'travel') {
+      trackBehavior({
+        kind: action === 'skip' ? 'swipe_skip' : 'swipe_interest',
+        query: current.offer.title,
+        city: current.offer.to,
+      })
+      recordSwipe({
+        targetId: current.offer.id,
+        targetKind: 'company',
+        action,
+        title: current.offer.title,
+      })
+      if (action === 'interested') navigate(`/abflug/${current.offer.id}`)
+      setSwipeTick((n) => n + 1)
+      return
+    }
     if (current.kind === 'candidate') {
       const { mutual } = recordSwipe({
         targetId: current.profile.id,
@@ -287,13 +336,15 @@ export function MatchPage() {
   }
 
   const mutuals = getSwipes().mutuals
-  const heading = useSeekerDeck ? t('match.jobs') : t('match.companyDeck')
+  const heading = personalized ? t('match.title') : useSeekerDeck ? t('match.jobs') : t('match.companyDeck')
 
   return (
     <div className="relative mx-auto flex min-h-[70dvh] max-w-lg flex-col gap-4 pb-scroll-chrome">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">{t('match.kicker')}</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
+            {personalized ? t('match.forYou') : t('match.kicker')}
+          </p>
           <h1 className="text-xl font-bold tracking-tight">{heading}</h1>
           <p className="text-xs text-muted">
             {deck.length} {t('match.cards')} · {t('match.swipesLeft')} {budget.remaining}/{budget.freeCap}
@@ -308,7 +359,7 @@ export function MatchPage() {
         </div>
       </header>
 
-      {both && (
+      {both && !personalized && (
         <div className="flex gap-1 rounded-full border border-border p-1" role="tablist">
           {(['seeker', 'company'] as const).map((m) => (
             <button
@@ -350,6 +401,13 @@ export function MatchPage() {
       ) : current.kind === 'candidate' ? (
         <CandidateCard
           profile={current.profile}
+          score={current.score}
+          explain={explain}
+          onToggleExplain={() => setExplain((v) => !v)}
+        />
+      ) : current.kind === 'travel' ? (
+        <TravelCard
+          offer={current.offer}
           score={current.score}
           explain={explain}
           onToggleExplain={() => setExplain((v) => !v)}
@@ -404,7 +462,7 @@ export function MatchPage() {
               <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
                 <span className="truncate text-neutral-200">{m.title}</span>
                 <Link
-                  to={m.listingId ? `/listings/${m.listingId}` : '/messages'}
+                  to={m.listingId ? `/listings/${m.listingId}` : chatHref()}
                   className="shrink-0 text-cyan hover:underline"
                 >
                   {t('apply.chat')}
@@ -423,7 +481,7 @@ export function MatchPage() {
           <Button
             size="sm"
             className="mt-3 w-full"
-            onClick={() => navigate(toast.listingId ? `/listings/${toast.listingId}` : '/messages')}
+            onClick={() => navigate(toast.listingId ? `/listings/${toast.listingId}` : chatHref())}
           >
             {t('apply.chat')}
           </Button>
@@ -608,6 +666,53 @@ function CandidateCard({
         {explain ? t('match.hideScore') : t('match.explain')}
       </button>
       <Breakdown score={score} open={explain} />
+    </article>
+  )
+}
+
+function TravelCard({
+  offer,
+  score,
+  explain,
+  onToggleExplain,
+}: {
+  offer: TravelOffer
+  score: MatchScore
+  explain: boolean
+  onToggleExplain: () => void
+}) {
+  const { t } = useI18n()
+  return (
+    <article className="relative flex flex-1 flex-col overflow-hidden rounded-3xl border border-cyan/30 bg-gradient-to-b from-surface-2 to-surface p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            <Badge tone="cyan">{t('travel.nav')}</Badge>
+            <Badge>{offer.kind}</Badge>
+          </div>
+          <h2 className="text-xl font-bold leading-snug text-ink">{offer.title}</h2>
+          <p className="mt-1 text-sm text-muted">
+            {offer.from ? `${offer.from} → ` : ''}
+            {offer.to} · {offer.provider}
+          </p>
+        </div>
+        <ScoreRing score={score} />
+      </div>
+      <p className="mt-4 text-lg font-semibold text-cyan">{formatPrice(offer.priceEur)}</p>
+      <div className="mt-2 flex flex-wrap gap-1">
+        {offer.tags.map((tag) => (
+          <span key={tag} className="rounded-md bg-ink/5 px-2 py-0.5 text-[10px] text-neutral-400">
+            {tag}
+          </span>
+        ))}
+      </div>
+      <button type="button" onClick={onToggleExplain} className="mt-3 self-end text-xs text-cyan hover:underline">
+        {explain ? t('match.hideScore') : t('match.explain')}
+      </button>
+      <Breakdown score={score} open={explain} />
+      <div className="pointer-events-none absolute -right-6 -top-6 text-7xl opacity-20">
+        <Plane size={72} />
+      </div>
     </article>
   )
 }

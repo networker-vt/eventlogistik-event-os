@@ -1,15 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import {
-  Briefcase,
-  GraduationCap,
-  Home,
-  MessageSquare,
-  MoreHorizontal,
-  Plus,
-  Shield,
-  Wallet,
-} from 'lucide-react'
+import { Home, Sparkles, Target, UserRound } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../lib/auth'
 import { useI18n } from '../../lib/i18n'
@@ -19,21 +10,26 @@ import { CreateSheet } from './CreateSheet'
 import { BrandIcon, BrandMark } from '../brand/BrandMark'
 import { SkipLink } from '../a11y/SkipLink'
 import { copyrightLine } from '../../lib/legal'
-import { getPrefs, isCompanySide, subscribePrefs } from '../../lib/prefs'
+import { getPrefs, subscribePrefs } from '../../lib/prefs'
 import { touchResume } from '../../lib/resume'
 import { SchemeToggle } from '../theme/SchemeToggle'
 import { KidsBanner } from '../kids/KidsBanner'
 import { ParentalGateHost } from '../kids/ParentalGate'
-import { isKidsMode, kidsHidePublicChat, kidsHideWallet, subscribeKids } from '../../lib/kids'
+import { isKidsMode, subscribeKids } from '../../lib/kids'
 
 function documentTitleFor(pathname: string, t: (key: string) => string) {
   if (pathname === '/' || pathname === '') return `Orbit — ${t('brand.tagline')}`
   if (pathname.startsWith('/kabine') || pathname.startsWith('/look')) return `${t('look.title')} · Orbit`
   if (pathname.startsWith('/abflug') || pathname.startsWith('/reise')) return `${t('travel.title')} · Orbit`
   if (pathname.startsWith('/crew')) return `${t('nav.crew')} · Orbit`
-  if (pathname.startsWith('/treffer') || pathname.startsWith('/match')) return `${t('match.kicker')} · Orbit`
+  if (pathname.startsWith('/treffer')) return `${t('match.kicker')} · Orbit`
+  if (pathname.startsWith('/match')) return `${t('nav.match')} · Orbit`
   if (pathname.startsWith('/wallet')) return `${t('nav.wallet')} · Orbit`
-  if (pathname.startsWith('/messages')) return `${t('nav.inbox')} · Orbit`
+  if (pathname.startsWith('/social/chat') || pathname.startsWith('/messages'))
+    return `${t('nav.inbox')} · Orbit`
+  if (pathname.startsWith('/social')) return `${t('nav.social')} · Orbit`
+  if (pathname.startsWith('/mein')) return `${t('nav.mein')} · Orbit`
+  if (pathname.startsWith('/entdecker')) return `${t('tile.entdecker')} · Orbit`
   if (pathname.startsWith('/campus') || pathname.startsWith('/lernen')) return `${t('campus.title')} · Orbit`
   if (pathname.startsWith('/kids')) return `${t('kids.title')} · Orbit`
   if (pathname.startsWith('/mehr')) return `${t('mehr.title')} · Orbit`
@@ -50,9 +46,7 @@ export function AppShell() {
   const [prefs, setPrefs] = useState(getPrefs)
   const [kids, setKids] = useState(isKidsMode)
   const theme = themeForPath(location.pathname)
-  const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
-  const matchTo = prefs.completed ? (companyView ? '/crew' : '/treffer') : '/prefs'
-  const matchLabel = companyView ? t('nav.crew') : t('nav.match')
+  const matchTo = prefs.completed ? '/match' : '/prefs'
 
   useEffect(() => subscribePrefs(() => setPrefs(getPrefs())), [])
   useEffect(() => subscribeKids(() => setKids(isKidsMode())), [])
@@ -61,39 +55,12 @@ export function AppShell() {
     touchResume(`${location.pathname}${location.hash}`, document.title)
   }, [location.pathname, location.hash, t])
 
-  const hideWallet = kidsHideWallet()
-  const hideChat = kidsHidePublicChat()
-  const mobileNav = kids
-    ? [
-        { to: '/', label: t('nav.home'), icon: Home, end: true },
-        { to: matchTo, label: matchLabel, icon: Briefcase },
-        { to: '/campus', label: t('campus.nav'), icon: GraduationCap },
-        { to: '/kids', label: t('kids.title'), icon: Shield },
-        { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal },
-      ]
-    : [
-        { to: '/', label: t('nav.home'), icon: Home, end: true },
-        { to: matchTo, label: matchLabel, icon: Briefcase },
-        { to: '/messages', label: t('nav.inbox'), icon: MessageSquare },
-        { to: '/wallet', label: t('nav.wallet'), icon: Wallet },
-        { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal },
-      ]
-
-  const desktopPrimary = kids
-    ? [
-        { to: '/', label: t('nav.home'), end: true },
-        { to: matchTo, label: matchLabel },
-        { to: '/campus', label: t('campus.nav') },
-        { to: '/kids', label: t('kids.title') },
-        { to: '/mehr', label: t('nav.mehr') },
-      ]
-    : [
-        { to: '/', label: t('nav.home'), end: true },
-        { to: matchTo, label: matchLabel },
-        ...(!hideChat ? [{ to: '/messages', label: t('nav.inbox') }] : []),
-        ...(!hideWallet ? [{ to: '/wallet', label: t('nav.wallet') }] : []),
-        { to: '/mehr', label: t('nav.mehr') },
-      ]
+  const primaryNav = [
+    { to: '/', label: t('nav.home'), icon: Home, end: true },
+    { to: matchTo, label: t('nav.match'), icon: Target },
+    { to: '/social', label: t('nav.social'), icon: Sparkles },
+    { to: '/mein', label: t('nav.mein'), icon: UserRound },
+  ]
 
   return (
     <div
@@ -126,7 +93,7 @@ export function AppShell() {
           </button>
 
           <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-0.5" aria-label="Primary">
-            {desktopPrimary.map((item) => (
+            {primaryNav.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -151,7 +118,7 @@ export function AppShell() {
                 onClick={() => setCreateOpen(true)}
                 className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--theme-accent)] px-3 py-2 text-sm font-semibold text-[var(--theme-on-accent)]"
               >
-                <Plus size={16} /> {t('nav.create')}
+                {t('nav.create')}
               </button>
             )}
             {user ? (
@@ -188,7 +155,7 @@ export function AppShell() {
               aria-label={t('nav.create')}
               className="tap-target flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface-3"
             >
-              <Plus size={18} />
+              <span className="text-lg leading-none">+</span>
             </button>
           )}
           {user ? (
@@ -238,10 +205,11 @@ export function AppShell() {
       <ParentalGateHost />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface/95 safe-pb backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-surface/95 safe-pb backdrop-blur md:hidden"
         aria-label="Primary"
+        data-bottom-nav="start-match-social-mein"
       >
-        {mobileNav.map((item) => (
+        {primaryNav.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

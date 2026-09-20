@@ -737,8 +737,8 @@ async function tryLlmEnrich(
   const model = import.meta.env.VITE_LLM_MODEL?.trim() || 'gpt-4o-mini'
   const prompt =
     locale === 'de'
-      ? `Du bist Orbit, ein ruhiger Job-/Marktplatz-Concierge. Gib 2 kurze Tipps (je max 220 Zeichen) als JSON {"tips":[{"title":"...","body":"..."}]} ohne Katalog-Spam. Anfrage: ${intent.text}`
-      : `You are Orbit, a calm job/marketplace concierge. Return 2 short tips (max 220 chars each) as JSON {"tips":[{"title":"...","body":"..."}]} with no catalogue spam. Ask: ${intent.text}`
+        ? `Du bist Orbit, ein klarer Job-/Marktplatz-Concierge. Gib 2 kurze Tipps (je max 220 Zeichen) als JSON {"tips":[{"title":"...","body":"..."}]} ohne Katalog-Spam. Anfrage: ${intent.text}`
+        : `You are Orbit, a clear job/marketplace concierge. Return 2 short tips (max 220 chars each) as JSON {"tips":[{"title":"...","body":"..."}]} with no catalogue spam. Ask: ${intent.text}`
   try {
     const ctrl = new AbortController()
     const t = window.setTimeout(() => ctrl.abort(), 8000)
