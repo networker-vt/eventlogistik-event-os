@@ -1,4 +1,4 @@
-# Orbit Credits (v2.6.0)
+# Orbit Credits (v2.7.0)
 
 Bitcoin-style **hard cap: 21.000.000** Orbit Credits. **Balance = sum(`credit_events.delta`)**. Every write is an append-only intent with an idempotent **`txn_id`**. Duplicate `txn_id` is a no-op.
 
@@ -144,6 +144,10 @@ Wallet shows `X / 21M im Umlauf`, remaining reserve, burned, P2P-float, a **Wert
 `100 × log₁₀(1 + aktive Nutzer) × (1 + Umlauf / 21M)` — labeled Demo-Formel, not a market price.
 
 Indicative rate: 10 Credits ≈ 1 € — not a payout.
+
+## ORB / Bittensor (future)
+
+ORB emission future = App-Improve subnet (TAO-inspired), not implemented this PR.
 
 ## Soft verify
 

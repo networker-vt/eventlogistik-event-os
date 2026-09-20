@@ -2,20 +2,20 @@
 
 **Dein Orbit für Arbeit — Matching statt Spam.**
 
-Global all-industry marketplace OS (v2.6.0): 90-day focus **DE Freelancer/KMU — Jobs finden oder anbieten**. Dual-sided plus Orbit Assist. Kabine / Gift / Channels stay stubs. Event/VT catalog is not in the primary IA. **Orbit Kids** + **Campus** (Lernen) ship in 2.6.0.
+Global all-industry marketplace OS (v2.7.0): 90-day focus **DE Freelancer/KMU — Jobs finden oder anbieten**. Dual-sided plus Orbit Assist / Orbi trip cards. Kabine / Gift / Channels stay stubs. Event/VT catalog is not in the primary IA. **Orbit Kids** + **Campus** (Lernen) stay in Mehr.
 
 - **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
 - **Repo:** https://github.com/networker-vt/eventlogistik-event-os
 - **License:** MIT — forks welcome if they improve Orbit (see [CONTRIBUTING.md](./CONTRIBUTING.md))
-- **A11y notes:** [A11Y.md](./A11Y.md) · **2.6.0:** [RELEASE_NOTES_2.6.0.md](./RELEASE_NOTES_2.6.0.md) · **2.5.2:** [RELEASE_NOTES_2.5.2.md](./RELEASE_NOTES_2.5.2.md) · **2.5.1:** [RELEASE_NOTES_2.5.1.md](./RELEASE_NOTES_2.5.1.md) · **2.5.0:** [RELEASE_NOTES_2.5.0.md](./RELEASE_NOTES_2.5.0.md) · **Credits:** [CREDITS.md](./CREDITS.md) · **2.4.0:** [RELEASE_NOTES_2.4.0.md](./RELEASE_NOTES_2.4.0.md)
+- **A11y notes:** [A11Y.md](./A11Y.md) · **2.7.0:** [RELEASE_NOTES_2.7.0.md](./RELEASE_NOTES_2.7.0.md) · **2.6.0:** [RELEASE_NOTES_2.6.0.md](./RELEASE_NOTES_2.6.0.md) · **2.5.2:** [RELEASE_NOTES_2.5.2.md](./RELEASE_NOTES_2.5.2.md) · **Credits:** [CREDITS.md](./CREDITS.md)
 
 > Vite `base` **MUST** stay `/eventlogistik-event-os/` for GitHub Pages.
 
-## IA (v2.6.0)
+## IA (v2.7.0)
 
 **Start · Treffer · Chat · Wallet · Mehr** — Create in the header (not on Home). Mein via avatar / Mehr. Home: robot + greeting + **Was brauchst du?** → outlined **Suchen / Anbieten / Weitermachen** → one filled **Orbit fragen** → **one Tageskarte** → below-fold **Mehr entdecken**. **Campus and Kids live under Mehr** (two quiet tiles), never on Home. Kids: PIN first, 0 Credits, hide Wallet. Light parchment default.
 
-## Core routes (v2.6.0)
+## Core routes (v2.7.0)
 
 | Route | Purpose |
 |-------|---------|
@@ -48,7 +48,7 @@ Bottom nav: **Start · Treffer · Chat · Wallet · Mehr**
 - **Social is localStorage-only** — not a full social network.
 - Photo “vision” and in-app video calls are **stubs**. Real calling needs a provider (Daily / Twilio / LiveKit) later.
 - Matching and mutual chat/booking seeds run locally (localStorage) unless Supabase is configured.
-- **Orbit Assist** plans locally (heuristics), including travel (“billigster Flug nach Berlin Freitag”) and Campus. Optional `VITE_LLM_API_KEY` may add tips; otherwise honest Demo-Recherche.
+- **Orbit Assist / Orbi** plans locally (heuristics). Trip packages (Köln→Monaco→Landsberg seed) return **2–3 option cards** (Preis / Balance / Schnell). Tap or whitelist voice (`1/2/3`) selects; only **Bestätigen** books a demo stub. No live GDS, no auto-checkout. Optional `VITE_LLM_API_KEY` may add tips; otherwise honest Demo-Recherche.
 - **Orbit Kids** is a device-local age band + maths parental gate — not a certified COPPA/KDG implementation. Store age rating still needs the operator questionnaire.
 
 ## Quick start

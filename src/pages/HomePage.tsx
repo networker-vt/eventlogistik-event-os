@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mic, Send } from 'lucide-react'
+import { TripOptionCards } from '../components/assist/TripOptionCards'
 import { FuerDichCard } from '../components/home/FuerDichCard'
 import { OrbitRobot } from '../components/home/OrbitRobot'
 import { Tageskarte } from '../components/home/Tageskarte'
@@ -28,6 +29,7 @@ import { rankHomeNews } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
 import { pickRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotAsk'
 import { canListen, listenOnce } from '../lib/speech'
+import { matchSpokenTripChoice } from '../lib/trip'
 import { pickTageskarte, tageskarteCopy } from '../lib/tageskarte'
 import { cn } from '../lib/utils'
 import {
@@ -63,6 +65,7 @@ export function HomePage() {
   const [robotTapped, setRobotTapped] = useState(false)
   const [robotAsk, setRobotAsk] = useState<RobotAsk | null>(null)
   const [kids, setKids] = useState(isKidsMode)
+  const [tripVoicePick, setTripVoicePick] = useState<1 | 2 | 3 | null>(null)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const { listings: raw } = useListings({})
   const daily = useMemo(() => pickTageskarte(new Date(), { kids }), [kids])
@@ -151,6 +154,15 @@ export function HomePage() {
   const submitAsk = async (text: string) => {
     const q = text.trim() || dailyCopy.prompt
     if (!q || busy) return
+    const spokenPick = plan?.tripOptions?.length ? matchSpokenTripChoice(q) : null
+    if (spokenPick) {
+      if (kidsHideTravel()) {
+        setAssistNote(t('trip.kids'))
+        return
+      }
+      setTripVoicePick(spokenPick)
+      return
+    }
     const gate = await consumeAssistTurn()
     if (gate === 'need_credits') {
       setAssistNote(t('home.assistNeedCredits'))
@@ -322,7 +334,16 @@ export function HomePage() {
         </form>
       </header>
 
-      <Tageskarte item={daily.item} slot={daily.slot} plan={plan} onUsePrompt={fillPrompt} />
+      <div className={plan ? 'assist-result space-y-6' : undefined} data-assist-result={plan ? '1' : undefined}>
+        <Tageskarte item={daily.item} slot={daily.slot} plan={plan} onUsePrompt={fillPrompt} />
+        {plan?.tripOptions && plan.tripOptions.length > 0 && (
+          <TripOptionCards
+            options={plan.tripOptions}
+            pendingVoice={tripVoicePick}
+            onConsumedVoice={() => setTripVoicePick(null)}
+          />
+        )}
+      </div>
 
       <section className="space-y-3 pt-2" aria-labelledby="mehr-entdecken">
         <div>
