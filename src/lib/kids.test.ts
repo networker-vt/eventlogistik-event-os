@@ -34,7 +34,7 @@ describe('Orbit Kids', () => {
     setAgeBand('under13')
     expect(isKidsMode()).toBe(true)
     expect(kidsMaySeeJobs()).toBe(false)
-    expect(kidsHideTravel()).toBe(true)
+    expect(kidsHideTravel()).toBe(true) // adult Orbi trip booking stays off
     expect(kidsHideSocialChat()).toBe(true)
     expect(kidsHideAdultTryOn()).toBe(true)
     expect(kidsHideSoftPaywall()).toBe(true)

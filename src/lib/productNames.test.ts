@@ -14,6 +14,8 @@ describe('product surface names DE+EN', () => {
       expect(tStatic('campus.nav', locale)).toBe('Campus')
       expect(tStatic('campus.title', locale)).toBe('Campus')
       expect(tStatic('kids.title', locale)).toBe('Orbit Kids')
+      expect(tStatic('assist.submit', locale)).toMatch(/Orbit fragen|Ask Orbit/)
+      expect(tStatic('trip.confirm', locale)).toMatch(/Bestätigen|Confirm/)
     }
   })
 })

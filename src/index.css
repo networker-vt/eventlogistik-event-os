@@ -322,6 +322,26 @@ textarea:focus-visible,
     background: color-mix(in oklab, #047857 10%, transparent);
     color: #047857;
   }
+  .assist-result {
+    letter-spacing: -0.01em;
+  }
+  .trip-card {
+    border: 1px solid color-mix(in oklab, var(--color-border) 85%, transparent);
+    border-radius: 1.25rem;
+    background: var(--color-surface);
+    padding: 1.5rem 1.35rem;
+    box-shadow: none;
+  }
+  .trip-card-tap {
+    transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+  }
+  .trip-card-tap:hover {
+    border-color: color-mix(in oklab, var(--color-ink) 18%, var(--color-border));
+  }
+  .trip-card-tap:active {
+    transform: scale(0.985);
+    background: color-mix(in oklab, var(--color-surface-2) 70%, var(--color-surface));
+  }
   .btn-press {
     transition: transform 0.12s ease, filter 0.12s ease, background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
   }
@@ -482,6 +502,10 @@ textarea:focus-visible,
     transition: none;
     transform: none;
     filter: none;
+  }
+  .trip-card-tap:hover,
+  .trip-card-tap:active {
+    transform: none;
   }
 }
 

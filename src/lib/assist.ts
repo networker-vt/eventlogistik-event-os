@@ -14,6 +14,7 @@ import {
 import { uid } from './utils'
 import { detectCampusIntent } from './campus'
 import { detectLookIntent } from './look'
+import { detectTripIntent, proposeTripOptions, type TripIntent, type TripOption } from './trip'
 
 const KEY = 'orbit_assist_v1'
 const EVT = 'orbit-assist-changed'
@@ -44,6 +45,8 @@ export interface ParsedIntent {
   travelKinds: TravelKind[]
   cheapest: boolean
   lookIntent?: ReturnType<typeof detectLookIntent>
+  trip?: TripIntent
+  returnCity?: string
 }
 
 export interface PlanStep {
@@ -71,6 +74,7 @@ export interface AssistPlan {
   disclaimer: string
   matchIds: string[]
   travelIds: string[]
+  tripOptions?: TripOption[]
   source: 'heuristic' | 'llm'
 }
 
@@ -119,6 +123,7 @@ export function getLastPlan(): AssistPlan | null {
   plan.travelIds = plan.travelIds || []
   plan.intent.travelKinds = plan.intent.travelKinds || []
   plan.intent.cheapest = Boolean(plan.intent.cheapest)
+  plan.tripOptions = Array.isArray(plan.tripOptions) ? plan.tripOptions.slice(0, 3) : []
   return plan
 }
 
@@ -259,11 +264,12 @@ function titleCaseCity(raw: string): string {
 }
 
 function parseFromTo(text: string, fallbackCity?: string): { to?: string; from?: string } {
+  const arrow = text.match(/([A-Za-zÄÖÜäöüß\-]+)\s*(?:→|->|–|—)\s*([A-Za-zÄÖÜäöüß\-]+)/)
   const nach = text.match(/\b(?:nach|to)\s+([A-Za-zÄÖÜäöüß\-]+)/i)
   const von = text.match(/\b(?:von|from|ab)\s+([A-Za-zÄÖÜäöüß\-]+)/i)
   return {
-    to: nach ? titleCaseCity(nach[1]) : fallbackCity,
-    from: von ? titleCaseCity(von[1]) : undefined,
+    to: arrow ? titleCaseCity(arrow[2]) : nach ? titleCaseCity(nach[1]) : fallbackCity,
+    from: arrow ? titleCaseCity(arrow[1]) : von ? titleCaseCity(von[1]) : undefined,
   }
 }
 
@@ -272,7 +278,19 @@ const TRAVEL_HOTEL = ['hotel', 'hostel', 'übernacht', 'uebernacht', 'unterkunft
 const TRAVEL_RAIL = ['bahn', 'ice', 'zug', 'rail', 'train']
 const TRAVEL_CAR = ['mietwagen', 'rental', 'mietauto', 'leihwagen', 'hire car']
 const TRAVEL_PKG = ['urlaub', 'package', 'pauschal', 'weekend']
-const TRAVEL_ANY = ['reise', 'travel', 'trip', 'fliegen', ...TRAVEL_FLIGHT, ...TRAVEL_HOTEL, ...TRAVEL_RAIL, ...TRAVEL_CAR, ...TRAVEL_PKG]
+const TRAVEL_TRANSFER = ['transfer', 'shuttle', 'zubringer', 'flughafentransfer']
+const TRAVEL_ANY = [
+  'reise',
+  'travel',
+  'trip',
+  'fliegen',
+  ...TRAVEL_FLIGHT,
+  ...TRAVEL_HOTEL,
+  ...TRAVEL_RAIL,
+  ...TRAVEL_CAR,
+  ...TRAVEL_PKG,
+  ...TRAVEL_TRANSFER,
+]
 
 function detectTravelKinds(lower: string): TravelKind[] {
   const kinds: TravelKind[] = []
@@ -317,8 +335,10 @@ export function parseIntent(raw: string): ParsedIntent {
   const cheapest = /billigst|günstigst|guenstigst|cheapest|lowest/i.test(lower)
   const lookIntent = detectLookIntent(lower)
   const campusIntent = detectCampusIntent(lower)
+  const trip = detectTripIntent(text)
   let kind: AssistKind = 'everyday'
   if (campusIntent) kind = 'campus'
+  else if (trip.matched) kind = 'travel'
   else if (lookIntent && !TRAVEL_ANY.some((w) => lower.includes(w))) kind = 'look'
   else if (travelKinds.length || TRAVEL_ANY.some((w) => lower.includes(w))) kind = 'travel'
   else if (EVENT_WORDS.some((w) => lower.includes(w))) kind = 'event'
@@ -356,8 +376,8 @@ export function parseIntent(raw: string): ParsedIntent {
     text,
     kind,
     items: items.length ? items : [text.slice(0, 80)],
-    city,
-    fromCity: from,
+    city: trip.matched ? trip.to || city : city,
+    fromCity: trip.matched ? trip.from || from : from,
     dateIso: iso,
     dateLabel: label,
     peopleCount,
@@ -366,6 +386,8 @@ export function parseIntent(raw: string): ParsedIntent {
     travelKinds,
     cheapest,
     lookIntent: lookIntent || undefined,
+    trip: trip.matched ? trip : undefined,
+    returnCity: trip.returnTo,
   }
 }
 
@@ -457,9 +479,15 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
       : de
         ? 'Reise'
         : 'travel'
-    summary = de
-      ? `${intent.cheapest ? 'Günstigste Optionen' : 'Optionen'} nach ${dest}${intent.dateLabel ? ` (${when})` : ''} — ${kinds}.`
-      : `${intent.cheapest ? 'Cheapest options' : 'Options'} to ${dest}${intent.dateLabel ? ` (${when})` : ''} — ${kinds}.`
+    const tripCards = intent.trip ? proposeTripOptions(intent.trip) : []
+    summary =
+      tripCards.length && de
+        ? `Orbi: ${tripCards.length} Optionen nach ${dest}${intent.returnCity ? ` · zurück ${intent.returnCity}` : ''} — Preis, Balance, Schnell.`
+        : tripCards.length
+          ? `Orbi: ${tripCards.length} options to ${dest}${intent.returnCity ? ` · back ${intent.returnCity}` : ''} — Price, Balance, Fast.`
+          : de
+            ? `${intent.cheapest ? 'Günstigste Optionen' : 'Optionen'} nach ${dest}${intent.dateLabel ? ` (${when})` : ''} — ${kinds}.`
+            : `${intent.cheapest ? 'Cheapest options' : 'Options'} to ${dest}${intent.dateLabel ? ` (${when})` : ''} — ${kinds}.`
     const qs = new URLSearchParams()
     if (intent.travelKinds[0]) qs.set('kind', intent.travelKinds[0])
     if (intent.city) qs.set('to', intent.city)
@@ -490,8 +518,8 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
     tips.push({
       title: de ? 'Orbit berät (Reise)' : 'Orbit advises (travel)',
       body: de
-        ? 'Live-Buchung braucht später Partner-APIs. Heute: Demo-Suche, Checkout-Stub, Ticket in der Wallet.'
-        : 'Live booking needs partner APIs later. Today: demo search, checkout stub, ticket in Wallet.',
+        ? 'Demo-Tarife, kein Live-GDS. Tippen oder Stimme 1/2/3 wählt — erst Bestätigen bucht (Demo). Kein Auto-Checkout.'
+        : 'Stub fares, not live GDS. Tap or say 1/2/3 to pick — only Confirm books (demo). No auto-checkout.',
     })
   } else if (intent.kind === 'everyday') {
     summary = de
@@ -765,8 +793,9 @@ export async function buildAssistPlan(
   }
   if (signal?.aborted) return null
   const matches = intent.kind === 'travel' ? [] : matchListingsForIntent(intent, 4)
+  const tripOptions = intent.trip ? proposeTripOptions(intent.trip).slice(0, 3) : []
   const travel =
-    intent.kind === 'travel'
+    intent.kind === 'travel' && !tripOptions.length
       ? searchTravelForNeed({
           kinds: intent.travelKinds,
           to: intent.city,
@@ -781,6 +810,7 @@ export async function buildAssistPlan(
     ...base,
     matchIds: matches.map((m) => m.id),
     travelIds: travel.map((o) => o.id),
+    tripOptions,
     source,
   }
   savePlan(plan)

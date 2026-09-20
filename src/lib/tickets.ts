@@ -1,4 +1,5 @@
 import type { TravelKind, TravelOffer } from './travel'
+import { localizeTripOption, type TripOption } from './trip'
 import { addLocalCalendarItem } from './calendar'
 import { CREDITS_COSTS, getCredits, spendCredits } from './credits'
 import { store } from './store'
@@ -123,6 +124,60 @@ export async function bookTravelOffer(input: {
     title: `Orbit: ${offer.title}`,
     startIso: ticket.whenIso,
     location: offer.to,
+    kind: 'plan',
+  })
+  return { ticket, ok: true }
+}
+
+/**
+ * Demo confirm only. Never spends Credits, never auto-buys.
+ * Super veto: Bestätigen is the only path here — voice/tap never call this.
+ */
+export async function bookTripOption(input: {
+  option: TripOption
+  payerId: string
+  payerName: string
+}): Promise<{ ticket: OrbitTicket; ok: true } | { ok: false; reason: string }> {
+  const opt = input.option
+  const copy = localizeTripOption(opt, 'de')
+  mockPayBooking({
+    amountEur: opt.priceEur,
+    methodId: 'sepa',
+    bookingId: opt.id,
+    label: `Orbi Trip · ${copy.label} (Demo, kein Geld, kein GDS)`,
+  })
+
+  const thread = store.createDirectThread({
+    participantIds: [input.payerId, 'orbit-support'],
+    participantNames: [input.payerName, 'Orbit Support'],
+    listingTitle: copy.flightSketch,
+    senderId: 'orbit-support',
+    senderName: 'Orbit Support',
+    body: `Orbi Demo-Bestätigung. ${copy.label} · ${copy.priceHint}. Kein echtes Ticket, kein GDS, kein Auto-Checkout.`,
+    kind: 'booking',
+  })
+
+  const ticket: OrbitTicket = {
+    id: uid('tkt'),
+    kind: 'package',
+    title: `${copy.label} · ${copy.flightSketch}`,
+    subtitle: `Orbi Demo · ${copy.priceHint}`,
+    ref: `ORB-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+    qr: `ORBIT-DEMO-${Date.now().toString(36).toUpperCase()}`,
+    status: 'confirmed',
+    paidWith: 'fiat',
+    priceEur: opt.priceEur,
+    whenIso: new Date().toISOString(),
+    location: opt.seed === 'koeln-monaco-landsberg' ? 'Monaco' : copy.flightSketch,
+    threadId: thread.id,
+    offerId: opt.id,
+    createdAt: new Date().toISOString(),
+  }
+  commit([ticket, ...get()])
+  addLocalCalendarItem({
+    title: `Orbi: ${copy.label}`,
+    startIso: ticket.whenIso,
+    location: ticket.location,
     kind: 'plan',
   })
   return { ticket, ok: true }

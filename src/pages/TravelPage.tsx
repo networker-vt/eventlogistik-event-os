@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plane } from 'lucide-react'
+import { TripOptionCards } from '../components/assist/TripOptionCards'
 import { TravelCard } from '../components/travel/TravelCard'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
@@ -21,6 +22,7 @@ import { buyBoost, CREDITS_COSTS, hasTravelDeepScan, subscribeCredits } from '..
 import { LaneBadge } from '../components/credits/LaneBadge'
 import { KidsBlocked } from '../components/kids/KidsBlocked'
 import { emitParentalRequired, kidsHideTravel, subscribeKids } from '../lib/kids'
+import { detectTripIntent, proposeTripOptions } from '../lib/trip'
 import { cn } from '../lib/utils'
 
 export function TravelPage() {
@@ -37,6 +39,11 @@ export function TravelPage() {
   useEffect(() => subscribeCredits(() => setScanTick((n) => n + 1)), [])
   useEffect(() => subscribeKids(() => setKids(kidsHideTravel())), [])
   const scanOn = hasTravelDeepScan()
+
+  const tripCards = useMemo(() => {
+    const intent = detectTripIntent([from, to, q].filter(Boolean).join(' '))
+    return intent.matched ? proposeTripOptions(intent).slice(0, 3) : []
+  }, [from, to, q])
 
   const results = useMemo(() => {
     const kinds = kindParam === 'all' ? undefined : [kindParam]
@@ -83,6 +90,8 @@ export function TravelPage() {
           <p className="rounded-2xl border border-amber-500/50 bg-amber-500/15 px-3 py-2 text-xs text-amber-100">
             {disclaimer}
           </p>
+
+          {tripCards.length > 0 && <TripOptionCards options={tripCards} />}
 
           <div className="flex flex-wrap items-center gap-2">
             {scanOn ? (
