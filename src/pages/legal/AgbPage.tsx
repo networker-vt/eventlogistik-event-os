@@ -20,7 +20,7 @@ export function AgbPage() {
 
       <h2>§ 2 Leistungsbeschreibung</h2>
       <p>
-        {LEGAL.brand} stellt eine Demo-PWA für einen ruhigen Marktplatz bereit: duales Matching
+        {LEGAL.brand} stellt eine Demo-PWA für einen Marktplatz bereit: duales Matching
         (Suchende und Firmen — B2B, Dienstleistungen, Partnerschaften, Jobs), Orbit Assist
         (lokaler Planer / Demo-Recherche), Reise-Suche mit Mock-Preisen, In-App-Checkout-Stubs,
         Tickets in der Wallet und ein lokaler Social-Feed. Die aktuelle öffentliche Version ist

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mic, Send } from 'lucide-react'
+import { Building2, Mic, MoreHorizontal, Plane, Send, Sparkles, Users, Wallet } from 'lucide-react'
+import { TileGrid, type HubTile } from '../components/ui/TileGrid'
 import { TripOptionCards } from '../components/assist/TripOptionCards'
 import { FuerDichCard } from '../components/home/FuerDichCard'
 import { OrbitRobot } from '../components/home/OrbitRobot'
@@ -107,12 +108,6 @@ export function HomePage() {
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
   const greeting = first ? `${t('home.hello')}, ${first}.` : `${t('home.hello')}.`
-  const matchTo = prefs.completed ? (companyView ? '/crew' : '/treffer') : '/prefs'
-  const matchLabel = prefs.completed
-    ? companyView
-      ? t('home.ctaCrew')
-      : t('home.ctaMatch')
-    : t('home.ctaPrefs')
   const stems: Record<WarmChip, string> = {
     seek: t('home.stemSeek'),
     offer: t('home.stemOffer'),
@@ -209,21 +204,19 @@ export function HomePage() {
     { id: 'resume', title: t('home.tileResume') },
   ]
 
-  const discover = [
-    { to: matchTo, label: matchLabel, hint: t('home.discoverTrefferHint') },
+  const discover: HubTile[] = [
     ...(!kidsHideTravel()
-      ? [{ to: '/abflug', label: t('travel.nav'), hint: t('home.discoverAbflugHint') }]
-      : []),
-    ...(!kids ? [{ to: '/crew', label: t('nav.crew'), hint: t('home.discoverCrewHint') }] : []),
-    ...(!hideWallet
-      ? [{ to: '/wallet', label: t('nav.wallet'), hint: t('home.discoverWalletHint') }]
+      ? [{ to: '/abflug', label: t('travel.nav'), icon: Plane, tone: 'sky' as const }]
       : []),
     ...(!kids
       ? [
-          { to: '/firma', label: t('firma.nav'), hint: t('firma.hint') },
-          { to: '/social', label: t('social.title'), hint: t('social.kicker') },
+          { to: '/crew', label: t('nav.crew'), icon: Users, tone: 'amber' as const },
+          { to: '/firma', label: t('firma.nav'), icon: Building2, tone: 'slate' as const },
+          { to: '/social', label: t('nav.social'), icon: Sparkles, tone: 'violet' as const },
         ]
       : []),
+    ...(!hideWallet ? [{ to: '/wallet', label: t('nav.wallet'), icon: Wallet, tone: 'teal' as const }] : []),
+    { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal, tone: 'orange' },
   ]
 
   return (
@@ -346,38 +339,18 @@ export function HomePage() {
       </div>
 
       <section className="space-y-3 pt-2" aria-labelledby="mehr-entdecken">
-        <div>
-          <h2 id="mehr-entdecken" className="text-xs font-medium uppercase tracking-wider text-muted">
-            {t('home.mehrEntdecken')}
-          </h2>
-          <p className="mt-1 text-[11px] text-muted">{t('home.mehrHint')}</p>
-        </div>
-        <ul className="divide-y divide-border/70">
-          {discover.map((item) => (
-            <li key={item.to + item.label}>
-              <Link
-                to={item.to}
-                className="flex items-baseline justify-between gap-3 py-2.5 text-sm text-ink-soft hover:text-ink"
-              >
-                <span>{item.label}</span>
-                <span className="min-w-0 truncate text-[11px] text-muted">{item.hint}</span>
-              </Link>
-            </li>
-          ))}
-          {resume && (
-            <li>
-              <Link
-                to={resume.path}
-                className="flex items-baseline justify-between gap-3 py-2.5 text-sm text-ink-soft hover:text-ink"
-              >
-                <span>
-                  {t('home.tileResume')}: {resume.title}
-                </span>
-                <span className="text-[11px] text-muted">{t('home.tileResumeHint')}</span>
-              </Link>
-            </li>
-          )}
-        </ul>
+        <h2 id="mehr-entdecken" className="text-xs font-medium uppercase tracking-wider text-muted">
+          {t('home.mehrEntdecken')}
+        </h2>
+        <TileGrid tiles={discover} label={t('home.mehrEntdecken')} />
+        {resume && (
+          <Link
+            to={resume.path}
+            className="inline-flex min-h-11 items-center text-sm text-ink-soft hover:text-ink"
+          >
+            {t('home.tileResume')}: {resume.title}
+          </Link>
+        )}
 
         <NewsStrip items={newsItems} />
 

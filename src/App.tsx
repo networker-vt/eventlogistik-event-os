@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { AuthProvider } from './lib/auth'
 import { I18nProvider, useI18n } from './lib/i18n'
@@ -64,6 +64,12 @@ const ErfahrungenPage = lazy(() =>
 const TicketPage = lazy(() => import('./pages/TicketPage').then((m) => ({ default: m.TicketPage })))
 const CampusPage = lazy(() => import('./pages/CampusPage').then((m) => ({ default: m.CampusPage })))
 const KidsPage = lazy(() => import('./pages/KidsPage').then((m) => ({ default: m.KidsPage })))
+const EntdeckerPage = lazy(() => import('./pages/EntdeckerPage').then((m) => ({ default: m.EntdeckerPage })))
+
+function MessagesToSocial() {
+  const { threadId } = useParams()
+  return <Navigate to={threadId ? `/social/chat/${threadId}` : '/social/chat'} replace />
+}
 
 export default function App() {
   return (
@@ -116,6 +122,9 @@ function AppReady() {
               <Route path="abflug/:offerId" element={<TravelCheckoutPage />} />
               <Route path="tickets/:id" element={<TicketPage />} />
               <Route path="social" element={<SocialPage />} />
+              <Route path="social/chat" element={<MessagesPage />} />
+              <Route path="social/chat/:threadId" element={<MessagesPage />} />
+              <Route path="entdecker" element={<EntdeckerPage />} />
               <Route path="quellen" element={<QuellenPage />} />
               <Route path="jobs/compare/:listingId" element={<CompareOffersPage />} />
               <Route path="listings/new" element={<CreateListingPage />} />
@@ -138,8 +147,8 @@ function AppReady() {
               <Route path="ideen" element={<IdeenPage />} />
               <Route path="integrationen" element={<IntegrationenPage />} />
               <Route path="empfehlen" element={<EmpfehlenPage />} />
-              <Route path="messages" element={<MessagesPage />} />
-              <Route path="messages/:threadId" element={<MessagesPage />} />
+              <Route path="messages" element={<Navigate to="/social/chat" replace />} />
+              <Route path="messages/:threadId" element={<MessagesToSocial />} />
               <Route path="bookings/:id" element={<BookingPage />} />
               <Route path="projects/new" element={<ProjectCreatePage />} />
               <Route path="projects/:id" element={<ProjectDetailPage />} />

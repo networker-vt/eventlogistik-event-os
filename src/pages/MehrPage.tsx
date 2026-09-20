@@ -1,14 +1,25 @@
-import { useEffect, type ComponentType } from 'react'
+import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { GraduationCap, Shield } from 'lucide-react'
+import {
+  Briefcase,
+  Building2,
+  Camera,
+  GraduationCap,
+  Lightbulb,
+  MessageSquare,
+  Plane,
+  Scan,
+  Share2,
+  Shield,
+  SlidersHorizontal,
+  Sparkles,
+  UserRound,
+  Users,
+  Wallet,
+} from 'lucide-react'
+import { TileGrid, type HubTile } from '../components/ui/TileGrid'
 import { useI18n } from '../lib/i18n'
 import { isKidsMode, kidsHidePublicChat, kidsHideTravel, kidsHideWallet } from '../lib/kids'
-
-type QuietLink = {
-  to: string
-  label: string
-  hint?: string
-}
 
 export function MehrPage() {
   const { t } = useI18n()
@@ -21,74 +32,57 @@ export function MehrPage() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [hash])
 
-  const tiles: { to: string; label: string; hint: string; icon: ComponentType<{ size?: number }> }[] = [
-    { to: '/campus', label: t('campus.nav'), hint: t('campus.lead'), icon: GraduationCap },
-    { to: '/kids', label: t('kids.title'), hint: t('kids.lead'), icon: Shield },
-  ]
-
-  const rest: QuietLink[] = [
-    { to: '/kabine', label: t('look.nav'), hint: t('look.hint') },
-    { to: '/firma', label: t('firma.nav'), hint: t('firma.hint') },
-    { to: '/marktplatz', label: t('market.nav'), hint: t('market.hint') },
-    ...(!kidsHideTravel() ? [{ to: '/abflug', label: t('travel.nav'), hint: t('travel.lead') }] : []),
-    ...(!kids ? [{ to: '/social', label: t('social.title'), hint: t('social.kicker') }] : []),
-    { to: '/channels', label: t('channels.nav'), hint: t('channels.hint') },
-    { to: '/mein', label: t('nav.mein'), hint: t('mein.lead') },
-    ...(!kids ? [{ to: '/listings/new', label: t('nav.create'), hint: t('create.lead') }] : []),
-    { to: '/ideen', label: t('mehr.ideas'), hint: t('mehr.ideasHint') },
-    ...(!kidsHideWallet()
+  const tiles: HubTile[] = [
+    ...(!kidsHideTravel()
+      ? [{ to: '/abflug', label: t('travel.nav'), icon: Plane, tone: 'sky' as const }]
+      : []),
+    ...(!kids
       ? [
-          { to: '/empfehlen', label: t('mehr.refer'), hint: t('mehr.referHint') },
-          { to: '/wallet', label: t('nav.wallet'), hint: t('mehr.walletHint') },
+          { to: '/crew', label: t('nav.crew'), icon: Users, tone: 'amber' as const },
+          { to: '/firma', label: t('firma.nav'), icon: Building2, tone: 'slate' as const },
+          { to: '/social', label: t('nav.social'), icon: Sparkles, tone: 'violet' as const },
         ]
       : []),
-    ...(!kidsHidePublicChat() ? [{ to: '/messages', label: t('nav.inbox'), hint: t('mehr.chatHint') }] : []),
-    { to: '/impressum', label: t('footer.impressum') },
-    { to: '/datenschutz', label: t('footer.privacy') },
-    { to: '/agb', label: t('footer.terms') },
+    ...(!kidsHideWallet()
+      ? [{ to: '/wallet', label: t('nav.wallet'), icon: Wallet, tone: 'teal' as const }]
+      : []),
+    { to: '/campus', label: t('campus.nav'), icon: GraduationCap, tone: 'indigo' },
+    { to: '/kids', label: t('kids.title'), icon: Shield, tone: 'orange' },
+    { to: '/entdecker', label: t('tile.entdecker'), icon: Camera, tone: 'lime', demo: true },
+    { to: '/kabine', label: t('look.nav'), icon: Scan, tone: 'rose' },
+    { to: '/channels', label: t('channels.nav'), icon: Share2, tone: 'violet' },
+    { to: '/prefs', label: t('match.tweakPrefs'), icon: SlidersHorizontal, tone: 'amber' },
+    { to: '/mein', label: t('nav.mein'), icon: UserRound, tone: 'indigo' },
+    ...(!kidsHidePublicChat()
+      ? [{ to: '/social/chat', label: t('nav.inbox'), icon: MessageSquare, tone: 'teal' as const }]
+      : []),
+    ...(!kids ? [{ to: '/listings/new', label: t('nav.create'), icon: Briefcase, tone: 'slate' as const }] : []),
+    { to: '/ideen', label: t('mehr.ideas'), icon: Lightbulb, tone: 'orange' },
+    ...(!kidsHideWallet()
+      ? [{ to: '/empfehlen', label: t('mehr.refer'), icon: Share2, tone: 'sky' as const }]
+      : []),
   ]
 
   return (
     <div className="space-y-6 pb-scroll-chrome">
       <header className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">{t('mehr.title')}</h1>
-        <p className="text-sm text-muted">{t('mehr.leadQuiet')}</p>
+        <p className="text-sm text-muted">{t('mehr.lead')}</p>
       </header>
 
-      <section aria-label={t('mehr.quietTiles')} data-mehr-quiet-tiles="2">
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {tiles.map((tile) => (
-            <li key={tile.to}>
-              <Link
-                to={tile.to}
-                className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-surface-2/60 px-3 py-3"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-ink-soft">
-                  <tile.icon size={18} />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium text-ink">{tile.label}</span>
-                  <span className="block truncate text-[11px] text-muted">{tile.hint}</span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <TileGrid tiles={tiles} label={t('mehr.tiles')} />
 
-      <ul className="divide-y divide-border/70">
-        {rest.map((item) => (
-          <li key={item.to + item.label}>
-            <Link
-              to={item.to}
-              className="flex items-baseline justify-between gap-3 py-2.5 text-sm text-ink-soft hover:text-ink"
-            >
-              <span>{item.label}</span>
-              {item.hint && <span className="min-w-0 truncate text-[11px] text-muted">{item.hint}</span>}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <nav className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted" aria-label={t('mehr.legal')}>
+        <Link to="/impressum" className="hover:text-ink">
+          {t('footer.impressum')}
+        </Link>
+        <Link to="/datenschutz" className="hover:text-ink">
+          {t('footer.privacy')}
+        </Link>
+        <Link to="/agb" className="hover:text-ink">
+          {t('footer.terms')}
+        </Link>
+      </nav>
     </div>
   )
 }

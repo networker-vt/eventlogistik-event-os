@@ -2,15 +2,22 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Briefcase,
+  Camera,
   GraduationCap,
   Heart,
   Languages,
   LayoutDashboard,
+  MoreHorizontal,
+  Scan,
   ScrollText,
+  Share2,
+  Shield,
   SlidersHorizontal,
   UserRound,
   Wallet,
 } from 'lucide-react'
+import { TileGrid, type HubTile } from '../components/ui/TileGrid'
+import { kidsHideWallet } from '../lib/kids'
 import { FavoriteButton } from '../components/favorites/FavoriteButton'
 import { ListingCard } from '../components/listings/ListingCard'
 import { Badge } from '../components/ui/Badge'
@@ -69,6 +76,22 @@ export function MeinPage() {
   const [skillDraft, setSkillDraft] = useState('')
   const [docKind, setDocKind] = useState<HubDocKind>('certificate')
   const complete = profileCompleteness()
+  const hideWallet = kidsHideWallet()
+
+  const hubTiles: HubTile[] = [
+    ...(!hideWallet ? [{ to: '/wallet', label: t('nav.wallet'), icon: Wallet, tone: 'teal' as const }] : []),
+    { to: '/kabine', label: t('look.nav'), icon: Scan, tone: 'rose' },
+    { to: '/channels', label: t('channels.nav'), icon: Share2, tone: 'violet' },
+    { to: '/prefs', label: t('match.tweakPrefs'), icon: SlidersHorizontal, tone: 'amber' },
+    { to: '/mein#verify', label: t('verify.title'), icon: Shield, tone: 'lime' },
+    { to: '/campus', label: t('campus.nav'), icon: GraduationCap, tone: 'indigo' },
+    { to: '/kids', label: t('kids.title'), icon: Shield, tone: 'orange' },
+    { to: '/entdecker', label: t('tile.entdecker'), icon: Camera, tone: 'lime', demo: true },
+    { to: '/profile', label: user?.name.split(' ')[0] ?? t('nav.mein'), icon: UserRound, tone: 'slate' },
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, tone: 'sky' },
+    { to: '/mein#sprache', label: t('mein.language'), icon: Languages, tone: 'amber' },
+    { to: '/mehr', label: t('nav.mehr'), icon: MoreHorizontal, tone: 'orange' },
+  ]
 
   useEffect(() => {
     const h = () => setCal(listLocalCalendar())
@@ -135,14 +158,17 @@ export function MeinPage() {
           <h1 className="text-2xl font-bold tracking-tight">{t('mein.title')}</h1>
           <p className="mt-1 text-sm text-muted">{t('mein.lead')}</p>
         </div>
+        <TileGrid tiles={hubTiles} label={t('mein.hub')} />
         <div className="flex flex-wrap gap-2">
           <SpeakButton text={`${t('mein.title')}. ${t('mein.lead')}`} />
+          {!hideWallet && (
           <Link
             to="/wallet"
             className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/10 px-3 py-2 text-sm"
           >
             <Wallet size={16} /> {credits.balance} Credits
           </Link>
+          )}
           <Link
             to="/empfehlen"
             className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-neutral-300 hover:border-[var(--theme-accent)]/40"
