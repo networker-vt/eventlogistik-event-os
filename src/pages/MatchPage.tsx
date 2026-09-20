@@ -343,11 +343,10 @@ export function MatchPage() {
       <header className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
-            {personalized ? t('nav.match') : t('match.kicker')}
+            {personalized ? t('match.forYou') : t('match.kicker')}
           </p>
           <h1 className="text-xl font-bold tracking-tight">{heading}</h1>
           <p className="text-xs text-muted">
-            {personalized ? `${t('match.forYou')} · ` : ''}
             {deck.length} {t('match.cards')} · {t('match.swipesLeft')} {budget.remaining}/{budget.freeCap}
             {budget.extra ? ` +${budget.extra}` : ''}
           </p>
