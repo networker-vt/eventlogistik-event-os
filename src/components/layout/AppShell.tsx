@@ -17,6 +17,7 @@ import { KidsBanner } from '../kids/KidsBanner'
 import { ParentalGateHost } from '../kids/ParentalGate'
 import { isKidsMode, subscribeKids } from '../../lib/kids'
 import { cueOrbiNavRun } from '../../lib/orbiMotion'
+import { recordWidgetVisit } from '../../lib/widgetUsage'
 
 function documentTitleFor(pathname: string, t: (key: string) => string) {
   if (pathname === '/' || pathname === '') return `Orbit — ${t('brand.tagline')}`
@@ -59,6 +60,7 @@ export function AppShell() {
   useEffect(() => {
     document.title = documentTitleFor(location.pathname, t)
     touchResume(`${location.pathname}${location.hash}`, document.title)
+    recordWidgetVisit(location.pathname)
   }, [location.pathname, location.hash, t])
 
   const primaryNav = [

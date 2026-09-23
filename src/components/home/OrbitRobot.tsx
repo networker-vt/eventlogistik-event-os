@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import idlePose from '../../assets/orbi/orbi-kind-idle.png'
-import wavePose from '../../assets/orbi/orbi-kind-wave.png'
-import dancePose from '../../assets/orbi/orbi-kind-dance.png'
-import workPose from '../../assets/orbi/orbi-kind-work.png'
-import runPose from '../../assets/orbi/orbi-kind-run.png'
+import idlePose from '../../assets/orbi/orbi-kind-idle.webp'
 import {
   ORBI_DANCE_MS,
   ORBI_IDLE_MS,
@@ -18,12 +14,57 @@ import {
 } from '../../lib/orbiMotion'
 import { cn } from '../../lib/utils'
 
-const POSE_SRC: Record<OrbiMotion, string> = {
-  idle: idlePose,
-  winken: wavePose,
-  tanzen: dancePose,
-  arbeiten: workPose,
-  rennen: runPose,
+const poseCache: Partial<Record<OrbiMotion, string>> = { idle: idlePose }
+
+const LAZY_POSE: Partial<Record<OrbiMotion, () => Promise<{ default: string }>>> = {
+  winken: () => import('../../assets/orbi/orbi-kind-wave.webp'),
+  tanzen: () => import('../../assets/orbi/orbi-kind-dance.webp'),
+  arbeiten: () => import('../../assets/orbi/orbi-kind-work.webp'),
+  rennen: () => import('../../assets/orbi/orbi-kind-run.webp'),
+}
+
+function usePoseSrc(motion: OrbiMotion) {
+  const cached = poseCache[motion]
+  const [src, setSrc] = useState(cached || idlePose)
+  useEffect(() => {
+    if (motion === 'idle') {
+      setSrc(idlePose)
+      return
+    }
+    const ready = poseCache[motion]
+    if (ready) {
+      setSrc(ready)
+      return
+    }
+    let cancel = false
+    const load = LAZY_POSE[motion]
+    if (!load) {
+      setSrc(idlePose)
+      return
+    }
+    void load()
+      .then((mod) => {
+        poseCache[motion] = mod.default
+        if (!cancel) setSrc(mod.default)
+      })
+      .catch(() => {
+        if (!cancel) setSrc(idlePose)
+      })
+    return () => {
+      cancel = true
+    }
+  }, [motion])
+  return src
+}
+
+function lightHaptic() {
+  const nav = navigator as Navigator & { vibrate?: (pattern: number | number[]) => boolean }
+  if (typeof nav.vibrate !== 'function') return
+  try {
+    nav.vibrate(10)
+  } catch {
+    /* some browsers expose vibrate but reject it */
+  }
 }
 
 export type { OrbiMotion, OrbiStage }
@@ -40,9 +81,10 @@ function initialLive(): OrbiMotion {
 }
 
 /**
- * Orbi Kind — CSS pose swap across the five transparent PNGs, plus a light idle bob.
- * Tap waves. After ~8s idle, one dance, then idle again.
- * Busy shows work. A nav cue shows a short run. Reduced motion stays on still idle.
+ * Orbi Kind — CSS pose swap. Idle WebP is eager; wave, dance, work and run load on use.
+ * Idle bobs. Tap scales 0.98→1, waves, and ticks a light haptic when the device allows it.
+ * After ~5–6s idle, one dance, then idle again.
+ * Busy shows work. A nav cue shows a short run. Reduced motion stays on the still idle frame.
  */
 export function OrbitRobot({
   className,
@@ -95,6 +137,7 @@ export function OrbitRobot({
   }, [])
 
   const onPress = () => {
+    if (!reduced) lightHaptic()
     if (driven && !reduced && !busy) {
       entry.current = poseForTap()
       setLive(poseForTap())
@@ -146,6 +189,7 @@ export function OrbitRobot({
   }, [driven, reduced, busy, seq])
 
   const slot = size === 'compact' ? 'h-28 w-36' : 'h-52 w-60'
+  const poseSrc = usePoseSrc(shown)
 
   const frame = (
     <span
@@ -156,9 +200,10 @@ export function OrbitRobot({
       data-orbi-look="kind"
     >
       <img
-        src={POSE_SRC[shown]}
+        src={poseSrc}
         alt=""
         draggable={false}
+        decoding={shown === 'idle' ? 'sync' : 'async'}
         className="orbi-kind-img h-full w-full bg-transparent object-contain object-bottom"
       />
     </span>
@@ -172,7 +217,7 @@ export function OrbitRobot({
       onClick={onPress}
       aria-label={label || 'Orbi'}
       aria-expanded={tapped}
-      className="tap-target inline-flex shrink-0 items-center justify-center rounded-2xl border-0 bg-transparent p-0"
+      className="orbi-tap tap-target inline-flex shrink-0 items-center justify-center rounded-2xl border-0 bg-transparent p-0"
     >
       {frame}
     </button>

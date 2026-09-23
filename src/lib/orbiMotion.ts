@@ -9,10 +9,10 @@ export const ORBI_STAGES = ['kind', 'teen', 'adult'] as const
 export type OrbiStage = (typeof ORBI_STAGES)[number]
 
 /**
- * Provisional motion defaults (Technik C: CSS pose swap).
- * A later team vote may replace these timings.
+ * Map-1 Calm motion (Technik C: CSS pose swap).
+ * Idle holds, then one dance. Reduced motion stays on the still idle frame.
  */
-export const ORBI_IDLE_MS = 8000
+export const ORBI_IDLE_MS = 5500
 export const ORBI_DANCE_MS = 2200
 export const ORBI_WAVE_MS = 1800
 export const ORBI_RUN_MS = 900

@@ -42,7 +42,7 @@ export function buildIcs(ev: CalEventInput): string {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Orbit//Job Matching OS//DE',
+    'PRODID:-//Orbit//Marketplace//DE',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

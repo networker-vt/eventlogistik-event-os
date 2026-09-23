@@ -18,7 +18,7 @@ export function NewsStrip({ items }: { items: HomeNewsItem[] }) {
               rel="noreferrer"
               className="flex items-baseline gap-2 px-2.5 py-1.5 hover:bg-ink/5"
             >
-              <span className="shrink-0 text-[10px] text-muted">{t(`news.cat.${item.cat}`)}</span>
+              <span className="shrink-0 text-[10px] text-muted">{item.source}</span>
               <span className="min-w-0 truncate text-xs text-neutral-300">
                 {newsTitle(item, resolved)}
               </span>

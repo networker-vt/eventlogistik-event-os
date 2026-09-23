@@ -4,7 +4,8 @@
  * Each tile has a visible emoji (or optional thematic image).
  */
 import type { HubTile, TileTone } from '../components/ui/TileGrid'
-import { isKidsMode, kidsHideTravel, kidsHideWallet } from './kids'
+import { isKidsMode, kidsHideTravel, kidsHideWallet, kidsMaySeeJobs } from './kids'
+import { getWidgetTaps, type WidgetArea } from './widgetUsage'
 
 export type HubSurface = 'discover' | 'account'
 
@@ -29,6 +30,8 @@ export type HubTileId =
   | 'dashboard'
   | 'kids'
   | 'refer'
+  | 'match'
+  | 'jobs'
 
 export type HubTileDef = {
   id: HubTileId
@@ -118,6 +121,72 @@ export function resolveHubTiles(
 
 export function homeDiscoverTiles(t: (key: string) => string, ctx: HubCtx = hubCtx()): HubTile[] {
   return resolveHubTiles(HOME_DISCOVER_DEFS, ctx, t)
+}
+
+/**
+ * Home links that can rise or fold. Default order is marketplace-wide.
+ * Jobs sit last so a zero-tap visit keeps them under Mehr.
+ */
+export const HOME_ADAPTIVE_DEFS: HubTileDef[] = [
+  { id: 'abflug', to: '/abflug', labelKey: 'travel.nav', emoji: '✈️', tone: 'sky', surface: 'discover', hide: (c) => c.hideTravel },
+  { id: 'kabine', to: '/kabine', labelKey: 'look.nav', emoji: '🪞', tone: 'rose', surface: 'discover' },
+  { id: 'match', to: '/match', labelKey: 'nav.match', emoji: '🎯', tone: 'teal', surface: 'discover' },
+  { id: 'campus', to: '/campus', labelKey: 'campus.nav', emoji: '🎓', tone: 'indigo', surface: 'discover' },
+  { id: 'entdecker', to: '/entdecker', labelKey: 'tile.entdecker', emoji: '🔎', tone: 'lime', surface: 'discover', demo: true },
+  { id: 'firma', to: '/firma', labelKey: 'firma.nav', emoji: '🏢', tone: 'slate', surface: 'discover', hide: (c) => c.kids },
+  { id: 'crew', to: '/crew', labelKey: 'nav.crew', emoji: '🤝', tone: 'amber', surface: 'discover', hide: (c) => c.kids },
+  { id: 'marktplatz', to: '/marktplatz', labelKey: 'mehr.market', emoji: '🛒', tone: 'teal', surface: 'discover' },
+  {
+    id: 'jobs',
+    to: '/jobs',
+    labelKey: 'tile.jobs',
+    emoji: '🧰',
+    tone: 'slate',
+    surface: 'discover',
+    hide: (c) => c.kids && !kidsMaySeeJobs(),
+  },
+]
+
+const ADAPTIVE_ORDER: WidgetArea[] = [
+  'abflug',
+  'kabine',
+  'match',
+  'campus',
+  'entdecker',
+  'firma',
+  'crew',
+  'marktplatz',
+  'jobs',
+]
+
+/** At most three quiet Home links under „Mehr entdecken“. Home does not render the loud TileGrid. */
+export const HOME_PRIMARY_COUNT = 3
+
+export function splitAdaptiveHome(
+  ctx: HubCtx,
+  counts: Record<string, number> | undefined,
+  t: (key: string) => string,
+): { primary: HubTile[]; folded: HubTile[] } {
+  const taps: Record<string, number> = counts ?? getWidgetTaps()
+  const visible = visibleDefs(HOME_ADAPTIVE_DEFS, ctx)
+  const ranked = [...visible].sort((a, b) => {
+    const diff = (taps[b.id] ?? 0) - (taps[a.id] ?? 0)
+    if (diff !== 0) return diff
+    const ia = ADAPTIVE_ORDER.indexOf(a.id as WidgetArea)
+    const ib = ADAPTIVE_ORDER.indexOf(b.id as WidgetArea)
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib)
+  })
+  const primaryDefs: HubTileDef[] = []
+  const foldedDefs: HubTileDef[] = []
+  for (const def of ranked) {
+    const unusedJobs = def.id === 'jobs' && (taps[def.id] ?? 0) === 0
+    if (unusedJobs || primaryDefs.length >= HOME_PRIMARY_COUNT) foldedDefs.push(def)
+    else primaryDefs.push(def)
+  }
+  return {
+    primary: resolveHubTiles(primaryDefs, ctx, t),
+    folded: resolveHubTiles(foldedDefs, ctx, t),
+  }
 }
 
 export function mehrDiscoverTiles(t: (key: string) => string, ctx: HubCtx = hubCtx()): HubTile[] {

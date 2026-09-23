@@ -5,10 +5,11 @@ export function AgbPage() {
   return (
     <LegalLayout title="Allgemeine Geschäftsbedingungen (AGB)">
       <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-        <strong>Startklar, aber nicht anwaltlich geprüft.</strong> Für Job-Matching
-        (Vermittlung zwischen Suchenden und Anbietenden) braucht es vor kommerziellem Betrieb
-        eine fachliche AGB-Prüfung — Haftungs-, Vermittlungs- und Entgeltregeln sind hier bewusst
-        vorsichtig formuliert und können sich ändern.
+        <strong>Startklar, aber nicht anwaltlich geprüft.</strong> Für den Marktplatz
+        (Angebote und Gesuche — Reise, Kabine, Lernen, Services, B2B, Jobs und mehr)
+        braucht es vor kommerziellem Betrieb eine fachliche AGB-Prüfung — Haftungs-,
+        Vermittlungs- und Entgeltregeln sind hier bewusst vorsichtig formuliert und können
+        sich ändern.
       </p>
 
       <h2>§ 1 Geltungsbereich</h2>
@@ -20,9 +21,10 @@ export function AgbPage() {
 
       <h2>§ 2 Leistungsbeschreibung</h2>
       <p>
-        {LEGAL.brand} stellt eine Demo-PWA für einen Marktplatz bereit: duales Matching
-        (Suchende und Firmen — B2B, Dienstleistungen, Partnerschaften, Jobs), Orbit Assist
-        (lokaler Planer / Demo-Recherche), Reise-Suche mit Mock-Preisen, In-App-Checkout-Stubs,
+        {LEGAL.brand} stellt eine Demo-PWA für einen Marktplatz für alles bereit
+        (Reise, Kabine, Lernen, Services, B2B, Jobs und Leute), Orbit Assist
+        (lokaler Planer), Bahn-Fahrplan über eine öffentliche API ohne Buchung, andere
+        Reise-Spuren nur als externe Suchlinks, In-App-Checkout-Stubs,
         Tickets in der Wallet und ein lokaler Social-Feed. Die aktuelle öffentliche Version ist
         eine funktionsfähige Demo mit lokalem Speicher. Verbindliche Verfügbarkeit, SLA,
         Live-Zahlungen oder echte GDS-/Airline-/Hotel-Buchungen sind nicht geschuldet.

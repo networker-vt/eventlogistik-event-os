@@ -14,15 +14,15 @@ const COMMUNITY = [
   },
   {
     id: 'match',
-    title: 'Jobs & Match',
-    hint: 'Suchen, anbieten, Mutuals',
+    title: 'Match',
+    hint: 'Angebote und Gesuche über den Marktplatz',
     icon: Briefcase,
     to: '/match',
   },
   {
     id: 'reise',
     title: 'Reise',
-    hint: 'Flüge, Hotels, Trips — Demo',
+    hint: 'Bahn live oder Suchlink — keine Buchung',
     icon: Plane,
     to: '/abflug',
   },

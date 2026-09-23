@@ -232,8 +232,12 @@ const OFFERS: TravelOffer[] = [
   },
 ]
 
+/**
+ * Search and Home no longer surface the stub catalog.
+ * A direct checkout id can still resolve so an old demo link stays labeled Demo.
+ */
 export function listTravelOffers(): TravelOffer[] {
-  return [...OFFERS]
+  return []
 }
 
 export function getTravelOffer(id: string): TravelOffer | undefined {
@@ -247,27 +251,8 @@ export function searchTravel(input: {
   dateIso?: string
   q?: string
 }): TravelOffer[] {
-  const q = (input.q || '').toLowerCase()
-  let items = OFFERS.filter((o) => {
-    if (input.kind && input.kind !== 'all' && o.kind !== input.kind) return false
-    if (input.to && o.to.toLowerCase() !== input.to.toLowerCase()) {
-      // soft: also allow tag/title
-      if (!o.title.toLowerCase().includes(input.to.toLowerCase())) return false
-    }
-    if (input.from && o.from && o.from.toLowerCase() !== input.from.toLowerCase()) {
-      if (!`${o.from} ${o.title}`.toLowerCase().includes(input.from.toLowerCase())) return false
-    }
-    if (q) {
-      const hay = `${o.title} ${o.to} ${o.from || ''} ${o.provider} ${o.tags.join(' ')}`.toLowerCase()
-      if (!hay.includes(q)) return false
-    }
-    return true
-  })
-  if (input.dateIso) {
-    const dated = items.filter((o) => o.dateFrom === input.dateIso)
-    if (dated.length) items = dated
-  }
-  return sortCheapest(items)
+  void input
+  return []
 }
 
 export function sortCheapest(items: TravelOffer[]): TravelOffer[] {
@@ -375,7 +360,7 @@ export function mergeDeepScan(items: TravelOffer[], enabled: boolean): TravelOff
 }
 
 export const TRAVEL_DISCLAIMER_DE =
-  'Demo-Suche mit Mock-Preisen. Keine echten Flüge, Hotels, Bahn- oder Mietwagen-Buchungen — später Partner-APIs (GDS / Bahnen / OTAs). Orbit bewegt kein Geld.'
+  'Bahn: Live-Fahrplan über transport.rest, sonst Link zu bahn.de. Flüge, Hotels, Mietwagen und Packages sind nur ausgefüllte Suchlinks. Orbit bucht nicht und erfindet keine Preise.'
 
 export const TRAVEL_DISCLAIMER_EN =
-  'Demo search with mock prices. No real flights, hotels, rail or car bookings — partner APIs (GDS / rail / OTAs) come later. Orbit does not move money.'
+  'Rail: live timetable via transport.rest, otherwise a bahn.de link. Flights, hotels, cars and packages are filled search links only. Orbit does not book and does not invent prices.'
