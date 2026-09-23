@@ -437,40 +437,18 @@ textarea:focus-visible,
   .stagger-in > *:nth-child(7) { animation-delay: 0.2s; }
   .stagger-in > *:nth-child(8) { animation-delay: 0.23s; }
 
-  @keyframes orbit-bob {
+  /* Orbi Kind — transparent PNG. Idle only bobs. Other poses are still frames. */
+  .orbi-kind-img {
+    transform-origin: 50% 100%;
+  }
+  .orbi-slot[data-orbi-motion="idle"] .orbi-kind-img {
+    animation: orbi-breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes orbi-breathe {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
+    50% { transform: translateY(-6px); }
   }
-  @keyframes orbit-blink {
-    0%, 88%, 100% { transform: scaleY(1); }
-    93% { transform: scaleY(0.08); }
-  }
-  .orbit-robot {
-    animation: orbit-bob 2.8s ease-in-out infinite;
-  }
-  .orbit-robot-eye {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: orbit-blink 4.4s ease-in-out infinite;
-  }
-  @keyframes orbit-tap-bounce {
-    0% { transform: translateY(0) scale(1); }
-    28% { transform: translateY(-10px) scale(1.12); }
-    50% { transform: translateY(2px) scale(0.94); }
-    72% { transform: translateY(-4px) scale(1.04); }
-    100% { transform: translateY(0) scale(1); }
-  }
-  @keyframes orbit-tap-blink {
-    0%, 35%, 100% { transform: scaleY(1); }
-    16% { transform: scaleY(0.08); }
-    52% { transform: scaleY(0.08); }
-  }
-  .orbit-robot.is-tapped {
-    animation: orbit-tap-bounce 0.62s ease;
-  }
-  .orbit-robot.is-tapped .orbit-robot-eye {
-    animation: orbit-tap-blink 0.5s ease;
-  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -483,8 +461,7 @@ textarea:focus-visible,
   .success-pop,
   .success-check,
   .stagger-in > *,
-  .orbit-robot,
-  .orbit-robot-eye {
+  .orbi-kind-img {
     animation: none !important;
   }
   .text-shimmer {

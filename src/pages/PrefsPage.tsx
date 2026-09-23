@@ -8,6 +8,7 @@ import {
   ORBIT_TAGLINE_DE,
   type Industry,
 } from '../data/industries'
+import { OrbitRobot } from '../components/home/OrbitRobot'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { CITIES } from '../data/constants'
@@ -92,8 +93,13 @@ export function PrefsPage() {
         <p className="inline-flex items-center gap-2 rounded-full border border-cyan/35 bg-cyan/10 px-3 py-1 text-xs font-medium text-cyan">
           <Sparkles size={14} /> Preference-first
         </p>
-        <h1 className="text-2xl font-bold tracking-tight">Dein Orbit einrichten</h1>
-        <p className="text-sm text-muted">{ORBIT_TAGLINE_DE}</p>
+        <div className="flex items-center gap-3">
+          <OrbitRobot size="compact" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight">Dein Orbit einrichten</h1>
+            <p className="text-sm text-muted">{ORBIT_TAGLINE_DE}</p>
+          </div>
+        </div>
         <p className="text-xs text-neutral-400">
           Drei Fragen. Überspringen geht — Login erst beim Speichern oder Zahlen.
         </p>
