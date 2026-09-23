@@ -437,216 +437,18 @@ textarea:focus-visible,
   .stagger-in > *:nth-child(7) { animation-delay: 0.2s; }
   .stagger-in > *:nth-child(8) { animation-delay: 0.23s; }
 
-  /* Orbi Kind — layered SVG. Origins use each part's own box so limbs pivot at the joint. */
-  .orbi-kind .orbi-float,
-  .orbi-kind .orbi-rig,
-  .orbi-kind .orbi-arm,
-  .orbi-kind .orbi-leg,
-  .orbi-kind .orbi-antenna,
-  .orbi-kind .orbi-eyes,
-  .orbi-kind .orbi-smile,
-  .orbi-kind .orbi-shadow {
-    transform-box: fill-box;
-  }
-  .orbi-kind .orbi-float {
+  /* Orbi Kind — transparent PNG. Idle only bobs. Other poses are still frames. */
+  .orbi-kind-img {
     transform-origin: 50% 100%;
+  }
+  .orbi-slot[data-orbi-motion="idle"] .orbi-kind-img {
     animation: orbi-breathe 3.4s ease-in-out infinite;
   }
-  .orbi-kind .orbi-shadow {
-    transform-origin: 50% 50%;
-    animation: orbi-shadow 3.4s ease-in-out infinite;
-  }
-  .orbi-kind .orbi-eyes {
-    transform-origin: 50% 50%;
-    animation: orbi-blink 5.2s ease-in-out infinite;
-  }
-  .orbi-kind .orbi-arm-l,
-  .orbi-kind .orbi-arm-r,
-  .orbi-kind .orbi-leg {
-    transform-origin: 50% 12%;
-  }
-  .orbi-kind .orbi-arm-l {
-    transform: rotate(8deg);
-  }
-  .orbi-kind .orbi-arm-r {
-    transform: rotate(-8deg);
-  }
-  .orbi-kind .orbi-antenna {
-    transform-origin: 50% 100%;
-  }
-  .orbi-kind .orbi-antenna-l {
-    animation: orbi-ant-l 3.4s ease-in-out infinite;
-  }
-  .orbi-kind .orbi-antenna-r {
-    animation: orbi-ant-r 3.4s ease-in-out infinite;
-  }
-  .orbi-kind .orbi-rig {
-    transform-origin: 50% 92%;
-  }
-
   @keyframes orbi-breathe {
-    0%, 100% { transform: translateY(0) scale(1, 1); }
-    50% { transform: translateY(-5px) scale(1.018, 0.982); }
-  }
-  @keyframes orbi-shadow {
-    0%, 100% { transform: scaleX(1); opacity: 0.95; }
-    50% { transform: scaleX(0.78); opacity: 0.45; }
-  }
-  @keyframes orbi-blink {
-    0%, 88%, 100% { transform: scaleY(1); }
-    93% { transform: scaleY(0.08); }
-  }
-  @keyframes orbi-ant-l {
-    0%, 100% { transform: rotate(-4deg); }
-    50% { transform: rotate(5deg); }
-  }
-  @keyframes orbi-ant-r {
-    0%, 100% { transform: rotate(4deg); }
-    50% { transform: rotate(-5deg); }
-  }
-  @keyframes orbi-winken-arm {
-    0% { transform: rotate(-8deg); }
-    14% { transform: rotate(-158deg); }
-    32% { transform: rotate(-128deg); }
-    50% { transform: rotate(-164deg); }
-    68% { transform: rotate(-132deg); }
-    86% { transform: rotate(-156deg); }
-    100% { transform: rotate(-8deg); }
-  }
-  @keyframes orbi-winken-tilt {
-    0%, 100% { transform: rotate(0deg); }
-    40%, 70% { transform: rotate(-4deg); }
-  }
-  @keyframes orbi-dance-hop {
-    0%, 100% { transform: translateY(0) rotate(-7deg); }
-    50% { transform: translateY(-8px) rotate(7deg); }
-  }
-  @keyframes orbi-dance-arm-l {
-    0%, 100% { transform: rotate(8deg); }
-    50% { transform: rotate(132deg); }
-  }
-  @keyframes orbi-dance-arm-r {
-    0%, 100% { transform: rotate(-8deg); }
-    50% { transform: rotate(-132deg); }
-  }
-  @keyframes orbi-dance-leg-l {
-    0%, 100% { transform: rotate(10deg); }
-    50% { transform: rotate(-8deg); }
-  }
-  @keyframes orbi-dance-leg-r {
-    0%, 100% { transform: rotate(-10deg); }
-    50% { transform: rotate(8deg); }
-  }
-  @keyframes orbi-work-lean {
-    0%, 100% { transform: rotate(5deg) translateY(1px); }
-    50% { transform: rotate(7deg) translateY(2px); }
-  }
-  @keyframes orbi-work-arm-l {
-    0%, 100% { transform: rotate(-12deg); }
-    50% { transform: rotate(-36deg); }
-  }
-  @keyframes orbi-work-arm-r {
-    0%, 100% { transform: rotate(12deg); }
-    50% { transform: rotate(36deg); }
-  }
-  @keyframes orbi-work-eyes {
-    0%, 100% { transform: translateY(2px) scaleY(0.92); }
-    50% { transform: translateY(3px) scaleY(0.84); }
-  }
-  @keyframes orbi-run-hop {
-    0%, 100% { transform: translateY(0) rotate(9deg); }
-    50% { transform: translateY(-7px) rotate(9deg); }
-  }
-  @keyframes orbi-run-arm-l {
-    0%, 100% { transform: rotate(42deg); }
-    50% { transform: rotate(-28deg); }
-  }
-  @keyframes orbi-run-arm-r {
-    0%, 100% { transform: rotate(-42deg); }
-    50% { transform: rotate(28deg); }
-  }
-  @keyframes orbi-run-leg-l {
-    0%, 100% { transform: rotate(24deg); }
-    50% { transform: rotate(-26deg); }
-  }
-  @keyframes orbi-run-leg-r {
-    0%, 100% { transform: rotate(-24deg); }
-    50% { transform: rotate(26deg); }
-  }
-  @keyframes orbi-run-ant {
-    0%, 100% { transform: rotate(14deg); }
-    50% { transform: rotate(20deg); }
-  }
-  @keyframes orbi-smile-dance {
-    0%, 100% { transform: scaleX(1); }
-    50% { transform: scaleX(1.18); }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
   }
 
-  .orbi-kind[data-orbi-motion="winken"] .orbi-arm-r {
-    animation: orbi-winken-arm 1.7s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="winken"] .orbi-rig {
-    animation: orbi-winken-tilt 1.7s ease-in-out infinite;
-  }
-
-  .orbi-kind[data-orbi-motion="tanzen"] .orbi-float {
-    animation: orbi-dance-hop 0.55s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="tanzen"] .orbi-shadow {
-    animation: orbi-shadow 0.55s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="tanzen"] .orbi-arm-l {
-    animation: orbi-dance-arm-l 0.55s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="tanzen"] .orbi-arm-r {
-    animation: orbi-dance-arm-r 0.55s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="tanzen"] .orbi-leg-l {
-    animation: orbi-dance-leg-l 0.55s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="tanzen"] .orbi-leg-r {
-    animation: orbi-dance-leg-r 0.55s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="tanzen"] .orbi-smile {
-    transform-origin: 50% 50%;
-    animation: orbi-smile-dance 0.55s ease-in-out infinite;
-  }
-
-  .orbi-kind[data-orbi-motion="arbeiten"] .orbi-rig {
-    animation: orbi-work-lean 0.9s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="arbeiten"] .orbi-arm-l {
-    animation: orbi-work-arm-l 0.45s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="arbeiten"] .orbi-arm-r {
-    animation: orbi-work-arm-r 0.45s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="arbeiten"] .orbi-eyes {
-    animation: orbi-work-eyes 0.9s ease-in-out infinite;
-  }
-
-  .orbi-kind[data-orbi-motion="rennen"] .orbi-float {
-    animation: orbi-run-hop 0.32s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="rennen"] .orbi-shadow {
-    animation: orbi-shadow 0.32s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="rennen"] .orbi-arm-l {
-    animation: orbi-run-arm-l 0.32s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="rennen"] .orbi-arm-r {
-    animation: orbi-run-arm-r 0.32s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="rennen"] .orbi-leg-l {
-    animation: orbi-run-leg-l 0.32s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="rennen"] .orbi-leg-r {
-    animation: orbi-run-leg-r 0.32s ease-in-out infinite;
-  }
-  .orbi-kind[data-orbi-motion="rennen"] .orbi-antenna-l,
-  .orbi-kind[data-orbi-motion="rennen"] .orbi-antenna-r {
-    animation: orbi-run-ant 0.32s ease-in-out infinite;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -659,14 +461,7 @@ textarea:focus-visible,
   .success-pop,
   .success-check,
   .stagger-in > *,
-  .orbi-kind .orbi-float,
-  .orbi-kind .orbi-rig,
-  .orbi-kind .orbi-arm,
-  .orbi-kind .orbi-leg,
-  .orbi-kind .orbi-antenna,
-  .orbi-kind .orbi-eyes,
-  .orbi-kind .orbi-smile,
-  .orbi-kind .orbi-shadow {
+  .orbi-kind-img {
     animation: none !important;
   }
   .text-shimmer {
@@ -699,10 +494,6 @@ html.tweak-contrast {
 html.tweak-contrast body {
   color: var(--color-ink);
 }
-html[data-scheme="dark"] .orbi-shadow {
-  fill: rgba(255, 255, 255, 0.22);
-}
-
 html[data-scheme="dark"].tweak-contrast {
   --color-muted: #c4c4c4;
 }
