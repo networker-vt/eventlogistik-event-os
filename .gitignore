@@ -34,7 +34,21 @@ ios/App/Pods/
 ios/App/build/
 ios/App/output/
 ios/App/App/public/
+ios/build/
+ios/vendor/
 ios/DerivedData/
 DerivedData/
 **/*.xcuserstate
 **/xcuserdata/
+
+# Signing material. Never commit. CI reads these from GitHub Actions secrets.
+*.p8
+AuthKey_*.p8
+*.mobileprovision
+*.ipa
+*.xcarchive
+**/fastlane/README.md
+**/fastlane/report.xml
+**/fastlane/test_output/
+**/fastlane/Preview.html
+**/fastlane/private_keys/

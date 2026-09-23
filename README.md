@@ -69,7 +69,13 @@ npm run build
 
 ## iOS / TestFlight
 
-Capacitor shell for Apple only (no Play project). Bundle ID `app.orbit.companion`, display name Orbit. `npm run cap:sync` builds with base `/` and copies the web app into `ios/`. Xcode signing, Archive, and TestFlight: [docs/TESTFLIGHT.md](./docs/TESTFLIGHT.md).
+Capacitor shell for Apple only (no Play project). Bundle ID `app.orbit.companion`, display name Orbit. `npm run cap:sync` builds with base `/` and copies the web app into `ios/`. Signing and upload: [docs/TESTFLIGHT.md](./docs/TESTFLIGHT.md).
+
+## TestFlight via GitHub Actions
+
+No Mac. After the four repository secrets in [docs/TESTFLIGHT.md](./docs/TESTFLIGHT.md) are set, open **Actions → iOS TestFlight → Run workflow**. The macOS runner runs `npm ci` and `npm run cap:sync` (Vite base `/`), archives the Capacitor app, and uploads an **Internal Testing** build. A tag named `ios-*` (for example `ios-2.9.0`) does the same. The workflow does not deploy GitHub Pages.
+
+Pages stays `npm run build` with base `/eventlogistik-event-os/`.
 
 ## Open Source
 

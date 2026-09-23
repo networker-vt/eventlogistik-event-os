@@ -128,4 +128,4 @@ Store-URLs (Pages-Basis `/eventlogistik-event-os/`):
 
 ## Stores
 
-iOS/TestFlight: `docs/TESTFLIGHT.md` (Bundle `app.orbit.companion`). Siehe auch `STORE_READY.md`. Kein Play-Projekt in diesem Repo. Einreichung nur mit dem Apple-Konto des Operators.
+iOS/TestFlight: `docs/TESTFLIGHT.md` (Bundle `app.orbit.companion`). GitHub Actions **iOS TestFlight** archiviert und lädt nach Internal Testing hoch, ohne lokalen Mac. Siehe auch `STORE_READY.md`. Kein Play-Projekt in diesem Repo. Einreichung nur mit dem Apple-Konto des Operators. Der Pages-Deploy bleibt `deploy:pages`.

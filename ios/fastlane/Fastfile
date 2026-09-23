@@ -1,0 +1,165 @@
+# Orbit Internal TestFlight.
+# Secrets and the one-time Apple clicks: docs/TESTFLIGHT.md
+# This lane does not deploy GitHub Pages.
+
+default_platform(:ios)
+
+BUNDLE_ID = "app.orbit.companion"
+
+platform :ios do
+  desc "Archive the Capacitor iOS app and upload it to TestFlight Internal Testing"
+  lane :testflight do
+    # FastlaneFolder.path is ios/fastlane. Do not use __dir__ — the Fastfile is eval'd.
+    fastlane_dir = FastlaneCore::FastlaneFolder.path
+    repo_root = File.expand_path("../..", fastlane_dir)
+    sh("bash", File.join(repo_root, "scripts/check-ios-secrets.sh"))
+
+    # Do not call setup_ci. Cloud signing imports into the runner's unlocked
+    # login keychain. A temporary keychain drops the Apple WWDR intermediates.
+    key_path = nil
+    begin
+      key_id = ENV.fetch("APP_STORE_CONNECT_API_KEY_ID").strip
+      issuer_id = ENV.fetch("APP_STORE_CONNECT_ISSUER_ID").strip
+      team_id = ENV.fetch("APPLE_TEAM_ID").gsub(/\s+/, "")
+      key_path = write_api_key!
+
+      marketing_version = marketing_version_from_package(repo_root)
+      build_number = next_build_number(key_path, key_id, issuer_id)
+      UI.message("Uploading Orbit #{marketing_version} (#{build_number}) as #{BUNDLE_ID}")
+
+      ipa = archive_and_export(
+        fastlane_dir: fastlane_dir,
+        repo_root: repo_root,
+        key_path: key_path,
+        key_id: key_id,
+        issuer_id: issuer_id,
+        team_id: team_id,
+        marketing_version: marketing_version,
+        build_number: build_number
+      )
+
+      # Mint a fresh token after the archive. App Store Connect JWTs last at most 20 minutes.
+      api_key = connect_api_key(key_path, key_id, issuer_id)
+      # team_id on pilot is the App Store Connect team id, not APPLE_TEAM_ID.
+      # A changelog makes pilot wait until Apple lists the build. Only pass one when asked.
+      upload_args = {
+        api_key: api_key,
+        ipa: ipa,
+        app_identifier: BUNDLE_ID,
+        skip_waiting_for_build_processing: true,
+        distribute_external: false,
+        notify_external_testers: false,
+        uses_non_exempt_encryption: false
+      }
+      notes = ENV["TESTFLIGHT_NOTES"].to_s.strip
+      upload_args[:changelog] = notes unless notes.empty?
+      upload_to_testflight(upload_args)
+
+      UI.success("Uploaded Orbit #{marketing_version} (#{build_number}) to App Store Connect.")
+      UI.success("Apple still processes the build. It then shows under TestFlight → Internal Testing.")
+      UI.success("Install TestFlight on the iPhone and open Orbit. This lane did not deploy GitHub Pages.")
+    ensure
+      shred_api_key(key_path)
+    end
+  end
+end
+
+def marketing_version_from_package(repo_root)
+  require "json"
+  package = JSON.parse(File.read(File.join(repo_root, "package.json")))
+  version = package.fetch("version").to_s.strip
+  UI.user_error!("package.json version is empty. Refusing to upload.") if version.empty?
+  unless version.match?(/\A[0-9]+(\.[0-9]+){1,2}\z/)
+    UI.user_error!("package.json version #{version.inspect} is not a marketing version like 2.9.0.")
+  end
+  version
+end
+
+def connect_api_key(key_path, key_id, issuer_id)
+  app_store_connect_api_key(
+    key_id: key_id,
+    issuer_id: issuer_id,
+    key_filepath: key_path,
+    duration: 1200,
+    in_house: false
+  )
+end
+
+def next_build_number(key_path, key_id, issuer_id)
+  api_key = connect_api_key(key_path, key_id, issuer_id)
+  latest = latest_testflight_build_number(
+    api_key: api_key,
+    app_identifier: BUNDLE_ID,
+    platform: "ios",
+    initial_build_number: 0
+  )
+  integer_build(latest, "TestFlight") + 1
+rescue FastlaneCore::Interface::FastlaneError => e
+  hint = if e.message.to_s.include?("Could not find an app")
+    " Create the iOS app in App Store Connect with bundle id #{BUNDLE_ID} before the first run, and use an API key with the Admin role."
+  else
+    ""
+  end
+  UI.user_error!("#{e.message}#{hint} See docs/TESTFLIGHT.md.")
+end
+
+def integer_build(value, source)
+  text = value.to_s.strip
+  return 0 if text.empty?
+  unless text.match?(/\A[0-9]+\z/)
+    UI.user_error!(
+      "#{source} build number #{text.inspect} is not an integer. " \
+      "This lane sets CFBundleVersion to the next integer. See docs/TESTFLIGHT.md."
+    )
+  end
+  text.to_i
+end
+
+def archive_and_export(fastlane_dir:, repo_root:, key_path:, key_id:, issuer_id:, team_id:, marketing_version:, build_number:)
+  ENV["APPLE_TEAM_ID"] = team_id
+  ENV["ASC_KEY_ID"] = key_id
+  ENV["ASC_ISSUER_ID"] = issuer_id
+  ENV["ASC_KEY_PATH"] = key_path
+  ENV["ORBIT_MARKETING_VERSION"] = marketing_version
+  ENV["ORBIT_BUILD_NUMBER"] = build_number.to_s
+  sh("bash", File.join(fastlane_dir, "archive_export.sh"))
+  ipa_file = File.join(repo_root, "ios/build/ipa-path.txt")
+  UI.user_error!("Export did not record an IPA path.") unless File.exist?(ipa_file)
+  ipa = File.read(ipa_file).strip
+  UI.user_error!("Export did not produce an IPA.") if ipa.empty? || !File.exist?(ipa)
+  ipa
+end
+
+def write_api_key!
+  require "base64"
+  raw = ENV.fetch("APP_STORE_CONNECT_API_KEY").gsub("\r\n", "\n").gsub("\r", "\n").strip
+  if (raw.start_with?('"') && raw.end_with?('"')) || (raw.start_with?("'") && raw.end_with?("'"))
+    raw = raw[1..-2]
+  end
+  pem = if raw.include?("BEGIN PRIVATE KEY")
+    raw
+  else
+    Base64.decode64(raw.gsub(/\s+/, "")).force_encoding("UTF-8")
+  end
+  unless pem.include?("BEGIN PRIVATE KEY") && pem.include?("END PRIVATE KEY")
+    UI.user_error!(
+      "APP_STORE_CONNECT_API_KEY did not decode to a .p8 private key. " \
+      "Store one-line base64 of the AuthKey file. See docs/TESTFLIGHT.md."
+    )
+  end
+  pem = "#{pem.sub(/\n*\z/, "")}\n"
+  dir = ENV["RUNNER_TEMP"] || Dir.tmpdir
+  path = File.join(dir, "AuthKey.p8")
+  File.open(path, "wb") { |file| file.write(pem) }
+  File.chmod(0o600, path)
+  path
+end
+
+def shred_api_key(path)
+  return if path.nil? || path.empty? || !File.exist?(path)
+  size = File.size(path)
+  File.open(path, "wb") { |file| file.write("\0" * size) } if size.positive?
+  File.delete(path)
+rescue StandardError
+  File.delete(path) if path && File.exist?(path)
+end

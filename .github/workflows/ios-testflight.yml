@@ -1,0 +1,155 @@
+# Build the Capacitor iOS app on a GitHub-hosted Mac and upload to
+# TestFlight Internal Testing. Manual, or a tag named ios-* (ios-2.9.0).
+# Not on every push — macOS minutes are expensive.
+#
+# Does not deploy GitHub Pages and does not run emit-pages-legal.
+# Secrets, and why the archive is unsigned: docs/TESTFLIGHT.md
+
+name: iOS TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: "Optional TestFlight “What to Test” note"
+        required: false
+        type: string
+  push:
+    tags:
+      - "ios-*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-testflight
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Secrets and web build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require App Store Connect secrets
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: bash scripts/check-ios-secrets.sh
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Test and build the iOS web bundle
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+          npm run build:ios
+          bash scripts/check-ios-web-base.sh dist
+
+  testflight:
+    name: Archive and upload
+    needs: preflight
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: |
+          set -euo pipefail
+          current="$(xcodebuild -version 2>/dev/null | awk '/^Xcode / { print $2; exit }' || true)"
+          current_major="${current%%.*}"
+          if [[ -n "$current_major" && "$current_major" -ge 26 ]]; then
+            xcodebuild -version
+            exit 0
+          fi
+          shopt -s nullglob
+          names=()
+          for app in /Applications/Xcode_26*.app; do
+            names+=("$(basename "$app" .app | sed 's/^Xcode_//')")
+          done
+          if [[ ${#names[@]} -eq 0 ]]; then
+            echo "::error::This runner has no Xcode 26. App Store Connect rejects uploads built with older Xcode (Apple requirement since 2026-04-28). macos-latest should be a macOS 26 image."
+            xcodebuild -version || true
+            ls /Applications | grep -i Xcode || true
+            exit 1
+          fi
+          pick="$(printf '%s\n' "${names[@]}" | sort -t. -k1,1n -k2,2n -k3,3n | tail -n 1)"
+          sudo xcode-select -s "/Applications/Xcode_${pick}.app/Contents/Developer"
+          sudo xcodebuild -runFirstLaunch
+          xcodebuild -version
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install, sync Capacitor iOS, confirm Vite base /
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run cap:sync
+          bash scripts/check-ios-web-base.sh dist
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          working-directory: ios
+
+      - name: Install Fastlane
+        working-directory: ios
+        run: bundle install --jobs 4 --retry 3
+
+      - name: Archive and upload to TestFlight
+        working-directory: ios
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          TESTFLIGHT_NOTES: ${{ github.event.inputs.notes || '' }}
+          FASTLANE_OPT_OUT_USAGE: "1"
+          FASTLANE_SKIP_UPDATE_CHECK: "1"
+          FASTLANE_HIDE_CHANGELOG: "1"
+          FASTLANE_DISABLE_COLORS: "1"
+        run: bundle exec fastlane ios testflight
+
+      - name: Upload IPA artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbit-ios-${{ github.run_number }}
+          path: ios/build/export/*.ipa
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Summary
+        if: success()
+        run: |
+          {
+            echo "### Internal TestFlight upload submitted"
+            echo
+            if [[ -f ios/build/build-info.txt ]]; then
+              cat ios/build/build-info.txt
+              echo
+            fi
+            echo "Apple still processes the build (often 5–30 minutes). It then appears in App Store Connect → TestFlight → Internal Testing, and in the TestFlight app on the iPhone."
+            echo "This workflow does not deploy GitHub Pages."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the API key from the runner
+        if: always()
+        run: |
+          rm -f "${RUNNER_TEMP:-/tmp}/AuthKey.p8" || true
+          rm -f "$HOME/.appstoreconnect/private_keys/"AuthKey*.p8 \
+            "$HOME/.private_keys/"AuthKey*.p8 \
+            ios/private_keys/AuthKey*.p8 \
+            ios/fastlane/private_keys/AuthKey*.p8 || true

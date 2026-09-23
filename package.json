@@ -9,7 +9,7 @@
     "build:ios": "CAPACITOR=1 tsc -b && CAPACITOR=1 vite build",
     "cap:sync": "npm run build:ios && npx cap sync ios",
     "lint": "oxlint",
-    "test": "vitest run && node --test scripts/emit-pages-legal.test.mjs",
+    "test": "vitest run && node --test scripts/emit-pages-legal.test.mjs scripts/ios-testflight.test.mjs",
     "preview": "vite preview",
     "deploy:pages": "bash scripts/deploy-pages.sh",
     "build:zip": "npm run build && cp dist/index.html dist/404.html && bash scripts/emit-pages-legal.sh dist && cd dist && zip -r ../orbit-web.zip ."
