@@ -23,11 +23,11 @@ export function AgbPage() {
       <p>
         {LEGAL.brand} stellt eine Demo-PWA für einen Marktplatz für alles bereit
         (Reise, Kabine, Lernen, Services, B2B, Jobs und Leute), Orbit Assist
-        (lokaler Planer), Bahn-Fahrplan über eine öffentliche API ohne Buchung, andere
-        Reise-Spuren nur als externe Suchlinks, In-App-Checkout-Stubs,
-        Tickets in der Wallet und ein lokaler Social-Feed. Die aktuelle öffentliche Version ist
-        eine funktionsfähige Demo mit lokalem Speicher. Verbindliche Verfügbarkeit, SLA,
-        Live-Zahlungen oder echte GDS-/Airline-/Hotel-Buchungen sind nicht geschuldet.
+        (lokaler Planer), Bahn-Fahrplan über eine öffentliche API ohne Buchung und andere
+        Reise-Spuren nur als externe Suchlinks. Alte Demo-Angebots-Links öffnen keine Buchung,
+        sondern einen Suchlink oder einen leeren Hinweis. Social bleibt lokal. Die öffentliche
+        Version speichert lokal. Verbindliche Verfügbarkeit, SLA, Live-Zahlungen oder echte
+        GDS-/Airline-/Hotel-Buchungen sind nicht geschuldet.
       </p>
 
       <h2>§ 3 Registrierung</h2>
@@ -48,12 +48,12 @@ export function AgbPage() {
 
       <h2>§ 5 Entgelte & Zahlungen</h2>
       <p>
-        Die Nutzung der Demo ist kostenlos. Wallet, Featured-Credits, FX-Anzeige, IBAN- und
-        Krypto-Formulare sowie Reise-Checkout bewegen <strong>kein echtes Geld</strong>.
-        Angezeigte Flüge, Hotels, Bahn- und Mietwagenpreise sind Mock-Daten — keine
-        GDS-/OTA-Buchung. Social-Funktionen laufen nur lokal auf dem Gerät. Erst nach Anbindung
-        von Stripe/PayPal/Banking-Partner inklusive KYC und Reise-Partner-APIs können Entgelte
-        oder echte Buchungen entstehen — dann mit gesonderter Preisangabe.
+        Die Nutzung der Demo ist kostenlos. Wallet, Featured-Credits, FX-Anzeige sowie IBAN- und
+        Krypto-Formulare bewegen <strong>kein echtes Geld</strong>. Flug- und Hotelkarten in Assist
+        sind Skizzen (Stub) und öffnen nur eine öffentliche Suche. Bahnpreise zeigt Orbit nur, wenn
+        die Fahrplan-API sie mitliefert. Social-Funktionen laufen nur lokal auf dem Gerät. Erst nach
+        Anbindung von Stripe/PayPal/Banking-Partner inklusive KYC und Reise-Partner-APIs können
+        Entgelte oder echte Buchungen entstehen — dann mit gesonderter Preisangabe.
       </p>
 
       <h2>§ 6 Haftung</h2>

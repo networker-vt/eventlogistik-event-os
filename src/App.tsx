@@ -16,6 +16,14 @@ import { MessagesPage } from './pages/MessagesPage'
 import { AgbPage } from './pages/legal/AgbPage'
 import { DatenschutzPage } from './pages/legal/DatenschutzPage'
 import { ImpressumPage } from './pages/legal/ImpressumPage'
+import { SupportPage } from './pages/legal/SupportPage'
+import {
+  InnovationPage,
+  KatalogPage,
+  NewsArchivePage,
+  NotFoundPage,
+  WissenPage,
+} from './pages/HonestRoutes'
 import { captureRefFromSearch } from './lib/referral'
 import { hydrateSafeTweaks } from './lib/ideas'
 
@@ -155,14 +163,18 @@ function AppReady() {
               <Route path="projects/:id" element={<ProjectDetailPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="profiles/:id" element={<PublicProfilePage />} />
-              <Route path="katalog/*" element={<Navigate to="/" replace />} />
-              <Route path="innovation" element={<Navigate to="/" replace />} />
-              <Route path="news" element={<Navigate to="/" replace />} />
-              <Route path="wissen/*" element={<Navigate to="/" replace />} />
+              <Route path="katalog" element={<KatalogPage />} />
+              <Route path="katalog/*" element={<KatalogPage />} />
+              <Route path="innovation" element={<InnovationPage />} />
+              <Route path="news" element={<NewsArchivePage />} />
+              <Route path="wissen" element={<WissenPage />} />
+              <Route path="wissen/*" element={<WissenPage />} />
               <Route path="impressum" element={<ImpressumPage />} />
               <Route path="datenschutz" element={<DatenschutzPage />} />
+              <Route path="privacy" element={<DatenschutzPage />} />
+              <Route path="support" element={<SupportPage />} />
               <Route path="agb" element={<AgbPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Route>
         </Routes>

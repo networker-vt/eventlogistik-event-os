@@ -3,7 +3,7 @@ import { LegalLayout } from './LegalLayout'
 
 export function DatenschutzPage() {
   return (
-    <LegalLayout title="Datenschutzerklärung">
+    <LegalLayout title="Datenschutz / Privacy">
       <p className="rounded-xl border border-cyan/30 bg-cyan/10 px-4 py-3 text-sm text-cyan">
         Startklar für die öffentliche Demo. Kein Tracking, keine Bezahldaten. Vor einem kommerziellen
         Live-Betrieb mit echten Nutzerkonten sollten AV-Verträge (z. B. Supabase) und diese Erklärung
@@ -83,7 +83,34 @@ export function DatenschutzPage() {
         Stripe, PayPal, Banken oder Blockchains übermittelt.
       </p>
 
-      <p className="text-sm text-muted">Stand: {LEGAL.year} · {LEGAL.operatorName}</p>
+      <h2>Privacy (English)</h2>
+      <p>
+        Controller: {LEGAL.operatorName}, a private individual ({LEGAL.form}), {LEGAL_ADDRESS_LINE},{' '}
+        {LEGAL.country}. Email: <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>. Orbit is not a
+        company and has no trade-register entry.
+      </p>
+      <ul>
+        <li>The public app is hosted on GitHub Pages. The host may keep technical logs (IP, user agent, time).</li>
+        <li>No analytics tool is active. No tracking cookies are set by Orbit.</li>
+        <li>
+          Demo data (account stub, listings, ideas, favorites) stays in this browser until you clear
+          site data. It is not uploaded unless an optional Supabase project is configured later.
+        </li>
+        <li>Wallet and travel forms do not send card, bank, or booking data to a payment or airline system.</li>
+        <li>
+          You can ask for access, correction, or deletion at {LEGAL.email}. You may also complain to
+          the supervisory authority in North Rhine-Westphalia (LDI NRW).
+        </li>
+      </ul>
+      <p>
+        This is a plain-language notice for the demo, not a law-firm opinion. Before a commercial
+        service with real accounts, the text should be reviewed again.
+      </p>
+
+      <p className="text-sm text-muted">
+        Stand: {LEGAL.year} · {LEGAL.operatorName} ·{' '}
+        <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>
+      </p>
     </LegalLayout>
   )
 }

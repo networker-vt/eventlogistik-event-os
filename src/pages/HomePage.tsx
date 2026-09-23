@@ -220,6 +220,9 @@ export function HomePage() {
             stage="kind"
             busy={busy}
           />
+          <p className="mt-1 text-xs text-muted" data-orbi-kind-label="1">
+            {t('home.orbiKind')} · {t('home.orbiTap')}
+          </p>
         </div>
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted">

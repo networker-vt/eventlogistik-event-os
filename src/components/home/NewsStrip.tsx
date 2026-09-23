@@ -8,7 +8,9 @@ export function NewsStrip({ items }: { items: HomeNewsItem[] }) {
   if (items.length === 0) return null
   return (
     <section className="space-y-1" aria-label={t('news.title')}>
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted">{t('news.title')}</p>
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
+        {t('news.title')} · {t('news.demo')}
+      </p>
       <ul className="divide-y divide-border/60 overflow-hidden rounded-xl border border-border/60">
         {items.map((item) => (
           <li key={item.id}>

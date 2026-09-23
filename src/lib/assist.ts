@@ -496,30 +496,32 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
     if (intent.cheapest) qs.set('sort', 'price')
     steps.push(
       step(
-        de ? 'Optionen rangieren' : 'Rank options',
+        de ? 'Optionen ansehen' : 'See the sketches',
         de
-          ? 'Mock-Preise, sortiert nach günstigster Option. Kein GDS.'
-          : 'Mock prices, cheapest first. No GDS.',
+          ? 'Skizze, kein Live-Tarif. Bahn kommt auf Abflug aus der Fahrplan-API, sonst Suchlink.'
+          : 'A sketch, not a live fare. Rail on Abflug uses the timetable API, otherwise a search link.',
         { actionTo: `/abflug?${qs.toString()}`, actionLabel: de ? 'Abflug' : 'Abflug', remindable: false },
       ),
       step(
-        de ? 'Buchen in der App (Stub)' : 'Book in-app (stub)',
+        de ? 'Beim Anbieter suchen' : 'Search with the provider',
         de
-          ? 'Fiat-Demo oder Orbit Credits — kein echtes Geld, keine Airline-Ticket.'
-          : 'Fiat demo or Orbit Credits — no real money, no airline ticket.',
-        { actionTo: `/abflug?${qs.toString()}`, actionLabel: de ? 'Zur Buchung' : 'To booking' },
+          ? 'Flüge und Hotels verlassen Orbit. Kein Ticket, kein Geld.'
+          : 'Flights and hotels leave Orbit. No ticket, no money.',
+        { actionTo: `/abflug?${qs.toString()}`, actionLabel: de ? 'Suche öffnen' : 'Open search' },
       ),
       step(
-        de ? 'Ticket in die Wallet' : 'Ticket into Wallet',
-        de ? 'Bestätigung + QR-Stub landen unter Wallet.' : 'Confirmation + QR stub land in Wallet.',
-        { actionTo: '/wallet', actionLabel: 'Wallet' },
+        de ? 'Kein Ticket in Orbit' : 'No ticket inside Orbit',
+        de
+          ? 'Orbit speichert keine Buchung. Der QR-Stub ist keine Fahrkarte.'
+          : 'Orbit does not store a booking. A QR stub is not a ticket.',
+        { actionTo: `/abflug?${qs.toString()}`, actionLabel: de ? 'Abflug' : 'Abflug' },
       ),
     )
     tips.push({
       title: de ? 'Orbit berät (Reise)' : 'Orbit advises (travel)',
       body: de
-        ? 'Demo-Tarife, kein Live-GDS. Tippen oder Stimme 1/2/3 wählt — erst Bestätigen bucht (Demo). Kein Auto-Checkout.'
-        : 'Stub fares, not live GDS. Tap or say 1/2/3 to pick — only Confirm books (demo). No auto-checkout.',
+        ? 'Stub ≠ Live. Tippen oder Stimme 1/2/3 wählt eine Skizze. Der nächste Schritt ist die öffentliche Suche, keine Buchung.'
+        : 'Stub ≠ live. Tap or say 1/2/3 to pick a sketch. The next step is a public search, not a booking.',
     })
   } else if (intent.kind === 'everyday') {
     summary = de

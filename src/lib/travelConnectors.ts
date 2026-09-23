@@ -98,6 +98,21 @@ export function packageSearchUrl(from: string, to: string, dateIso?: string, loc
   return `https://www.google.com/travel/flights?hl=${hl}&q=${encodeURIComponent(q)}`
 }
 
+/** Public search for an old demo offer id. Never a fare Orbit received. */
+export function offerOutboundHref(
+  offer: { kind: TravelLinkKind; from?: string; to: string; dateFrom?: string },
+  locale: 'de' | 'en' = 'de',
+) {
+  const from = offer.from || ''
+  const to = offer.to || ''
+  const dateIso = offer.dateFrom || ''
+  if (offer.kind === 'rail') return bahnSearchUrl(from, to, dateIso)
+  if (offer.kind === 'hotel') return hotelSearchUrl(to || from, dateIso)
+  if (offer.kind === 'car') return carSearchUrl(to || from, dateIso)
+  if (offer.kind === 'package') return packageSearchUrl(from, to || from, dateIso, locale)
+  return flightSearchUrl(from, to, dateIso, locale)
+}
+
 export function travelSearchLinks(input: {
   from?: string
   to?: string

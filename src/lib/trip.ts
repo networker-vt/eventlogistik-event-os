@@ -1,9 +1,10 @@
 /**
  * Orbi trip options — Assist result only.
  * Super veto: max 2–3 cards (Preis / Balance / Schnell). Voice whitelist
- * selects a card; it never books. Bestätigen is the only checkout step.
- * Stub fares — not live GDS. Do not claim 100% secure.
+ * selects a card; it never books. The follow-up opens a public search.
+ * Stub sketches — not live GDS. Do not claim 100% secure.
  */
+import { flightSearchUrl, hotelSearchUrl } from './travelConnectors'
 
 export type TripAxis = 'preis' | 'balance' | 'schnell'
 export type TripSeed = 'koeln-monaco-landsberg' | 'generic'
@@ -381,7 +382,32 @@ export function localizeTripOption(opt: TripOption, locale: 'de' | 'en') {
 }
 
 export const TRIP_DEMO_DISCLAIMER_DE =
-  'Demo-Tarife (Stub) — kein Live-GDS, keine echte Airline-Buchung. Orbi bestätigt nur nach Tippen auf Bestätigen. Kein Auto-Checkout.'
+  'Skizze (Stub), kein Live-Tarif. Tippen öffnet die öffentliche Suche. Orbit bucht nicht und legt kein Ticket an.'
 
 export const TRIP_DEMO_DISCLAIMER_EN =
-  'Stub fares — not live GDS, no real airline ticket. Orbi confirms only after you tap Confirm. No auto-checkout.'
+  'A sketch (stub), not a live fare. Tap opens a public search. Orbit does not book and does not create a ticket.'
+
+function cleanPlace(raw: string) {
+  return raw
+    .replace(/\b(low-cost|direkt|direct|frühester|earliest)\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** Cities for the public search. Seed trips are explicit; generic sketches use the flight line. */
+export function tripSearchPlaces(opt: TripOption): { from: string; to: string } {
+  if (opt.seed === 'koeln-monaco-landsberg') return { from: 'Köln', to: 'Monaco' }
+  const head = opt.flightSketchEn.split('·')[0] || ''
+  const [fromRaw, toRaw] = head.split('→')
+  return { from: cleanPlace(fromRaw || ''), to: cleanPlace(toRaw || '') }
+}
+
+export function tripFlightSearchHref(opt: TripOption, locale: 'de' | 'en' = 'de') {
+  const { from, to } = tripSearchPlaces(opt)
+  return flightSearchUrl(from, to, undefined, locale)
+}
+
+export function tripHotelSearchHref(opt: TripOption) {
+  const { to } = tripSearchPlaces(opt)
+  return to ? hotelSearchUrl(to) : ''
+}

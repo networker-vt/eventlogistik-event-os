@@ -9,6 +9,8 @@ import {
   localizeTripOption,
   matchSpokenTripChoice,
   proposeTripOptions,
+  tripFlightSearchHref,
+  tripHotelSearchHref,
   tripOptionAt,
 } from './trip'
 
@@ -96,6 +98,16 @@ describe('Orbi trip options — Super veto', () => {
     expect(plan?.tripOptions?.map((c) => c.labelDe)).toEqual(['Preis', 'Balance', 'Schnell'])
     expect(plan?.intent.kind).toBe('travel')
     expect(plan?.travelIds).toEqual([])
+  })
+
+  it('opens a public flight search for a stub card and does not invent a booking url', () => {
+    const cards = proposeTripOptions(detectTripIntent(MIRCO))
+    const href = tripFlightSearchHref(cards[0], 'de')
+    expect(href).toContain('google.com/travel/flights')
+    expect(decodeURIComponent(href)).toContain('Köln')
+    expect(decodeURIComponent(href)).toContain('Monaco')
+    expect(tripHotelSearchHref(cards[0])).toContain('booking.com')
+    expect(href).not.toContain('/tickets/')
   })
 
   it('keeps Impressum Mirco Küßner', () => {

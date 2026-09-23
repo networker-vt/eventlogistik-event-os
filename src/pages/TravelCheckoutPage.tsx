@@ -1,28 +1,20 @@
-import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Button } from '../components/ui/Button'
-import { WalletDisclaimer } from '../components/wallet/WalletDisclaimer'
-import { useAuth } from '../lib/auth'
-import { DEMO_USER_ID } from '../data/seed'
-import { CREDITS_COSTS, getCredits } from '../lib/credits'
-import { useI18n } from '../lib/i18n'
-import { bookTravelOffer, creditsNeeded } from '../lib/tickets'
-import { TRAVEL_DISCLAIMER_DE, TRAVEL_DISCLAIMER_EN, TRAVEL_KIND_META, getTravelOffer } from '../lib/travel'
-import { formatPrice, cn } from '../lib/utils'
-import { getWallet, WALLET_METHODS, type WalletMethodId } from '../lib/wallet'
+import { Link, useParams } from 'react-router-dom'
+import { ButtonLink } from '../components/ui/Button'
+import { Empty } from '../components/ui/Empty'
 import { KidsBlocked } from '../components/kids/KidsBlocked'
 import { emitParentalRequired, kidsHideTravel } from '../lib/kids'
+import { useI18n } from '../lib/i18n'
+import { TRAVEL_DISCLAIMER_DE, TRAVEL_DISCLAIMER_EN, TRAVEL_KIND_META, getTravelOffer } from '../lib/travel'
+import { offerOutboundHref } from '../lib/travelConnectors'
 
+/**
+ * Old /abflug/:id and /reise/:id links.
+ * The stub catalog is not a live fare. This page only opens a public search.
+ */
 export function TravelCheckoutPage() {
   const { offerId } = useParams()
   const { t, resolved } = useI18n()
-  const { user, loginDemo } = useAuth()
-  const navigate = useNavigate()
   const offer = offerId ? getTravelOffer(offerId) : undefined
-  const [pay, setPay] = useState<'fiat' | 'credits'>('fiat')
-  const [methodId, setMethodId] = useState<WalletMethodId>('sepa')
-  const [err, setErr] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
 
   if (kidsHideTravel()) {
     return (
@@ -32,139 +24,63 @@ export function TravelCheckoutPage() {
     )
   }
 
+  const disclaimer = resolved === 'de' ? TRAVEL_DISCLAIMER_DE : TRAVEL_DISCLAIMER_EN
+
   if (!offer) {
     return (
-      <div className="space-y-3">
-        <p className="text-sm text-muted">{t('checkout.missing')}</p>
-        <Link to="/abflug" className="text-sm text-[var(--theme-accent)] hover:underline">
-          {t('travel.title')}
-        </Link>
+      <div className="mx-auto max-w-lg space-y-4 pb-scroll-chrome">
+        <Empty
+          emoji="✈️"
+          title={t('checkout.missing')}
+          hint={t('checkout.stubHint')}
+          className="py-8"
+        />
+        <ButtonLink to="/abflug">{t('travel.title')}</ButtonLink>
       </div>
     )
   }
 
   const meta = TRAVEL_KIND_META[offer.kind]
-  const credits = creditsNeeded(offer.priceEur)
-  const wallet = getWallet()
-  const creditBal = getCredits().balance
-  const disclaimer = resolved === 'de' ? TRAVEL_DISCLAIMER_DE : TRAVEL_DISCLAIMER_EN
-
-  const book = async () => {
-    setErr(null)
-    setBusy(true)
-    if (!user) loginDemo()
-    const payerId = user?.id ?? DEMO_USER_ID
-    const payerName = user?.name ?? 'Alex Müller'
-    const result = await bookTravelOffer({
-      offer,
-      payerId,
-      payerName,
-      pay,
-      methodId,
-    })
-    setBusy(false)
-    if (!result.ok) {
-      setErr(result.reason === 'credits' ? t('checkout.needCredits') : t('checkout.fail'))
-      return
-    }
-    navigate(`/tickets/${result.ticket.id}`)
-  }
+  const href = offerOutboundHref(
+    { kind: offer.kind, from: offer.from, to: offer.to, dateFrom: offer.dateFrom },
+    resolved,
+  )
 
   return (
-    <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome">
+    <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome" data-travel-source="empty-cta">
       <header className="space-y-1">
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--theme-accent)]">
-          {t('checkout.kicker')}
-        </p>
-        <h1 className="text-2xl font-bold tracking-tight">{t('checkout.title')}</h1>
-        <p className="text-sm text-muted">{t('checkout.lead')}</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-amber-200">{t('badge.demo')}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('checkout.stubTitle')}</h1>
+        <p className="text-sm text-muted">{t('checkout.stubHint')}</p>
       </header>
 
-      <p className="rounded-2xl border-2 border-amber-400/70 bg-amber-500/20 px-3 py-3 text-sm font-semibold text-amber-100">
-        {t('checkout.demoBanner')}
-      </p>
-      <p className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+      <p className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
         {disclaimer}
       </p>
-      <WalletDisclaimer />
 
       <section className="rounded-2xl border border-border bg-surface-2 p-4">
-        <div className="flex items-start gap-3">
-          <span className="text-2xl">{offer.imageEmoji}</span>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-ink">{offer.title}</p>
-            <p className="text-xs text-muted">
-              {resolved === 'de' ? meta.de : meta.en} · {offer.provider}
-            </p>
-            <p className="mt-1 text-sm text-neutral-300">
-              {offer.from ? `${offer.from} → ` : ''}
-              {offer.to} · {offer.dateFrom}
-              {offer.dateTo ? ` – ${offer.dateTo}` : ''}
-            </p>
-          </div>
-          <p className="text-lg font-bold tabular-nums">{formatPrice(offer.priceEur)}</p>
-        </div>
+        <p className="text-sm font-semibold text-ink">
+          {meta.emoji} {offer.title}
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          {resolved === 'de' ? meta.de : meta.en}
+          {offer.from ? ` · ${offer.from}` : ''} → {offer.to}
+        </p>
+        <p className="mt-2 text-xs uppercase tracking-wide text-amber-200">Stub ≠ Live</p>
       </section>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold">{t('checkout.pay')}</h2>
-        <div className="grid grid-cols-2 gap-2">
-          {(['fiat', 'credits'] as const).map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setPay(id)}
-              className={cn(
-                'min-h-11 rounded-xl border px-3 text-sm',
-                pay === id
-                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15'
-                  : 'border-border bg-surface-2',
-              )}
-            >
-              {id === 'fiat' ? t('checkout.fiat') : t('checkout.credits')}
-            </button>
-          ))}
-        </div>
-        {pay === 'fiat' ? (
-          <div className="space-y-2">
-            <p className="text-xs text-muted">
-              {t('checkout.walletBal')}: {formatPrice(wallet.balanceEur)} · {t('checkout.noCharge')}
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {WALLET_METHODS.filter((m) => m.group === 'fiat').map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setMethodId(m.id)}
-                  className={cn(
-                    'min-h-10 rounded-full border px-3 text-xs',
-                    methodId === m.id
-                      ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15'
-                      : 'border-border',
-                  )}
-                >
-                  {m.icon} {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p className="text-xs text-muted">
-            {t('checkout.creditHint')} {credits} / {creditBal} Credits
-            {creditBal < credits ? ` — ${t('checkout.needCredits')}` : ''}
-          </p>
-        )}
-      </section>
-
-      {err && (
-        <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">{err}</p>
-      )}
-
-      <Button className="w-full" onClick={book} disabled={busy}>
-        {busy ? t('checkout.working') : t('checkout.confirm')}
-      </Button>
-      <p className="text-center text-xs font-semibold uppercase tracking-wide text-amber-200">{t('badge.demo')}</p>
-      <p className="text-center text-[11px] text-neutral-500">{CREDITS_COSTS.booking.label}</p>
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[var(--theme-accent)] px-4 text-sm font-semibold text-[var(--theme-on-accent)]"
+        data-travel-outbound="1"
+      >
+        {t('checkout.openSearch')}
+      </a>
+      <Link to="/abflug" className="inline-flex min-h-11 items-center text-sm text-[var(--theme-accent)] hover:underline">
+        {t('travel.title')}
+      </Link>
     </div>
   )
 }

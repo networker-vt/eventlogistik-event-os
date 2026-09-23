@@ -35,8 +35,11 @@ export function MehrPage() {
         <Link to="/impressum" className="hover:text-ink">
           {t('footer.impressum')}
         </Link>
-        <Link to="/datenschutz" className="hover:text-ink">
+        <Link to="/privacy" className="hover:text-ink">
           {t('footer.privacy')}
+        </Link>
+        <Link to="/support" className="hover:text-ink">
+          {t('footer.support')}
         </Link>
         <Link to="/agb" className="hover:text-ink">
           {t('footer.terms')}
