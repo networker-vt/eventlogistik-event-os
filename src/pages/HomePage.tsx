@@ -218,7 +218,7 @@ export function HomePage() {
           <p className="text-xs font-medium uppercase tracking-wider text-muted">
             Orbit{isDemo ? ` · ${t('home.demoBadge')}` : ''}
           </p>
-          <div className="mt-2 flex items-start gap-3">
+          <div className="mt-2 flex items-center gap-3" data-orbi-primary="1">
             <OrbitRobot
               tapped={robotTapped}
               onTap={onRobotTap}
