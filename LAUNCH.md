@@ -30,7 +30,7 @@ Die App fällt ohne gültige Keys beim **Store/Auth** weiterhin auf Demo zurück
 
 ## 3. Domain & DNS
 
-- [ ] Wunschdomain (z. B. `app.eventlogistik.de`)
+- [ ] Wunschdomain (eigene Domain, nicht an eine Branche gebunden)
 - [ ] DNS: CNAME → `networker-vt.github.io` (oder A/AAAA laut Pages-Doku)
 - [ ] GitHub → Settings → Pages → Custom domain + HTTPS erzwingen
 - [ ] Nach Domain-Wechsel: Auth Redirects & Manifest/`start_url` prüfen

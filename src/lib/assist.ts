@@ -678,8 +678,8 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
     tips.push({
       title: de ? 'Orbit berät' : 'Orbit advises',
       body: de
-        ? 'Preference-first: ohne Prefs kein Spam-Feed. 1-Tap Interesse statt Anschreiben.'
-        : 'Preference-first: no prefs, no spam feed. 1-tap Interest instead of a cover letter.',
+        ? 'Ohne Prefs bleibt der Feed klein. Ein Satz an Orbi reicht — dann Interesse, kein Anschreiben.'
+        : 'Without prefs the feed stays small. One sentence to Orbi is enough — then interest, not a cover letter.',
     })
   }
 

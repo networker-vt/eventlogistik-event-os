@@ -54,7 +54,7 @@ export function EmpfehlenPage() {
               onClick={() =>
                 void navigator.share?.({
                   title: 'Orbit',
-                  text: 'Orbit — Matching statt Spam. Dein persönlicher Job-Orbit.',
+                  text: 'Orbit — Marktplatz für alles. Reise, Kabine, Lernen, Jobs, Services und B2B.',
                   url,
                 })
               }

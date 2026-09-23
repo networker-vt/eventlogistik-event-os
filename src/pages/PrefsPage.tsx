@@ -1,25 +1,17 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, Sparkles } from 'lucide-react'
-import { filledIndustries } from '../lib/categories'
-import {
-  COMPANY_SIZES,
-  COUNTRIES,
-  ORBIT_TAGLINE_DE,
-  type Industry,
-} from '../data/industries'
+import { Mic } from 'lucide-react'
+import { OrbitRobot } from '../components/home/OrbitRobot'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-import { CITIES } from '../data/constants'
-import {
-  completePrefs,
-  getPrefs,
-  savePrefs,
-  type EmployerPrefs,
-  type PrefsSide,
-  type SeekerPrefs,
-} from '../lib/prefs'
-import { completeCompany, getCompany } from '../lib/company'
+import { LANGUAGES } from '../data/industries'
+import { useI18n } from '../lib/i18n'
+import { isKidsMode } from '../lib/kids'
+import { buildPrefsFromSetup, parseMarketplaceIntent } from '../lib/parseIntent'
+import { completePrefs, getPrefs, MARKETPLACE_INTERESTS, savePrefs, type MarketplaceInterest } from '../lib/prefs'
+import { canListen, captureConsentedVoice } from '../lib/speech'
+import { grantVoiceConsent, readVoiceConsent, voiceConsentGranted, type VoiceConsent } from '../lib/voiceConsent'
+import { VoiceConsentAsk } from '../components/voice/VoiceConsentAsk'
 import { cn } from '../lib/utils'
 
 function Chip({
@@ -38,8 +30,8 @@ function Chip({
       className={cn(
         'rounded-full border px-3 py-1.5 text-xs font-medium transition',
         active
-          ? 'border-cyan bg-cyan/15 text-cyan'
-          : 'border-border bg-surface-2 text-neutral-300 hover:border-cyan/40',
+          ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15 text-[var(--theme-accent)]'
+          : 'border-border bg-surface-2 text-neutral-300 hover:border-[var(--theme-accent)]/40',
       )}
     >
       {children}
@@ -47,311 +39,274 @@ function Chip({
   )
 }
 
-function toggle<T extends string>(arr: T[], v: T): T[] {
-  return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]
+function toggle(arr: string[], value: string): string[] {
+  return arr.includes(value) ? arr.filter((item) => item !== value) : [...arr, value]
 }
 
 export function PrefsPage() {
   const navigate = useNavigate()
+  const { t, resolved } = useI18n()
   const initial = useMemo(() => getPrefs(), [])
-  const [side, setSide] = useState<PrefsSide>(initial.side)
+  const kids = useMemo(() => isKidsMode(), [])
   const [step, setStep] = useState(0)
-  const [seeker, setSeeker] = useState<SeekerPrefs>(initial.seeker)
-  const [employer, setEmployer] = useState<EmployerPrefs>(initial.employer)
-  const [firmName, setFirmName] = useState(() => getCompany().firmName)
-  const [offerDraft, setOfferDraft] = useState('')
-  const [seekDraft, setSeekDraft] = useState('')
-  const [offers, setOffers] = useState(() => getCompany().offers)
-  const [seeks, setSeeks] = useState(() => getCompany().seeks)
+  const [note, setNote] = useState(initial.todayNote)
+  const [languages, setLanguages] = useState<string[]>(initial.seeker.languages)
+  const [radiusKm, setRadiusKm] = useState(initial.seeker.radiusKm || 50)
+  const [cities, setCities] = useState<string[]>(initial.seeker.cities)
+  const [interests, setInterests] = useState<MarketplaceInterest[]>(initial.interests)
+  const [languagesTouched, setLanguagesTouched] = useState(false)
+  const [radiusTouched, setRadiusTouched] = useState(false)
+  const [citiesTouched, setCitiesTouched] = useState(false)
+  const [interestsTouched, setInterestsTouched] = useState(initial.interests.length > 0)
+  const [cityDraft, setCityDraft] = useState('')
+  const [listening, setListening] = useState(false)
+  const [voiceConsent, setVoiceConsent] = useState<VoiceConsent>(readVoiceConsent)
+  const speechOk = canListen()
+  const parsed = useMemo(() => parseMarketplaceIntent(note), [note])
+  const interestChoices = MARKETPLACE_INTERESTS.filter((id) => !(kids && id === 'social'))
+  const steps = ['prefs.stepToday', 'prefs.stepLocale', 'prefs.stepInterests'] as const
 
-  const seekerSteps = ['Seite', 'Ort', 'Kategorie']
-  const employerSteps = ['Seite', 'Ort', 'Kategorie']
-  const steps = side === 'seeker' ? seekerSteps : employerSteps
+  const resolvedLanguages = languagesTouched
+    ? languages
+    : parsed.languages.length
+      ? parsed.languages
+      : languages
+  const resolvedRadius = radiusTouched ? radiusKm : (parsed.radiusKm ?? radiusKm)
+  const resolvedCities = citiesTouched ? cities : parsed.cities.length ? parsed.cities : cities
+  const resolvedInterests = interestsTouched ? interests : parsed.interests
 
   const finish = () => {
-    savePrefs({ side, seeker, employer })
-    if (side !== 'seeker') {
-      completeCompany({
-        firmName: firmName.trim(),
-        offers,
-        seeks,
-        industries: employer.industries,
-        countries: employer.countries,
-        languages: employer.languages,
-        hiringNeeds: employer.rolesHiring,
-        size: employer.companySize,
-      })
-    }
-    completePrefs(side)
+    const next = buildPrefsFromSetup({
+      note,
+      languages: resolvedLanguages.length ? resolvedLanguages : ['Deutsch', 'Englisch'],
+      radiusKm: resolvedRadius,
+      cities: resolvedCities,
+      interests: kids ? resolvedInterests.filter((id) => id !== 'social') : resolvedInterests,
+      currentSide: initial.side,
+      kids,
+    })
+    savePrefs(next)
+    completePrefs(next.side)
     navigate('/match')
   }
 
+  const goNext = () => {
+    if (step === 0) {
+      if (!languagesTouched && parsed.languages.length) setLanguages(parsed.languages)
+      if (!radiusTouched && parsed.radiusKm != null) setRadiusKm(parsed.radiusKm)
+      if (!citiesTouched && parsed.cities.length) setCities(parsed.cities)
+      if (!interestsTouched) setInterests(parsed.interests.filter((id) => !(kids && id === 'social')))
+    }
+    setStep((current) => Math.min(current + 1, steps.length - 1))
+  }
+
+  const startVoice = async () => {
+    if (!speechOk || listening) return
+    if (!voiceConsentGranted()) return
+    setListening(true)
+    const said = await captureConsentedVoice(resolved === 'de' ? 'de-DE' : 'en-GB')
+    setListening(false)
+    if (said) setNote((prev) => (prev.trim() ? `${prev.trim()} ${said}` : said))
+  }
+
+  const onVoice = () => {
+    if (!speechOk || listening) return
+    if (voiceConsent !== 'yes' || !voiceConsentGranted()) {
+      setVoiceConsent('ask')
+      return
+    }
+    void startVoice()
+  }
+
+  const heard = (kids ? parsed.interests.filter((id) => id !== 'social') : parsed.interests)
+    .map((id) => t(`interest.${id}`))
+    .join(' · ')
+
   return (
-    <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome">
-      <header className="space-y-2">
-        <p className="inline-flex items-center gap-2 rounded-full border border-cyan/35 bg-cyan/10 px-3 py-1 text-xs font-medium text-cyan">
-          <Sparkles size={14} /> Preference-first
-        </p>
-        <h1 className="text-2xl font-bold tracking-tight">Dein Orbit einrichten</h1>
-        <p className="text-sm text-muted">{ORBIT_TAGLINE_DE}</p>
-        <p className="text-xs text-neutral-400">
-          Drei Fragen. Überspringen geht — Login erst beim Speichern oder Zahlen.
-        </p>
+    <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome" data-setup="orbi">
+      <header className="space-y-3">
+        <div className="flex items-center gap-3">
+          <OrbitRobot size="lg" label={t('prefs.kicker')} />
+          <p className="text-sm font-semibold text-[var(--theme-accent)]">{t('prefs.kicker')}</p>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight">{t('prefs.title')}</h1>
+        <p className="text-sm text-muted">{t('prefs.lead')}</p>
+        <p className="text-xs text-neutral-400">{t('prefs.privacy')}</p>
       </header>
 
-      <div className="flex gap-1">
-        {steps.map((label, i) => (
+      <div className="flex gap-1" aria-hidden>
+        {steps.map((label, index) => (
           <div
             key={label}
-            className={cn(
-              'h-1.5 flex-1 rounded-full',
-              i <= step ? 'bg-cyan' : 'bg-surface-3',
-            )}
-            title={label}
+            className={cn('h-1.5 flex-1 rounded-full', index <= step ? 'bg-[var(--theme-accent)]' : 'bg-surface-3')}
           />
         ))}
       </div>
       <p className="text-xs text-muted">
-        Schritt {step + 1}/{steps.length}: {steps[step]}
+        {t('prefs.stepWord')} {step + 1}/{steps.length}: {t(steps[step])}
       </p>
 
       {step === 0 && (
-        <section className="grid gap-3 sm:grid-cols-3">
-          {(
-            [
-              {
-                id: 'seeker' as const,
-                title: 'Ich suche Arbeit',
-                hint: 'Jobs, Minijobs, Dienstleistungen nach Prefs',
-              },
-              {
-                id: 'employer' as const,
-                title: 'Ich bin eine Firma',
-                hint: 'Kandidaten, B2B, Partnerschaften swipen',
-              },
-              {
-                id: 'both' as const,
-                title: 'Beides',
-                hint: 'Suchende und Firma — Match-Decks umschalten',
-              },
-            ] as const
-          ).map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => setSide(opt.id)}
-              className={cn(
-                'rounded-2xl border p-4 text-left transition',
-                side === opt.id
-                  ? 'border-cyan bg-cyan/10'
-                  : 'border-border bg-surface-2 hover:border-cyan/40',
+        <section className="space-y-3">
+          <label className="block">
+            <span className="sr-only">{t('prefs.stepToday')}</span>
+            <textarea
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              rows={4}
+              placeholder={t('prefs.placeholder')}
+              className="w-full resize-none rounded-2xl border border-border bg-surface-2 px-3 py-3 text-base text-ink placeholder:text-muted outline-none focus:border-[var(--theme-accent)]/50"
+            />
+          </label>
+          <p className="text-xs text-muted">{t('prefs.hint')}</p>
+          {heard && (
+            <p className="text-xs text-ink" data-orbi-heard="1">
+              {t('prefs.heard')}: {heard}
+            </p>
+          )}
+          {speechOk ? (
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onVoice}
+                disabled={listening}
+                aria-pressed={listening}
+              >
+                <Mic size={16} /> {listening ? t('prefs.voiceListening') : t('prefs.voice')}
+              </Button>
+              {voiceConsent === 'ask' && (
+                <VoiceConsentAsk
+                  onAllow={() => {
+                    grantVoiceConsent()
+                    setVoiceConsent('yes')
+                    void startVoice()
+                  }}
+                  onCancel={() => setVoiceConsent('idle')}
+                />
               )}
-            >
-              <div className="font-semibold text-ink">{opt.title}</div>
-              <p className="mt-1 text-xs text-muted">{opt.hint}</p>
-              {side === opt.id && <Check size={16} className="mt-2 text-cyan" />}
-            </button>
-          ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted">{t('prefs.voiceFallback')}</p>
+          )}
         </section>
       )}
 
       {step === 1 && (
         <section className="space-y-4">
           <div>
-            <h2 className="mb-2 text-sm font-semibold">Ort</h2>
+            <h2 className="mb-2 text-sm font-semibold">{t('prefs.languages')}</h2>
             <div className="flex flex-wrap gap-2">
-              {(side === 'seeker' ? CITIES : COUNTRIES).map((c) => (
+              {LANGUAGES.map((language) => (
                 <Chip
-                  key={c}
-                  active={
-                    side === 'seeker'
-                      ? seeker.cities.includes(c)
-                      : employer.countries.includes(c)
-                  }
-                  onClick={() =>
-                    side === 'seeker'
-                      ? setSeeker({ ...seeker, cities: toggle(seeker.cities, c) })
-                      : setEmployer({ ...employer, countries: toggle(employer.countries, c) })
-                  }
+                  key={language}
+                  active={resolvedLanguages.includes(language)}
+                  onClick={() => {
+                    setLanguagesTouched(true)
+                    setLanguages(toggle(resolvedLanguages, language))
+                  }}
                 >
-                  {c}
-                </Chip>
-              ))}
-            </div>
-            {side === 'seeker' && (
-              <label className="mt-3 block text-xs text-muted">
-                Radius km
-                <Input
-                  type="number"
-                  className="mt-1"
-                  value={seeker.radiusKm}
-                  onChange={(e) =>
-                    setSeeker({ ...seeker, radiusKm: Number(e.target.value) || 0 })
-                  }
-                />
-              </label>
-            )}
-          </div>
-        </section>
-      )}
-
-      {step === 2 && side === 'seeker' && (
-        <section className="space-y-4">
-          <div>
-            <h2 className="mb-2 text-sm font-semibold">Branche</h2>
-            <div className="flex flex-wrap gap-2">
-              {filledIndustries().map((ind) => (
-                <Chip
-                  key={ind}
-                  active={seeker.industries.includes(ind)}
-                  onClick={() =>
-                    setSeeker({
-                      ...seeker,
-                      industries: toggle(seeker.industries, ind as Industry),
-                    })
-                  }
-                >
-                  {ind}
+                  {language}
                 </Chip>
               ))}
             </div>
           </div>
           <label className="block text-sm font-semibold">
-            Budget / Gehalt min. (€ / Monat, optional)
+            {t('prefs.radius')}
             <Input
               type="number"
               className="mt-1"
-              value={seeker.salaryMin || ''}
-              placeholder="z. B. 2500"
-              onChange={(e) =>
-                setSeeker({ ...seeker, salaryMin: Number(e.target.value) || 0 })
-              }
+              min={0}
+              value={resolvedRadius}
+              onChange={(event) => {
+                setRadiusTouched(true)
+                setRadiusKm(Number(event.target.value) || 0)
+              }}
             />
           </label>
+          <div>
+            <h2 className="mb-2 text-sm font-semibold">{t('prefs.cities')}</h2>
+            {resolvedCities.length === 0 ? (
+              <p className="text-xs text-muted">{t('prefs.noCity')}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {resolvedCities.map((city) => (
+                  <Chip
+                    key={city}
+                    active
+                    onClick={() => {
+                      setCitiesTouched(true)
+                      setCities(resolvedCities.filter((item) => item !== city))
+                    }}
+                  >
+                    {city}
+                  </Chip>
+                ))}
+              </div>
+            )}
+            <Input
+              className="mt-2"
+              value={cityDraft}
+              placeholder={t('prefs.cityPh')}
+              onChange={(event) => setCityDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter') return
+                event.preventDefault()
+                const value = cityDraft.trim()
+                if (!value || resolvedCities.includes(value)) return
+                setCitiesTouched(true)
+                setCities([...resolvedCities, value])
+                setCityDraft('')
+              }}
+            />
+          </div>
         </section>
       )}
 
-      {step === 2 && side !== 'seeker' && (
-        <section className="space-y-4">
-          <label className="block text-sm font-semibold">
-            Firmenname
-            <Input
-              className="mt-1"
-              value={firmName}
-              placeholder="Northline Ops B.V."
-              onChange={(e) => setFirmName(e.target.value)}
-            />
-          </label>
-          <div>
-            <h2 className="mb-2 text-sm font-semibold">Branchen</h2>
-            <div className="flex flex-wrap gap-2">
-              {filledIndustries().map((ind) => (
-                <Chip
-                  key={ind}
-                  active={employer.industries.includes(ind)}
-                  onClick={() =>
-                    setEmployer({
-                      ...employer,
-                      industries: toggle(employer.industries, ind as Industry),
-                    })
-                  }
-                >
-                  {ind}
-                </Chip>
-              ))}
-            </div>
-          </div>
-          <label className="block text-sm font-semibold">
-            Rollen (Komma-getrennt)
-            <Input
-              className="mt-1"
-              placeholder="z. B. Pflegekraft, Lagerhelfer, React Dev"
-              value={employer.rolesHiring.join(', ')}
-              onChange={(e) =>
-                setEmployer({
-                  ...employer,
-                  rolesHiring: e.target.value
-                    .split(',')
-                    .map((x) => x.trim())
-                    .filter(Boolean),
-                })
-              }
-            />
-          </label>
-          <div>
-            <h2 className="mb-2 text-sm font-semibold">Unternehmensgröße</h2>
-            <div className="flex flex-wrap gap-2">
-              {COMPANY_SIZES.map((sz) => (
-                <Chip
-                  key={sz}
-                  active={employer.companySize === sz}
-                  onClick={() => setEmployer({ ...employer, companySize: sz })}
-                >
-                  {sz}
-                </Chip>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h2 className="mb-2 text-sm font-semibold">Wir bieten / wir suchen</h2>
-            <div className="flex gap-2">
-              <Input
-                value={offerDraft}
-                placeholder="Angebot hinzufügen"
-                onChange={(e) => setOfferDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    const v = offerDraft.trim()
-                    if (v && !offers.includes(v)) setOffers([...offers, v])
-                    setOfferDraft('')
-                  }
+      {step === 2 && (
+        <section className="space-y-3">
+          {note.trim() && (
+            <p className="text-sm text-muted">
+              <span className="font-medium text-ink">{t('prefs.note')}: </span>
+              {note.trim()}
+            </p>
+          )}
+          <h2 className="text-sm font-semibold">{t('prefs.interests')}</h2>
+          <p className="text-xs text-muted">{t('prefs.interestsHint')}</p>
+          <div className="flex flex-wrap gap-2">
+            {interestChoices.map((id) => (
+              <Chip
+                key={id}
+                active={resolvedInterests.includes(id)}
+                onClick={() => {
+                  setInterestsTouched(true)
+                  const next = resolvedInterests.includes(id)
+                    ? resolvedInterests.filter((item) => item !== id)
+                    : [...resolvedInterests, id]
+                  setInterests(next)
                 }}
-              />
-              <Input
-                value={seekDraft}
-                placeholder="Bedarf hinzufügen"
-                onChange={(e) => setSeekDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    const v = seekDraft.trim()
-                    if (v && !seeks.includes(v)) setSeeks([...seeks, v])
-                    setSeekDraft('')
-                  }
-                }}
-              />
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {offers.map((o) => (
-                <Chip key={o} active onClick={() => setOffers(offers.filter((x) => x !== o))}>
-                  + {o}
-                </Chip>
-              ))}
-              {seeks.map((o) => (
-                <Chip key={o} active onClick={() => setSeeks(seeks.filter((x) => x !== o))}>
-                  − {o}
-                </Chip>
-              ))}
-            </div>
+              >
+                {t(`interest.${id}`)}
+              </Chip>
+            ))}
           </div>
         </section>
       )}
 
       <div className="flex flex-wrap gap-2 pt-2">
         {step > 0 && (
-        <Button variant="secondary" onClick={() => setStep((s) => s - 1)}>
-            Zurück
+          <Button variant="secondary" onClick={() => setStep((current) => current - 1)}>
+            {t('prefs.back')}
           </Button>
         )}
         <Button variant="secondary" onClick={finish}>
-          Überspringen
+          {t('prefs.skip')}
         </Button>
         <div className="flex-1" />
         {step < steps.length - 1 ? (
-          <Button onClick={() => setStep((s) => s + 1)}>Weiter</Button>
+          <Button onClick={goNext}>{t('prefs.next')}</Button>
         ) : (
-          <Button onClick={finish}>Find dein heutiges Match</Button>
+          <Button onClick={finish}>{t('prefs.finish')}</Button>
         )}
       </div>
     </div>

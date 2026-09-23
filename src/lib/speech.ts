@@ -1,3 +1,5 @@
+import { voiceConsentGranted } from './voiceConsent'
+
 export function canListen(): boolean {
   if (typeof window === 'undefined') return false
   const w = window as Window & {
@@ -20,6 +22,10 @@ interface SpeechRecognitionLike {
 
 export function listenOnce(lang: string): Promise<string | null> {
   return new Promise((resolve) => {
+    if (!voiceConsentGranted()) {
+      resolve(null)
+      return
+    }
     const w = window as Window & {
       SpeechRecognition?: new () => SpeechRecognitionLike
       webkitSpeechRecognition?: new () => SpeechRecognitionLike
@@ -46,4 +52,10 @@ export function listenOnce(lang: string): Promise<string | null> {
       resolve(null)
     }
   })
+}
+
+/** Prefs and Home Assist. Never reaches SpeechRecognition without stored consent. */
+export function captureConsentedVoice(lang: string): Promise<string | null> {
+  if (!voiceConsentGranted()) return Promise.resolve(null)
+  return listenOnce(lang)
 }

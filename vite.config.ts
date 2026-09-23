@@ -30,7 +30,7 @@ export default defineConfig({
       manifest: {
         name: 'Orbit',
         short_name: 'Orbit',
-        description: 'Orbit — Dein Orbit für Arbeit. Matching statt Spam.',
+        description: 'Orbit — Marktplatz für alles.',
         start_url: BASE,
         scope: BASE,
         id: BASE,

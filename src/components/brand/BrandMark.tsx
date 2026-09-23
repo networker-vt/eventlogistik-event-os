@@ -1,5 +1,6 @@
 import { cn } from '../../lib/utils'
-import { ORBIT_BRAND, ORBIT_TAGLINE_DE } from '../../data/industries'
+import { ORBIT_BRAND } from '../../data/industries'
+import { useI18n } from '../../lib/i18n'
 
 const base = () => import.meta.env.BASE_URL
 
@@ -10,6 +11,7 @@ export function BrandMark({
   compact?: boolean
   className?: string
 }) {
+  const { t } = useI18n()
   const logo = `${base()}icons/orbit-logo.png`
   if (compact) {
     return (
@@ -22,7 +24,7 @@ export function BrandMark({
         <span className="leading-tight">
           <span className="block font-bold tracking-tight text-ink">{ORBIT_BRAND}</span>
           <span className="hidden text-[10px] uppercase tracking-wider text-cyan sm:block">
-            Matching statt Spam
+            {t('brand.tagline')}
           </span>
         </span>
       </span>
@@ -37,7 +39,7 @@ export function BrandMark({
       />
       <span className="leading-tight">
         <span className="block font-bold tracking-tight text-ink">{ORBIT_BRAND}</span>
-        <span className="block max-w-[11rem] truncate text-[10px] text-cyan">{ORBIT_TAGLINE_DE}</span>
+        <span className="block max-w-[11rem] truncate text-[10px] text-cyan">{t('brand.taglineLong')}</span>
       </span>
     </span>
   )

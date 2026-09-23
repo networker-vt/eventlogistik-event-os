@@ -8,6 +8,30 @@ const EVT = 'orbit-prefs-changed'
 /** seeker = person; employer = company/hiring (legacy key); both = dual mode. */
 export type PrefsSide = 'seeker' | 'employer' | 'both'
 
+/** Marketplace lanes gathered from free text — not a job-seeker vs company gate. */
+export type MarketplaceInterest =
+  | 'travel'
+  | 'kabine'
+  | 'learning'
+  | 'services'
+  | 'jobs'
+  | 'b2b'
+  | 'social'
+
+export const MARKETPLACE_INTERESTS: MarketplaceInterest[] = [
+  'travel',
+  'kabine',
+  'learning',
+  'services',
+  'jobs',
+  'b2b',
+  'social',
+]
+
+export function isMarketplaceInterest(value: string): value is MarketplaceInterest {
+  return (MARKETPLACE_INTERESTS as string[]).includes(value)
+}
+
 export function isCompanySide(side: PrefsSide) {
   return side === 'employer' || side === 'both'
 }
@@ -44,6 +68,10 @@ export interface OrbitPrefs {
   completed: boolean
   seeker: SeekerPrefs
   employer: EmployerPrefs
+  /** Soft-parsed from Orbi setup. Empty means no lane bias. */
+  interests: MarketplaceInterest[]
+  /** Free-text “what I need today”. Local only. */
+  todayNote: string
   updatedAt: string
 }
 
@@ -71,6 +99,8 @@ export function defaultPrefs(): OrbitPrefs {
       industries: [],
       radiusKm: 80,
     },
+    interests: [],
+    todayNote: '',
     updatedAt: new Date().toISOString(),
   }
 }
@@ -85,10 +115,15 @@ function load(): OrbitPrefs {
       parsed.side === 'both' || parsed.side === 'employer' || parsed.side === 'seeker'
         ? parsed.side
         : base.side
+    const interests = Array.isArray(parsed.interests)
+      ? parsed.interests.filter(isMarketplaceInterest)
+      : base.interests
     return {
       ...base,
       ...parsed,
       side,
+      interests,
+      todayNote: typeof parsed.todayNote === 'string' ? parsed.todayNote : '',
       seeker: { ...base.seeker, ...parsed.seeker },
       employer: { ...base.employer, ...parsed.employer },
     }
@@ -124,7 +159,12 @@ export function getPrefs(): OrbitPrefs {
   return structuredClone(get())
 }
 
-export function savePrefs(partial: Partial<OrbitPrefs>): OrbitPrefs {
+export function savePrefs(
+  partial: Partial<Omit<OrbitPrefs, 'seeker' | 'employer'>> & {
+    seeker?: Partial<SeekerPrefs>
+    employer?: Partial<EmployerPrefs>
+  },
+): OrbitPrefs {
   const next: OrbitPrefs = {
     ...get(),
     ...partial,

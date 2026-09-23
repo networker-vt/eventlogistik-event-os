@@ -1,28 +1,28 @@
 # Orbit
 
-**Dein Orbit für Arbeit — Matching statt Spam.**
+**Dein Orbit — Marktplatz für alles.**
 
-Global all-industry marketplace OS (v2.8.1): 90-day focus **DE Freelancer/KMU — Jobs finden oder anbieten**. Dual-sided plus Orbit Assist / Orbi trip cards. Kabine / Gift / Channels stay stubs. Event/VT catalog is not in the primary IA. **Orbit Kids** + **Campus** (Lernen) live under Home discover tiles.
+Marketplace for everything (v2.9.0): Reise, Kabine, Lernen, Services, Jobs, B2B und Social — Orbi-Setup per Freitext oder Stimme. Home zeigt einen großen Orbi; News und bis zu drei ruhige Bereichs-Links laden erst nach Scroll oder „News und Bereiche“. Kabine / Gift / Channels bleiben Stubs. **Orbit Kids** und **Campus** (Lernen) liegen unter Mehr.
 
 - **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
 - **Repo:** https://github.com/networker-vt/eventlogistik-event-os
 - **License:** MIT — forks welcome if they improve Orbit (see [CONTRIBUTING.md](./CONTRIBUTING.md))
-- **A11y notes:** [A11Y.md](./A11Y.md) · **2.8.1:** [RELEASE_NOTES_2.8.1.md](./RELEASE_NOTES_2.8.1.md) · **2.8.0:** [RELEASE_NOTES_2.8.0.md](./RELEASE_NOTES_2.8.0.md) · **Credits:** [CREDITS.md](./CREDITS.md)
+- **A11y notes:** [A11Y.md](./A11Y.md) · **2.9.0:** [RELEASE_NOTES_2.9.0.md](./RELEASE_NOTES_2.9.0.md) · **2.8.1:** [RELEASE_NOTES_2.8.1.md](./RELEASE_NOTES_2.8.1.md) · **Credits:** [CREDITS.md](./CREDITS.md)
 
 > Vite `base` **MUST** stay `/eventlogistik-event-os/` for GitHub Pages.
 
-## IA (v2.8.1)
+## IA (v2.9.0)
 
-**Start · Match · Social · Mein** — four-tab bottom nav. Create in the header (not on Home). Home: robot + greeting + **Was brauchst du?** → outlined **Suchen / Anbieten / Weitermachen** → one filled **Orbit fragen** → **one Tageskarte** → below-fold **Mehr entdecken** (Abflug, Campus, Entdecker, Kabine, Firma/Crew — not Mein/Social/Wallet). **Mein** is account-only (Wallet adult, Prefs, Verify, Erstellen/Anbieten stubs, Ideen-Box, Channels). Kids: PIN first, 0 Credits, hide Wallet, no social channel connects. Light parchment default.
+**Start · Match · Social · Mein** — four-tab bottom nav. Create in the header (not on Home). Home: large centered Orbi (tap = skippable tour or one adaptive question). Assist text is free; the mic asks for explicit voice consent before any recognition. News ticker and at most three quiet area links are secondary and lazy. No credits, packs, or wallet peek on Home. **Mein** is account-only (Wallet adult, Prefs, Verify, offer stubs, Ideen-Box, Channels, Heute verdienen). Kids: PIN first, 0 Credits, hide Wallet, no social channel connects. Light parchment default.
 
-## Core routes (v2.8.1)
+## Core routes (v2.9.0)
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Start — robot + Was brauchst du?, Suchen / Anbieten / Weitermachen, one Tageskarte, one filled Orbit fragen, Mehr entdecken (Abflug, Campus, Entdecker, Kabine, Firma/Crew). No Mein / Social / Wallet tiles. |
-| `/match` | Match — algorithmic deck (jobs, services, travel, people) from prefs + behavior stubs |
-| `/treffer` | Treffer — jobs/services swipe |
-| `/crew` | Crew — B2B hiring / employer match |
+| `/` | Start — Orbi hero, free-text assist, consented voice, one Tageskarte. Secondary: compact news + ≤3 quiet links. No wallet or credit balance. |
+| `/match` | Match — algorithmic deck (travel, kabine, learning, services, jobs, B2B, people) from prefs + behavior stubs |
+| `/treffer` | Treffer — swipe offers and requests across the marketplace |
+| `/crew` | Crew — B2B partners and offers |
 | `/kabine` (`/look`) | Kabine — photo/video try-on (base free) |
 | `/social` | Social hub — feed, like, share, vernetzen. Chat at `/social/chat` |
 | `/messages` | Redirects to `/social/chat` |

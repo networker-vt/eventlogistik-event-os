@@ -217,8 +217,15 @@ export function rankHomeNews(prefs?: OrbitPrefs, locale: 'de' | 'en' = 'de', lim
   ]
     .join(' ')
     .toLowerCase()
+  const interests = p.interests ?? []
   const scored = HOME_NEWS.map((item) => {
     let score = 8
+    const hay = `${item.titleDe} ${item.titleEn} ${item.tags.join(' ')}`.toLowerCase()
+    const jobby = /\b(job|jobs|fachkr\w*|schicht|hiring|minijob)\b/.test(hay)
+    if (interests.includes('jobs')) {
+      if (jobby) score += 8
+    } else if (jobby) score -= 12
+    if (/reise|bahn|flug|travel|fashion|kabine|look|lernen|campus|shopping|retail|musik|creator/.test(hay)) score += 6
     if (item.cat === 'tech' && /it|software|tech|ki/.test(industries + q)) score += 18
     if (item.cat === 'wirtschaft' && /logistik|b2b|handel|retail/.test(industries + q)) score += 14
     if (item.cat === 'sport' && /sport|event/.test(industries + q)) score += 12

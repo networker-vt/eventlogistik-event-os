@@ -448,6 +448,28 @@ textarea:focus-visible,
   .orbit-robot {
     animation: orbit-bob 2.8s ease-in-out infinite;
   }
+  @keyframes orbit-bob-hero {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+  }
+  .orbit-robot-hero {
+    animation: orbit-bob-hero 2.8s ease-in-out infinite;
+  }
+  @keyframes news-ticker-rtl {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .news-ticker-track {
+    animation: news-ticker-rtl 46s linear infinite;
+  }
+  .news-ticker:hover .news-ticker-track,
+  .news-ticker:focus-within .news-ticker-track,
+  .news-ticker-static {
+    animation-play-state: paused;
+  }
+  .news-ticker-static {
+    animation: none;
+  }
   .orbit-robot-eye {
     transform-box: fill-box;
     transform-origin: center;
@@ -471,6 +493,16 @@ textarea:focus-visible,
   .orbit-robot.is-tapped .orbit-robot-eye {
     animation: orbit-tap-blink 0.5s ease;
   }
+  @keyframes orbit-happy {
+    0%, 100% { transform: translateY(0) scale(1); }
+    45% { transform: translateY(-8px) scale(1.05); }
+  }
+  .orbit-robot.is-happy {
+    animation: orbit-happy 0.7s ease;
+  }
+  .orbit-robot.is-think .orbit-robot-eyes {
+    transform: translateY(-1.4px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -484,7 +516,9 @@ textarea:focus-visible,
   .success-check,
   .stagger-in > *,
   .orbit-robot,
-  .orbit-robot-eye {
+  .orbit-robot-hero,
+  .orbit-robot-eye,
+  .news-ticker-track {
     animation: none !important;
   }
   .text-shimmer {

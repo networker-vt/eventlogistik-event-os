@@ -6,7 +6,7 @@ export const seedProfiles: Profile[] = [
   {
     id: DEMO_USER_ID,
     name: 'Alex Müller',
-    email: 'alex@demo.eventlogistik.de',
+    email: 'alex@demo.orbit.app',
     role: 'agency',
     city: 'Berlin',
     bio: 'Eventagentur mit Fokus auf Corporate & Festival-Logistik.',
@@ -128,7 +128,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-9',
     name: 'Mila Hartmann',
-    email: 'mila@demo.eventlogistik.de',
+    email: 'mila@demo.orbit.app',
     role: 'freelancer',
     city: 'Berlin',
     bio: 'Senior Lighting Operator — GrandMA3, Network, Festival & Corporate.',

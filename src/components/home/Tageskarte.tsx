@@ -26,7 +26,11 @@ export function Tageskarte({
 }) {
   const { t, resolved } = useI18n()
   const daily = tageskarteCopy(item, resolved)
-  const action = plan ? primaryAssistAction(plan) : null
+  const rawAction = plan ? primaryAssistAction(plan) : null
+  const action =
+    rawAction?.actionTo === '/wallet' || rawAction?.actionTo?.startsWith('/wallet')
+      ? { ...rawAction, actionTo: undefined, actionLabel: undefined }
+      : rawAction
 
   const tripResult = Boolean(plan?.tripOptions?.length)
 

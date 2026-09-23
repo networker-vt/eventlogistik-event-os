@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ROBOT_ASK_POOL,
   isKabineAsk,
+  pickAdaptiveRobotAsk,
   pickRobotAsk,
   robotAskCopy,
   robotAskPoolForSlot,
@@ -63,5 +64,56 @@ describe('Robot tap — one time-of-day question', () => {
     const a = pickRobotAsk(new Date('2026-09-17T18:10:00+02:00'))
     const b = pickRobotAsk(new Date('2026-09-17T20:55:00+02:00'))
     expect(a.item.id).toBe(b.item.id)
+  })
+})
+
+describe('Adaptive Orbi prompt', () => {
+  it('asks exactly one question from prefs instead of a menu', () => {
+    const travel = pickAdaptiveRobotAsk({
+      interests: ['travel', 'jobs', 'kabine'],
+      now: new Date('2026-09-17T07:30:00+02:00'),
+    })
+    expect(travel.via).toBe('interest')
+    expect(travel.item.area).toBe('abflug')
+    expect(travel.item.to).toBe('/abflug')
+  })
+
+  it('lets recent usage override a stale job interest', () => {
+    const next = pickAdaptiveRobotAsk({
+      interests: ['jobs'],
+      recentText: 'Flug nach Rom am Freitag',
+    })
+    expect(next.via).toBe('usage')
+    expect(next.item.kind).toBe('reise')
+  })
+
+  it('keeps kids on an age-safe Treffer prompt', () => {
+    const kid = pickAdaptiveRobotAsk({
+      kids: true,
+      interests: ['travel', 'social', 'learning'],
+      recentText: 'Freunde treffen und nach Paris fliegen',
+      now: new Date('2026-09-17T13:00:00+02:00'),
+    })
+    expect(kid.via).toBe('time')
+    expect(kid.item.to).toBe('/treffer')
+    expect(kid.item.area).not.toBe('campus')
+    expect(isKabineAsk(kid.item)).toBe(false)
+  })
+
+  it('keeps dating and social asks off Home', () => {
+    const social = pickAdaptiveRobotAsk({
+      interests: ['social'],
+      recentText: 'Leute treffen heute Abend',
+      now: new Date('2026-09-17T19:40:00+02:00'),
+    })
+    expect(social.via).toBe('time')
+    expect(social.item.kind).not.toBe('social')
+    expect(social.item.to.startsWith('/social')).toBe(false)
+  })
+
+  it('falls back to the time-of-day question when nothing is known', () => {
+    const morning = pickAdaptiveRobotAsk({ now: new Date('2026-09-17T07:30:00+02:00') })
+    expect(morning.via).toBe('time')
+    expect(morning.item.kind).toBe('job')
   })
 })

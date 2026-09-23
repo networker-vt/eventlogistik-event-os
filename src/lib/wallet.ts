@@ -84,7 +84,7 @@ export const WALLET_DISCLAIMER_DE =
   'Demo bis Stripe, PayPal und ein Banking-Partner inkl. KYC angebunden sind. Es findet keine echte Zahlungsbewegung statt. PayPal, Karte, SEPA/IBAN und Krypto (BTC, USDC, USDT) sind UI-Stubs. Ohne Provider-Keys und Live-Schalter bewegt Orbit kein Geld und ruft keine Zahlungs-APIs auf.'
 
 const DEMO_DISPLAY: Record<WalletMethodId, string> = {
-  paypal: 'demo@orbit.jobs',
+  paypal: 'demo@orbit.app',
   card: '•••• 4242',
   sepa: 'DE•• •••• •••• •••• 8901',
   btc: 'bc1q…orbit (Demo)',

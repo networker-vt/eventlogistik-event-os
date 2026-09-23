@@ -5,7 +5,9 @@ import { useAuth } from '../../lib/auth'
 import { DEMO_USER_ID } from '../../data/seed'
 import { useI18n } from '../../lib/i18n'
 import { kidsHideTravel } from '../../lib/kids'
-import { canListen, listenOnce } from '../../lib/speech'
+import { canListen, captureConsentedVoice } from '../../lib/speech'
+import { grantVoiceConsent, voiceConsentGranted } from '../../lib/voiceConsent'
+import { VoiceConsentAsk } from '../voice/VoiceConsentAsk'
 import { bookTripOption } from '../../lib/tickets'
 import {
   TRIP_DEMO_DISCLAIMER_DE,
@@ -39,6 +41,7 @@ export function TripOptionCards({
   const cards = useMemo(() => options.slice(0, 3), [options])
   const [tapped, setTapped] = useState<TripOption | null>(null)
   const [listening, setListening] = useState(false)
+  const [voiceAsk, setVoiceAsk] = useState(false)
   const [voiceNote, setVoiceNote] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -58,11 +61,12 @@ export function TripOptionCards({
     onConsumedVoice?.()
   }
 
-  const onVoice = async () => {
+  const startVoice = async () => {
     if (kids || !canListen() || listening) return
+    if (!voiceConsentGranted()) return
     setListening(true)
     setVoiceNote(null)
-    const said = await listenOnce(resolved === 'de' ? 'de-DE' : 'en-GB')
+    const said = await captureConsentedVoice(resolved === 'de' ? 'de-DE' : 'en-GB')
     setListening(false)
     if (!said) return
     const n = matchSpokenTripChoice(said)
@@ -71,6 +75,15 @@ export function TripOptionCards({
       return
     }
     open(tripOptionAt(cards, n))
+  }
+
+  const onVoice = () => {
+    if (kids || !canListen() || listening) return
+    if (!voiceConsentGranted()) {
+      setVoiceAsk(true)
+      return
+    }
+    void startVoice()
   }
 
   const confirm = async () => {
@@ -160,12 +173,22 @@ export function TripOptionCards({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => void onVoice()}
+            onClick={onVoice}
             className={cn('self-start', listening && 'bg-[var(--theme-accent)]/10')}
             aria-label={t('trip.voice')}
           >
             <Mic size={16} /> {t('trip.voice')}
           </Button>
+          {voiceAsk && (
+            <VoiceConsentAsk
+              onAllow={() => {
+                grantVoiceConsent()
+                setVoiceAsk(false)
+                void startVoice()
+              }}
+              onCancel={() => setVoiceAsk(false)}
+            />
+          )}
           <p className="text-[12px] text-muted">{t('trip.voiceHint')}</p>
           {voiceNote && <p className="text-[12px] text-amber-200">{voiceNote}</p>}
         </div>

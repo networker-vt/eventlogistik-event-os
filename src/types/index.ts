@@ -51,7 +51,7 @@ export interface Profile {
   companyName?: string
   /** Verfügbarkeit Freelancer / Crew */
   available?: boolean
-  /** Reise-Radius in km (Jobsuche) */
+  /** Reise-Radius in km (Treffen vor Ort) */
   travelRadiusKm?: number
   /** Zertifikate / Versicherungen */
   certifications?: string[]
