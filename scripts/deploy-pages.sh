@@ -15,8 +15,11 @@ fi
 echo "==> build"
 npm run build
 
-echo "==> SPA fallback 404.html"
+echo "==> SPA fallback 404.html (unknown paths stay HTTP 404)"
 cp dist/index.html dist/404.html
+
+echo "==> legal URLs as directory indexes (HTTP 200)"
+bash scripts/emit-pages-legal.sh dist
 
 BRANCH="gh-pages"
 TMP="$(mktemp -d)"

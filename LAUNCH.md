@@ -43,10 +43,24 @@ Die App fällt ohne gültige Keys beim **Store/Auth** weiterhin auf Demo zurück
 ./scripts/deploy-pages.sh
 ```
 
-Oder manuell: `npm run build` → `cp dist/index.html dist/404.html` → force-push `gh-pages`.
+Oder manuell: `npm run build` → `cp dist/index.html dist/404.html` → `bash scripts/emit-pages-legal.sh` → force-push `gh-pages`.
+
+`404.html` lässt GitHub Pages bei unbekannten Pfaden **HTTP 404** antworten (SPA rendert trotzdem). Apple will für Privacy und Support echtes **HTTP 200**. `scripts/emit-pages-legal.sh` legt dafür nach dem Vite-Build Kopien der Shell ab: `dist/privacy/index.html`, `dist/support/index.html`, `dist/impressum/index.html`, `dist/datenschutz/index.html`. `npm run build` und die Pages-Base `/eventlogistik-event-os/` bleiben unverändert. Das Skript läuft in `deploy:pages` und `build:zip`.
+
+Prüfung **nach** Merge und Pages-Deploy (dieser Stand deployt Pages nicht selbst):
+
+```bash
+curl -sI https://networker-vt.github.io/eventlogistik-event-os/privacy/
+curl -sI https://networker-vt.github.io/eventlogistik-event-os/support/
+curl -sI https://networker-vt.github.io/eventlogistik-event-os/impressum/
+curl -sI https://networker-vt.github.io/eventlogistik-event-os/datenschutz/
+```
+
+Erwartung: `HTTP/2 200`. Ohne abschließenden Slash antwortet Pages mit `301` auf die Slash-URL; `curl -sI -L` endet bei `200`. In-App-Links (`/privacy`, `/support`, `/impressum`) bleiben Client-Routing.
 
 - [ ] https://networker-vt.github.io/eventlogistik-event-os/ lädt
 - [ ] Deep Links (z. B. `/jobs`) über 404.html SPA-Fallback
+- [ ] `/privacy/`, `/support/`, `/impressum/`, `/datenschutz/` nach Deploy HTTP 200
 - [ ] PWA installierbar (HTTPS Pflicht)
 
 ## 5. Analytics (optional)
