@@ -87,7 +87,7 @@ export function PrefsPage() {
     })
     savePrefs(next)
     completePrefs(next.side)
-    navigate('/')
+    navigate('/match')
   }
 
   const goNext = () => {
