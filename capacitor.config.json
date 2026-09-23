@@ -1,7 +1,29 @@
 {
-  "appId": "de.orbit.app",
+  "appId": "app.orbit.companion",
   "appName": "Orbit",
   "webDir": "dist",
-  "server": { "androidScheme": "https" },
-  "plugins": { "SplashScreen": { "launchShowDuration": 0, "backgroundColor": "#0a0a0a" } }
+  "backgroundColor": "#F7F6F3",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "localhost"
+  },
+  "ios": {
+    "backgroundColor": "#F7F6F3"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#F7F6F3",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#F7F6F3"
+    },
+    "Keyboard": {
+      "resize": "native",
+      "resizeOnFullScreen": true
+    }
+  }
 }

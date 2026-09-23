@@ -9,7 +9,7 @@ Marketplace for everything (v2.8.1): Reise, Kabine, Lernen, Services, Jobs, B2B 
 - **License:** MIT — forks welcome if they improve Orbit (see [CONTRIBUTING.md](./CONTRIBUTING.md))
 - **A11y notes:** [A11Y.md](./A11Y.md) · **2.8.1:** [RELEASE_NOTES_2.8.1.md](./RELEASE_NOTES_2.8.1.md) · **2.8.0:** [RELEASE_NOTES_2.8.0.md](./RELEASE_NOTES_2.8.0.md) · **Credits:** [CREDITS.md](./CREDITS.md)
 
-> Vite `base` **MUST** stay `/eventlogistik-event-os/` for GitHub Pages.
+> Vite `base` **MUST** stay `/eventlogistik-event-os/` for GitHub Pages (`npm run build`, `deploy:pages`). Capacitor / TestFlight uses `base: /` via `CAPACITOR=1` (`npm run build:ios`).
 
 ## IA (v2.8.1)
 
@@ -67,10 +67,14 @@ npm run build
 ./scripts/deploy-pages.sh
 ```
 
+## iOS / TestFlight
+
+Capacitor shell for Apple only (no Play project). Bundle ID `app.orbit.companion`, display name Orbit. `npm run cap:sync` builds with base `/` and copies the web app into `ios/`. Xcode signing, Archive, and TestFlight: [docs/TESTFLIGHT.md](./docs/TESTFLIGHT.md).
+
 ## Open Source
 
 MIT. Fork welcome if it improves Orbit. Keep operator impressum (Mirco Küßner) unless ownership changes.
 
 ## Stack
 
-React 19 · TypeScript · Vite 8 · Tailwind 4 · PWA · optional Supabase
+React 19 · TypeScript · Vite 8 · Tailwind 4 · PWA · Capacitor iOS · optional Supabase

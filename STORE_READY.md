@@ -22,27 +22,23 @@ Ohne diese Konten kann **niemand** (auch kein Agent) einreichen:
 
 | Store | Konto | Kosten (indikativ) | Nächster Klick |
 |-------|--------|--------------------|----------------|
-| Apple | [Apple Developer Program](https://developer.apple.com/programs/) + [App Store Connect](https://appstoreconnect.apple.com/) | ~99 USD/Jahr + Identitätsprüfung | Enroll → Meine Apps → + → Bundle-ID `de.orbit.app` |
-| Google | [Play Console](https://play.google.com/console/signup) | ~25 USD einmalig | App erstellen → Name Orbit → Datenschutz-URL |
+| Apple | [Apple Developer Program](https://developer.apple.com/programs/) + [App Store Connect](https://appstoreconnect.apple.com/) | ~99 USD/Jahr + Identitätsprüfung | Enroll → App anlegen → Bundle-ID `app.orbit.companion` |
+| Google | [Play Console](https://play.google.com/console/signup) | ~25 USD einmalig | Noch kein `android/`-Projekt in diesem Repo |
 
-Keine Signing-Keys, kein Keystore, keine Distribution-Zertifikate im Repo. `android/` und `ios/` sind **absichtlich nicht eingecheckt**.
+Keine Signing-Keys und keine Distribution-Zertifikate im Repo. `ios/` ist das Capacitor-Xcode-Projekt (TestFlight). `android/` ist **nicht** eingecheckt.
 
-Schritt-für-Schritt: [`scripts/prepare-capacitor.md`](./scripts/prepare-capacitor.md)  
-Config (bricht den Web-Build nicht): [`capacitor.config.json`](./capacitor.config.json)
+iOS-Schritte: [`docs/TESTFLIGHT.md`](./docs/TESTFLIGHT.md)  
+Config: [`capacitor.config.json`](./capacitor.config.json) (`appId`: `app.orbit.companion`, `webDir`: `dist`)
 
-### Capacitor — morgen auf dem Operator-Rechner
+### Capacitor iOS
 
 ```bash
-npx vite build --base=/          # nicht den Pages-Base verwenden
-npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android
-npx cap add android
-npx cap add ios                  # nur macOS
-npx cap sync
-npx cap open android
-npx cap open ios
+npm ci
+npm run cap:sync    # CAPACITOR=1, Vite base /, danach cap sync ios
+npx cap open ios    # nur macOS
 ```
 
-GitHub Pages bleibt `base: /eventlogistik-event-os/`.
+GitHub Pages bleibt `npm run build` mit `base: /eventlogistik-event-os/`. Kein Play-Scaffold in diesem Stand.
 
 ## Jugendschutz / Age rating (Orbit Kids in 2.6.0)
 
@@ -79,16 +75,17 @@ Stores akzeptieren keine Platzhalter. Benötigt:
 - [ ] Store-Screenshots (siehe oben)
 - [ ] Play: Datensicherheit + Zielgruppe
 - [ ] Apple: Privacy Nutrition Label + Alter
-- [ ] **Apple Developer + Play Console des Operators**
-- [ ] Capacitor-Projekte lokal erzeugen, AAB + IPA signieren
+- [ ] **Apple Developer des Operators** (Play Console erst, wenn Android drankommt)
+- [x] Capacitor-iOS-Projekt unter `ios/` — Archivieren und Hochladen macht der Operator
 - [ ] Keine Fake-„Submitted“-Statusmeldungen
 
 ## Was noch nicht Store-fertig ist
 
-- Keine nativen Projekte im Repo
+- iOS-Scaffold liegt im Repo; signiertes IPA / TestFlight-Upload nicht
+- Kein Android-Projekt
 - Keine Push-Notifications
 - Keine echten Zahlungen (Wallet = Demo bis Stripe/PayPal/Banking-KYC)
 - Operator ist Privatperson — Store-Publisher-Identität muss zum Impressum passen
 - Credits sind **kein** fertiges IAP-Produkt
 
-PWA = heute installierbar. Capacitor/TWA = nächster Schritt, **nach** Account-Anlage durch euch. **Wir haben nichts eingereicht.**
+PWA = heute installierbar. iOS-Shell = `docs/TESTFLIGHT.md`, Upload nur mit Mircos Apple-Account. **Wir haben nichts eingereicht.** Play bleibt offen.

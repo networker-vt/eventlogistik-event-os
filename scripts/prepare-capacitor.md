@@ -1,8 +1,12 @@
 # Capacitor — iOS & Android (Orbit)
 
-Die Web-App bleibt die Quelle. Native Hüllen entstehen **lokal auf eurem Rechner** — nicht in diesem Repo-Build. GitHub Pages nutzt weiter `base: /eventlogistik-event-os/`. Store-Builds brauchen `base: /`.
+**iOS:** Das Xcode-Projekt liegt unter `ios/`. TestFlight: [`docs/TESTFLIGHT.md`](../docs/TESTFLIGHT.md). Bundle-ID `app.orbit.companion` (Privatperson, keine Firmenbehauptung). `npm run cap:sync` baut mit Vite-Base `/`.
 
-**Blocker:** Ohne eigenen **Apple Developer**- und **Google Play Console**-Account kann niemand die App einreichen. Dieses Repo enthält keine Secrets und keine Store-Binaries.
+**Android / Play:** kein `android/`-Projekt in diesem Repo. Die Notizen unten sind eine spätere Checkliste, kein Scaffold.
+
+GitHub Pages bleibt `base: /eventlogistik-event-os/` (`npm run build`, `npm run deploy:pages`).
+
+**Blocker:** Ohne **Apple Developer**-Account von Mirco Küßner kann niemand nach TestFlight hochladen. Dieses Repo enthält keine Secrets, Zertifikate oder Store-Binaries.
 
 ## 0. Accounts (muss der Operator anlegen)
 
@@ -12,7 +16,7 @@ Die Web-App bleibt die Quelle. Native Hüllen entstehen **lokal auf eurem Rechne
 2. **Enroll** → Apple-ID von Mirco Küßner (oder später Firma)
 3. Zahlung (~99 USD/Jahr) abschließen, Identitätsprüfung
 4. Im [App Store Connect](https://appstoreconnect.apple.com/) **Meine Apps → + → Neue App**
-5. Bundle-ID `de.orbit.app` reservieren (exakt wie `capacitor.config.json`)
+5. Bundle-ID `app.orbit.companion` reservieren (exakt wie `capacitor.config.json`)
 
 ### Google (Android)
 
@@ -28,25 +32,23 @@ Die Web-App bleibt die Quelle. Native Hüllen entstehen **lokal auf eurem Rechne
 Im Projektroot, **nicht** den Pages-Base verwenden:
 
 ```bash
-npx vite build --base=/
-# oder: BASE=/ npm run build   (falls ihr das Script ergänzt)
+npm run build:ios
+# gleichwertig: CAPACITOR=1 vite build   bzw. VITE_BASE=/ vite build
 ```
 
-`capacitor.config.json` zeigt auf `webDir: "dist"`.
+`capacitor.config.json` zeigt auf `webDir: "dist"`. `npm run build` bleibt der Pages-Build.
 
-## 2. Capacitor einmalig einhängen
+## 2. iOS-Projekt
+
+`ios/` ist eingecheckt. Web-Assets unter `ios/App/App/public/` erzeugt nur `npm run cap:sync` (nicht committen).
 
 ```bash
-npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android
-npx cap init Orbit de.orbit.app --web-dir dist
-# capacitor.config.json liegt schon im Repo — bei Nachfrage nicht überschreiben
-npx cap add android
-npx cap add ios          # nur auf macOS
-npm run build -- --base=/   # siehe oben
-npx cap sync
+npm ci
+npm run cap:sync
+npx cap open ios    # nur macOS
 ```
 
-`android/` und `ios/` bewusst **nicht** eingecheckt, damit der Web-Build nicht bricht.
+Android (`npx cap add android`) ist hier absichtlich nicht ausgeführt.
 
 ## 3. Android → Play Console (nächste Klicks)
 
@@ -63,7 +65,7 @@ npx cap sync
 
 1. macOS + Xcode (aktuell) + bezahlter Developer-Account
 2. `npx cap open ios`
-3. Signing & Capabilities: Team = euer Apple-Team, Bundle `de.orbit.app`
+3. Signing & Capabilities: Team = Mircos Apple-Team, Bundle `app.orbit.companion`
 4. **Product → Archive** → Organizer → **Distribute App → App Store Connect**
 5. App Store Connect → die neue Version wählen → Screenshots, Privacy Nutrition Label
 6. Privacy Policy URL: dieselbe wie oben
@@ -88,7 +90,8 @@ Splash-Assets: `public/icons/splash-1290x2796.png`, `splash-750x1334.png`.
 
 ## 6. Privacy / Impressum URLs
 
-- Datenschutz: `https://networker-vt.github.io/eventlogistik-event-os/datenschutz`
+- Privacy / Datenschutz: `https://networker-vt.github.io/eventlogistik-event-os/privacy` (Alias `/datenschutz`)
+- Support: `https://networker-vt.github.io/eventlogistik-event-os/support`
 - Impressum: `https://networker-vt.github.io/eventlogistik-event-os/impressum`
 - AGB: `https://networker-vt.github.io/eventlogistik-event-os/agb`
 
@@ -96,7 +99,6 @@ Ohne diese URLs lehnen beide Stores die Einreichung ab.
 
 ## 7. Was dieses Repo nicht tun kann
 
-- Kein Apple-/Google-Login des Operators
-- Kein Signing-Key
-- Keine Einreichung
-- Kein TestFlight / Interner Track ohne die Konten oben
+- Kein Apple-Login des Operators, keine Zertifikate
+- Kein Upload nach TestFlight (dafür `docs/TESTFLIGHT.md` auf einem Mac)
+- Kein Play-Store-Projekt
