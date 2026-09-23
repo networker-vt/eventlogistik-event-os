@@ -1,20 +1,31 @@
 import { cn } from '../../lib/utils'
 
-/** Tiny cute Orbit head — CSS/SVG blink + bob; tap bounce. Static under prefers-reduced-motion. */
+/** Orbit head — CSS/SVG blink + bob; tap bounce. Static under prefers-reduced-motion. */
 export function OrbitRobot({
   className,
   tapped = false,
   onTap,
   label,
+  size = 'md',
+  expanded = false,
 }: {
   className?: string
   tapped?: boolean
   onTap?: () => void
   label?: string
+  size?: 'md' | 'lg' | 'hero'
+  expanded?: boolean
 }) {
   const svg = (
     <svg
-      className={cn('orbit-robot h-10 w-10 shrink-0', tapped && 'is-tapped', className)}
+      className={cn(
+        'orbit-robot shrink-0',
+        size === 'hero' && 'orbit-robot-hero h-28 w-28',
+        size === 'lg' && 'h-20 w-20',
+        size === 'md' && 'h-10 w-10',
+        tapped && 'is-tapped',
+        className,
+      )}
       viewBox="0 0 40 40"
       aria-hidden={onTap ? true : undefined}
       focusable="false"
@@ -54,7 +65,7 @@ export function OrbitRobot({
       type="button"
       onClick={onTap}
       aria-label={label || 'Orbit'}
-      aria-expanded={tapped}
+      aria-expanded={expanded || tapped}
       className="tap-target -m-1 shrink-0 rounded-2xl p-1"
     >
       {svg}

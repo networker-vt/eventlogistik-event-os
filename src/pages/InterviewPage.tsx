@@ -224,11 +224,11 @@ function InterviewRoomView({ room }: { room: InterviewRoom }) {
             Kamera-Vorschau starten
           </Button>
           <p className="text-xs text-muted">
-            Deep-link später z. B. <code>https://orbit.jobs/call/{room.id}</code> — Provider anbinden.
+            Deep-link später z. B. <code>https://orbit.app/call/{room.id}</code> — Provider anbinden. Demo.
           </p>
           {room.listingId && (
             <Link to={`/listings/${room.listingId}`} className="text-sm text-[var(--theme-accent)] hover:underline">
-              Zum Job →
+              Zum Inserat →
             </Link>
           )}
         </section>

@@ -33,7 +33,7 @@ function escapeIcs(text: string) {
 }
 
 export function buildIcs(ev: CalEventInput): string {
-  const uid = ev.uid || `orbit-${Date.now()}@orbit.jobs`
+  const uid = ev.uid || `orbit-${Date.now()}@orbit.app`
   const start = toIcsUtc(ev.startIso)
   const end = toIcsUtc(
     ev.endIso || new Date(new Date(ev.startIso).getTime() + 60 * 60 * 1000).toISOString(),
@@ -42,7 +42,7 @@ export function buildIcs(ev: CalEventInput): string {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Orbit//Job Matching OS//DE',
+    'PRODID:-//Orbit//Marketplace//DE',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

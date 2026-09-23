@@ -448,6 +448,13 @@ textarea:focus-visible,
   .orbit-robot {
     animation: orbit-bob 2.8s ease-in-out infinite;
   }
+  @keyframes orbit-bob-hero {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+  }
+  .orbit-robot-hero {
+    animation: orbit-bob-hero 2.8s ease-in-out infinite;
+  }
   .orbit-robot-eye {
     transform-box: fill-box;
     transform-origin: center;
@@ -484,6 +491,7 @@ textarea:focus-visible,
   .success-check,
   .stagger-in > *,
   .orbit-robot,
+  .orbit-robot-hero,
   .orbit-robot-eye {
     animation: none !important;
   }

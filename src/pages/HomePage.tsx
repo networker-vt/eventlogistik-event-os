@@ -6,6 +6,7 @@ import { homeDiscoverTiles } from '../lib/hubTiles'
 import { TripOptionCards } from '../components/assist/TripOptionCards'
 import { FuerDichCard } from '../components/home/FuerDichCard'
 import { OrbitRobot } from '../components/home/OrbitRobot'
+import { OrbiPresence } from '../components/home/OrbiPresence'
 import { Tageskarte } from '../components/home/Tageskarte'
 import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
@@ -19,7 +20,7 @@ import {
 } from '../lib/assist'
 import { getCompany, subscribeCompany } from '../lib/company'
 import { isCompanySide, getPrefs, savePrefs, subscribePrefs, type PrefsSide } from '../lib/prefs'
-import { subscribeBehavior } from '../lib/behavior'
+import { getBehavior, subscribeBehavior } from '../lib/behavior'
 import { subscribeChannels } from '../lib/channels'
 import { rankFuerDich } from '../lib/fuerDich'
 import { NewsStrip } from '../components/home/NewsStrip'
@@ -29,7 +30,8 @@ import { getResume, subscribeResume } from '../lib/resume'
 import { dueReminders, subscribeReminders, tapReminder } from '../lib/reminders'
 import { rankHomeNews } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
-import { pickRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotAsk'
+import { pickAdaptiveRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotAsk'
+import { dismissOrbiTour, markOrbiIntroSeen, orbiIntroSeen, orbiTourOff } from '../lib/orbiPresence'
 import { canListen, listenOnce } from '../lib/speech'
 import { matchSpokenTripChoice } from '../lib/trip'
 import { pickTageskarte, tageskarteCopy } from '../lib/tageskarte'
@@ -66,6 +68,10 @@ export function HomePage() {
   const [assistNote, setAssistNote] = useState<string | null>(null)
   const [robotTapped, setRobotTapped] = useState(false)
   const [robotAsk, setRobotAsk] = useState<RobotAsk | null>(null)
+  const [orbiIntro, setOrbiIntro] = useState(() => !orbiIntroSeen())
+  const [tourOn, setTourOn] = useState(false)
+  const [tourStep, setTourStep] = useState(0)
+  const [tourOff, setTourOff] = useState(() => orbiTourOff())
   const [kids, setKids] = useState(isKidsMode)
   const [tripVoicePick, setTripVoicePick] = useState<1 | 2 | 3 | null>(null)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
@@ -193,10 +199,34 @@ export function HomePage() {
   }
 
   const onRobotTap = () => {
-    const next = pickRobotAsk(new Date(), { kids }).item
-    setRobotAsk(next)
     setRobotTapped(true)
     window.setTimeout(() => setRobotTapped(false), 700)
+    if (orbiIntro) return
+    if (!tourOff) {
+      setRobotAsk(null)
+      setTourStep(0)
+      setTourOn(true)
+      return
+    }
+    const recent = getBehavior().events.find((event) => event.query)?.query
+    const next = pickAdaptiveRobotAsk({
+      kids,
+      interests: prefs.interests,
+      recentText: recent,
+    })
+    setTourOn(false)
+    setRobotAsk(next.item)
+  }
+
+  const dismissIntro = () => {
+    markOrbiIntroSeen()
+    setOrbiIntro(false)
+  }
+
+  const hideTour = () => {
+    dismissOrbiTour()
+    setTourOff(true)
+    setTourOn(false)
   }
 
   const chips: { id: WarmChip; title: string }[] = [
@@ -218,12 +248,19 @@ export function HomePage() {
           <p className="text-xs font-medium uppercase tracking-wider text-muted">
             Orbit{isDemo ? ` · ${t('home.demoBadge')}` : ''}
           </p>
-          <div className="mt-2 flex items-start gap-3">
-            <OrbitRobot
-              tapped={robotTapped}
-              onTap={onRobotTap}
-              label={t('home.robotAria')}
-            />
+          <div className="mt-3 flex flex-col items-center gap-4 text-center md:flex-row md:items-center md:text-left" data-orbi-hero="1">
+            <div className="flex flex-col items-center gap-1">
+              <div className="grid h-36 w-36 place-items-center rounded-full bg-[var(--theme-accent)]/12 ring-1 ring-[var(--theme-accent)]/30">
+                <OrbitRobot
+                  size="hero"
+                  tapped={robotTapped}
+                  expanded={orbiIntro || tourOn || Boolean(robotAsk)}
+                  onTap={onRobotTap}
+                  label={t('home.robotAria')}
+                />
+              </div>
+              <span className="text-xs font-semibold tracking-wide text-[var(--theme-accent)]">Orbi</span>
+            </div>
             <div className="min-w-0">
               <h1 className="text-3xl font-bold tracking-tight text-ink md:text-[2rem]">{greeting}</h1>
               <p className="mt-1 max-w-sm text-sm text-muted">{t('home.need')}</p>
@@ -231,7 +268,32 @@ export function HomePage() {
           </div>
         </div>
 
-        {robotAsk && robotCopy && (
+        {orbiIntro && (
+          <OrbiPresence
+            kind="intro"
+            step={0}
+            kids={kids}
+            onStart={() => {
+              dismissIntro()
+              navigate('/prefs')
+            }}
+            onLater={dismissIntro}
+          />
+        )}
+
+        {tourOn && !orbiIntro && (
+          <OrbiPresence
+            kind="tour"
+            step={tourStep}
+            kids={kids}
+            onNext={() => setTourStep((current) => current + 1)}
+            onSkip={() => setTourOn(false)}
+            onHide={hideTour}
+            onDone={hideTour}
+          />
+        )}
+
+        {robotAsk && robotCopy && !tourOn && !orbiIntro && (
           <div
             className="rounded-2xl border border-border/80 bg-surface-2/60 px-3 py-3"
             role="status"

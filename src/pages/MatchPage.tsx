@@ -346,6 +346,7 @@ export function MatchPage() {
             {personalized ? t('match.forYou') : t('match.kicker')}
           </p>
           <h1 className="text-xl font-bold tracking-tight">{heading}</h1>
+          {personalized && <p className="mt-1 max-w-sm text-sm text-muted">{t('match.deckLead')}</p>}
           <p className="text-xs text-muted">
             {deck.length} {t('match.cards')} · {t('match.swipesLeft')} {budget.remaining}/{budget.freeCap}
             {budget.extra ? ` +${budget.extra}` : ''}

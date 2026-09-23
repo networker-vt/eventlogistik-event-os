@@ -55,4 +55,4 @@ Contributor-Credits kommen **nur** aus dem Rewards-Pool **nach einem gemergten P
 
 In der Demo gibt es kein Claim-Formular. Operator/CI ruft `grantContributorMergedPr(n, { merged: true, serverOrdinal: n })` nach dem Merge — `serverOrdinal` ist Pflicht und muss `n` sein. Es gibt keinen öffentlichen `grantMergedPrFromRewardsPool`. Ideen-Box bleibt Casual (8 Credits), kein Verbesserer-Grant. Ledger: RPC-first / Demo≠Prod / MAX_SUPPLY 21M.
 
-Danke — Matching statt Spam.
+Danke — Marktplatz für alles.

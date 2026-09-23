@@ -1,13 +1,13 @@
 # Orbit
 
-**Dein Orbit für Arbeit — Matching statt Spam.**
+**Dein Orbit — Marktplatz für alles.**
 
-Global all-industry marketplace OS (v2.8.1): 90-day focus **DE Freelancer/KMU — Jobs finden oder anbieten**. Dual-sided plus Orbit Assist / Orbi trip cards. Kabine / Gift / Channels stay stubs. Event/VT catalog is not in the primary IA. **Orbit Kids** + **Campus** (Lernen) live under Home discover tiles.
+Marketplace OS (v2.9.0): Reise, Kabine, Lernen, Jobs, Services, B2B und Social — Orbi-Setup per Freitext oder Stimme, kein Job-Rollen-Zwang. Assist-first Home mit großem Orbi. Kabine / Gift / Channels stay stubs. **Orbit Kids** + **Campus** (Lernen) live under Home discover tiles.
 
 - **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
 - **Repo:** https://github.com/networker-vt/eventlogistik-event-os
 - **License:** MIT — forks welcome if they improve Orbit (see [CONTRIBUTING.md](./CONTRIBUTING.md))
-- **A11y notes:** [A11Y.md](./A11Y.md) · **2.8.1:** [RELEASE_NOTES_2.8.1.md](./RELEASE_NOTES_2.8.1.md) · **2.8.0:** [RELEASE_NOTES_2.8.0.md](./RELEASE_NOTES_2.8.0.md) · **Credits:** [CREDITS.md](./CREDITS.md)
+- **A11y notes:** [A11Y.md](./A11Y.md) · **2.9.0:** [RELEASE_NOTES_2.9.0.md](./RELEASE_NOTES_2.9.0.md) · **2.8.1:** [RELEASE_NOTES_2.8.1.md](./RELEASE_NOTES_2.8.1.md) · **Credits:** [CREDITS.md](./CREDITS.md)
 
 > Vite `base` **MUST** stay `/eventlogistik-event-os/` for GitHub Pages.
 

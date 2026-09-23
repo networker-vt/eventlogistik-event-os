@@ -54,7 +54,7 @@ export function AuthPage() {
       navigate('/')
       return
     }
-    login(email || 'alex@demo.eventlogistik.de', name || 'Alex Müller', role)
+    login(email || 'alex@demo.orbit.app', name || 'Alex Müller', role)
     navigate('/')
   }
 
