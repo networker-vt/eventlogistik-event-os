@@ -56,6 +56,13 @@ export function orbiNavRunRemaining(now = Date.now()) {
   return Math.max(0, navRunUntil - now)
 }
 
+/** Visible Orbi labels. Both keys must resolve — a raw key is a dead caption. */
+export function orbiAriaLabel(t: (key: string) => string, extra?: string) {
+  const base = `${t('home.orbiKind')}. ${t('home.orbiTap')}`
+  const more = extra?.trim()
+  return more ? `${base}. ${more}` : base
+}
+
 /** Which frame to show. Reduced motion is always the still idle PNG. */
 export function resolveOrbiPose(opts: {
   reduced?: boolean

@@ -13,8 +13,11 @@ export function LegalLayout({ title, children }: { title: string; children: Reac
         <Link to="/impressum" className="text-cyan">
           Impressum
         </Link>
-        <Link to="/datenschutz" className="text-cyan">
-          Datenschutz
+        <Link to="/privacy" className="text-cyan">
+          Datenschutz / Privacy
+        </Link>
+        <Link to="/support" className="text-cyan">
+          Support
         </Link>
         <Link to="/agb" className="text-cyan">
           AGB

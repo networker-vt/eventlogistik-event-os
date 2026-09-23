@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { tStatic } from './i18n'
 import {
   ORBI_IDLE_MS,
   ORBI_STAGES,
   cueOrbiNavRun,
   isOrbiMotion,
   isOrbiStage,
+  orbiAriaLabel,
   orbiNavRunRemaining,
   poseAfterIdle,
   poseForBusy,
@@ -46,6 +48,16 @@ describe('Orbi Kind motions', () => {
     expect(isOrbiMotion('tanzen')).toBe(true)
     expect(isOrbiMotion('stock')).toBe(false)
     expect(isOrbiMotion(null)).toBe(false)
+  })
+
+  it('uses Orbi captions that exist in German and English', () => {
+    for (const locale of ['de', 'en'] as const) {
+      const label = orbiAriaLabel((key) => tStatic(key, locale), tStatic('home.robotAria', locale))
+      expect(label).not.toContain('home.orbiKind')
+      expect(label).not.toContain('home.orbiTap')
+      expect(label).toContain(tStatic('home.orbiKind', locale))
+      expect(label).toContain(tStatic('home.orbiTap', locale))
+    }
   })
 
   it('names Kind as the shipped stage and keeps Teen and Adult as stubs', () => {

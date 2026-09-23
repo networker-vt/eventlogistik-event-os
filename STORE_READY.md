@@ -4,9 +4,13 @@
 PWA ist installierbar. Native App Store / Play-Einreichung braucht **morgen (und danach)** Klicks **vom Operator** in Apple Developer + Play Console. Dieses Dokument ist die Checkliste dafür — keine Fake-Submission.
 
 Privacy-URL (Pflicht für Stores):  
-https://networker-vt.github.io/eventlogistik-event-os/datenschutz
+https://networker-vt.github.io/eventlogistik-event-os/privacy  
+(dieselbe Seite: `/datenschutz`)
 
-Impressum (unverändert, Mirco Küßner):  
+Support-URL:  
+https://networker-vt.github.io/eventlogistik-event-os/support
+
+Impressum (unverändert, Mirco Küßner, Privatperson):  
 https://networker-vt.github.io/eventlogistik-event-os/impressum
 
 Live PWA: https://networker-vt.github.io/eventlogistik-event-os/  

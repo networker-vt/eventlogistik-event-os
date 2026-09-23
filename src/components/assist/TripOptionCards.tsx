@@ -1,17 +1,15 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Mic } from 'lucide-react'
-import { useAuth } from '../../lib/auth'
-import { DEMO_USER_ID } from '../../data/seed'
 import { useI18n } from '../../lib/i18n'
 import { kidsHideTravel } from '../../lib/kids'
 import { canListen, listenOnce } from '../../lib/speech'
-import { bookTripOption } from '../../lib/tickets'
 import {
   TRIP_DEMO_DISCLAIMER_DE,
   TRIP_DEMO_DISCLAIMER_EN,
   localizeTripOption,
   matchSpokenTripChoice,
+  tripFlightSearchHref,
+  tripHotelSearchHref,
   tripOptionAt,
   type TripOption,
 } from '../../lib/trip'
@@ -33,28 +31,22 @@ export function TripOptionCards({
   onConsumedVoice?: () => void
 }) {
   const { t, resolved } = useI18n()
-  const { user, loginDemo } = useAuth()
-  const navigate = useNavigate()
   const kids = kidsHideTravel()
   const cards = useMemo(() => options.slice(0, 3), [options])
   const [tapped, setTapped] = useState<TripOption | null>(null)
   const [listening, setListening] = useState(false)
   const [voiceNote, setVoiceNote] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState<string | null>(null)
   const voicePick = !kids && pendingVoice ? tripOptionAt(cards, pendingVoice) : null
   const picked = tapped ?? voicePick
 
   const open = (opt: TripOption | null) => {
     if (kids || !opt) return
-    setErr(null)
     setTapped(opt)
     onConsumedVoice?.()
   }
 
   const closeSheet = () => {
     setTapped(null)
-    setErr(null)
     onConsumedVoice?.()
   }
 
@@ -71,25 +63,6 @@ export function TripOptionCards({
       return
     }
     open(tripOptionAt(cards, n))
-  }
-
-  const confirm = async () => {
-    if (kids || !picked || busy) return
-    setBusy(true)
-    setErr(null)
-    if (!user) loginDemo()
-    const result = await bookTripOption({
-      option: picked,
-      payerId: user?.id ?? DEMO_USER_ID,
-      payerName: user?.name ?? 'Alex Müller',
-    })
-    setBusy(false)
-    if (!result.ok) {
-      setErr(t('trip.fail'))
-      return
-    }
-    closeSheet()
-    navigate(`/tickets/${result.ticket.id}`)
   }
 
   if (!cards.length) return null
@@ -186,18 +159,33 @@ export function TripOptionCards({
             className="assist-result w-full max-w-md space-y-5 rounded-[1.25rem] border border-border/80 bg-surface p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-muted">{t('trip.confirmKicker')}</p>
+            <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-muted">{t('trip.searchKicker')}</p>
             <h2 id="trip-confirm-title" className="text-2xl font-semibold tracking-tight text-ink">
               {localizeTripOption(picked, resolved).label}
             </h2>
             <p className="text-[17px] leading-snug text-ink">{localizeTripOption(picked, resolved).flightSketch}</p>
             <p className="text-[15px] text-ink-soft">{localizeTripOption(picked, resolved).priceHint}</p>
             <p className="text-[13px] leading-relaxed text-amber-200">{t('trip.confirmLead')}</p>
-            {err && <p className="text-[13px] text-rose-300">{err}</p>}
             <div className="flex flex-col gap-2 pt-1">
-              <Button type="button" className="w-full" disabled={busy} onClick={() => void confirm()} data-trip-confirm="1">
-                {busy ? t('trip.working') : t('trip.confirm')}
-              </Button>
+              <a
+                href={tripFlightSearchHref(picked, resolved)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[var(--theme-accent)] px-4 text-sm font-semibold text-[var(--theme-on-accent)]"
+                data-trip-search="1"
+              >
+                {t('trip.openSearch')}
+              </a>
+              {tripHotelSearchHref(picked) && (
+                <a
+                  href={tripHotelSearchHref(picked)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border text-sm font-medium text-ink"
+                >
+                  {t('trip.hotel')}
+                </a>
+              )}
               <Button type="button" variant="ghost" className="w-full" onClick={closeSheet}>
                 {t('trip.back')}
               </Button>

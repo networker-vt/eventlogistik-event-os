@@ -69,9 +69,16 @@ Oder manuell: `npm run build` → `cp dist/index.html dist/404.html` → force-p
 ## 8. Rechtliches
 
 - [x] `/impressum` — Mirco Küßner, Schlebuscher Weg 8, 51061 Köln (natürliche Person, kein HR)
-- [x] `/datenschutz` — startklar, Host GitHub Pages, Kontakt E-Mail
+- [x] `/privacy` und `/datenschutz` — dieselbe Erklärung, Deutsch und Englisch
+- [x] `/support` — Kontakt derselben Privatperson, kein Firmen-Support
 - [ ] `/agb` — Entwurf liegt, **Marktplatz-AGB vor kommerziellem Betrieb anwaltlich prüfen**
-- [x] Links in Footer/AppShell verdrahtet
+- [x] Links in Footer, Mehr und Impressum verdrahtet
+
+Store-URLs (Pages-Basis `/eventlogistik-event-os/`):
+
+- Privacy: https://networker-vt.github.io/eventlogistik-event-os/privacy
+- Support: https://networker-vt.github.io/eventlogistik-event-os/support
+- Impressum: https://networker-vt.github.io/eventlogistik-event-os/impressum
 - [ ] AVV mit Supabase, sobald live
 
 ## 9. Go-Live Schritte

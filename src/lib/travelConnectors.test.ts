@@ -4,6 +4,7 @@ import {
   bahnSearchUrl,
   flightSearchUrl,
   hotelSearchUrl,
+  offerOutboundHref,
   parseRailJourneys,
   travelSearchLinks,
 } from './travelConnectors'
@@ -36,6 +37,17 @@ describe('travel connectors', () => {
     const links = travelSearchLinks({ from: 'Frankfurt', to: 'Berlin', dateIso: '2026-10-16' })
     expect(links.every((link) => link.mode === 'empty-cta' && link.href.startsWith('https://'))).toBe(true)
     expect(links.map((link) => link.kind)).toEqual(['flight', 'hotel', 'car', 'package'])
+  })
+
+  it('turns an old demo offer into a public search, not a fare', () => {
+    const href = offerOutboundHref(
+      { kind: 'flight', from: 'Frankfurt', to: 'Berlin', dateFrom: '2026-10-16' },
+      'de',
+    )
+    expect(href).toContain('google.com/travel/flights')
+    expect(href).not.toMatch(/€|priceEur/)
+    const rail = offerOutboundHref({ kind: 'rail', from: 'Köln Hbf', to: 'Berlin Hbf', dateFrom: '2026-10-16' })
+    expect(rail).toContain('bahn.de')
   })
 
   it('parses transport.rest journeys and keeps a missing price empty', () => {

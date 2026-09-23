@@ -36,6 +36,13 @@ function documentTitleFor(pathname: string, t: (key: string) => string) {
   if (pathname.startsWith('/kids')) return `${t('kids.title')} · Orbit`
   if (pathname.startsWith('/mehr')) return `${t('mehr.title')} · Orbit`
   if (pathname.startsWith('/impressum')) return `${t('footer.impressum')} · Orbit`
+  if (pathname.startsWith('/datenschutz') || pathname.startsWith('/privacy'))
+    return `${t('footer.privacy')} · Orbit`
+  if (pathname.startsWith('/support')) return `${t('footer.support')} · Orbit`
+  if (pathname.startsWith('/news')) return `${t('archive.newsTitle')} · Orbit`
+  if (pathname.startsWith('/innovation')) return `${t('archive.innovationTitle')} · Orbit`
+  if (pathname.startsWith('/wissen')) return `${t('archive.wissenTitle')} · Orbit`
+  if (pathname.startsWith('/katalog')) return `${t('archive.katalogTitle')} · Orbit`
   return `Orbit — ${t('brand.tagline')}`
 }
 
@@ -196,8 +203,11 @@ export function AppShell() {
               <Link to="/impressum" className="hover:text-[var(--theme-accent)]">
                 {t('footer.impressum')}
               </Link>
-              <Link to="/datenschutz" className="hover:text-[var(--theme-accent)]">
+              <Link to="/privacy" className="hover:text-[var(--theme-accent)]">
                 {t('footer.privacy')}
+              </Link>
+              <Link to="/support" className="hover:text-[var(--theme-accent)]">
+                {t('footer.support')}
               </Link>
               <Link to="/agb" className="hover:text-[var(--theme-accent)]">
                 {t('footer.terms')}

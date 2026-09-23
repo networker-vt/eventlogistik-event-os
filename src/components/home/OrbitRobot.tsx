@@ -12,6 +12,8 @@ import {
   type OrbiMotion,
   type OrbiStage,
 } from '../../lib/orbiMotion'
+import { useI18n } from '../../lib/i18n'
+import { orbiAriaLabel } from '../../lib/orbiMotion'
 import { cn } from '../../lib/utils'
 
 const poseCache: Partial<Record<OrbiMotion, string>> = { idle: idlePose }
@@ -188,8 +190,10 @@ export function OrbitRobot({
     }
   }, [driven, reduced, busy, seq])
 
+  const { t } = useI18n()
   const slot = size === 'compact' ? 'h-28 w-36' : 'h-52 w-60'
   const poseSrc = usePoseSrc(shown)
+  const aria = orbiAriaLabel(t, label)
 
   const frame = (
     <span
@@ -215,7 +219,8 @@ export function OrbitRobot({
     <button
       type="button"
       onClick={onPress}
-      aria-label={label || 'Orbi'}
+      aria-label={aria}
+      data-orbi-caption="1"
       aria-expanded={tapped}
       className="orbi-tap tap-target inline-flex shrink-0 items-center justify-center rounded-2xl border-0 bg-transparent p-0"
     >

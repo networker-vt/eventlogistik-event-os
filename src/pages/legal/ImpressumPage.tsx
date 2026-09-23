@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { LEGAL, LEGAL_ADDRESS_LINE, copyrightLine } from '../../lib/legal'
 import { LegalLayout } from './LegalLayout'
 
@@ -28,6 +29,11 @@ export function ImpressumPage() {
         <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>
         <br />
         Anschrift: {LEGAL_ADDRESS_LINE}
+      </p>
+      <p>
+        <Link to="/privacy">Datenschutz / Privacy</Link>
+        {' · '}
+        <Link to="/support">Support</Link>
       </p>
 
       <h2>Register & Umsatzsteuer</h2>
