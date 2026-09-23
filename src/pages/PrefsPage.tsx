@@ -9,7 +9,7 @@ import { useI18n } from '../lib/i18n'
 import { isKidsMode } from '../lib/kids'
 import { buildPrefsFromSetup, parseMarketplaceIntent } from '../lib/parseIntent'
 import { completePrefs, getPrefs, MARKETPLACE_INTERESTS, savePrefs, type MarketplaceInterest } from '../lib/prefs'
-import { canListen, listenOnce } from '../lib/speech'
+import { canListen, captureConsentedVoice } from '../lib/speech'
 import { grantVoiceConsent, readVoiceConsent, voiceConsentGranted, type VoiceConsent } from '../lib/voiceConsent'
 import { VoiceConsentAsk } from '../components/voice/VoiceConsentAsk'
 import { cn } from '../lib/utils'
@@ -104,7 +104,7 @@ export function PrefsPage() {
     if (!speechOk || listening) return
     if (!voiceConsentGranted()) return
     setListening(true)
-    const said = await listenOnce(resolved === 'de' ? 'de-DE' : 'en-GB')
+    const said = await captureConsentedVoice(resolved === 'de' ? 'de-DE' : 'en-GB')
     setListening(false)
     if (said) setNote((prev) => (prev.trim() ? `${prev.trim()} ${said}` : said))
   }

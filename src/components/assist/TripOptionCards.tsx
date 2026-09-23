@@ -5,7 +5,7 @@ import { useAuth } from '../../lib/auth'
 import { DEMO_USER_ID } from '../../data/seed'
 import { useI18n } from '../../lib/i18n'
 import { kidsHideTravel } from '../../lib/kids'
-import { canListen, listenOnce } from '../../lib/speech'
+import { canListen, captureConsentedVoice } from '../../lib/speech'
 import { grantVoiceConsent, voiceConsentGranted } from '../../lib/voiceConsent'
 import { VoiceConsentAsk } from '../voice/VoiceConsentAsk'
 import { bookTripOption } from '../../lib/tickets'
@@ -66,7 +66,7 @@ export function TripOptionCards({
     if (!voiceConsentGranted()) return
     setListening(true)
     setVoiceNote(null)
-    const said = await listenOnce(resolved === 'de' ? 'de-DE' : 'en-GB')
+    const said = await captureConsentedVoice(resolved === 'de' ? 'de-DE' : 'en-GB')
     setListening(false)
     if (!said) return
     const n = matchSpokenTripChoice(said)

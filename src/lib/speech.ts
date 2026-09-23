@@ -53,3 +53,9 @@ export function listenOnce(lang: string): Promise<string | null> {
     }
   })
 }
+
+/** Prefs and Home Assist. Never reaches SpeechRecognition without stored consent. */
+export function captureConsentedVoice(lang: string): Promise<string | null> {
+  if (!voiceConsentGranted()) return Promise.resolve(null)
+  return listenOnce(lang)
+}

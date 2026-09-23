@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { listenOnce } from './speech'
+import { captureConsentedVoice, listenOnce } from './speech'
 import { grantVoiceConsent, readVoiceConsent, voiceConsentGranted } from './voiceConsent'
 
 describe('voice consent before SpeechRecognition', () => {
@@ -34,9 +34,10 @@ describe('voice consent before SpeechRecognition', () => {
     }
     ;(window as unknown as { SpeechRecognition: typeof Fake }).SpeechRecognition = Fake
     expect(await listenOnce('de-DE')).toBeNull()
+    expect(await captureConsentedVoice('de-DE')).toBeNull()
     expect(started).toBe(0)
     grantVoiceConsent()
-    expect(await listenOnce('de-DE')).toBe('Wien')
+    expect(await captureConsentedVoice('de-DE')).toBe('Wien')
     expect(started).toBe(1)
   })
 })

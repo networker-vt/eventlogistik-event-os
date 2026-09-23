@@ -29,7 +29,7 @@ import { pickAdaptiveRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotA
 import { orbiFeedReply } from '../lib/orbiFeed'
 import { dismissOrbiTour, markOrbiIntroSeen, orbiIntroSeen, orbiTourOff } from '../lib/orbiPresence'
 import { getWidgetTaps, subscribeWidgetTaps } from '../lib/widgetUsage'
-import { canListen, listenOnce } from '../lib/speech'
+import { canListen, captureConsentedVoice } from '../lib/speech'
 import { grantVoiceConsent, readVoiceConsent, voiceConsentGranted, type VoiceConsent } from '../lib/voiceConsent'
 import { VoiceConsentAsk } from '../components/voice/VoiceConsentAsk'
 import { matchSpokenTripChoice } from '../lib/trip'
@@ -209,7 +209,7 @@ export function HomePage() {
     if (!canListen() || listening) return
     if (!voiceConsentGranted()) return
     setListening(true)
-    const said = await listenOnce(resolved === 'de' ? 'de-DE' : 'en-GB')
+    const said = await captureConsentedVoice(resolved === 'de' ? 'de-DE' : 'en-GB')
     setListening(false)
     if (said) {
       setAsk(said)
