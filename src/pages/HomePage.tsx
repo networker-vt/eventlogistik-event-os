@@ -226,6 +226,7 @@ export function HomePage() {
               onTap={onRobotTap}
               label={t('home.robotAria')}
               stage="kind"
+              busy={busy}
             />
             <p className="mt-1 text-sm font-semibold text-ink">{t('home.orbiKind')}</p>
             <p className="text-xs text-muted">{t('home.orbiTap')}</p>

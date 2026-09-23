@@ -5,19 +5,18 @@ import dancePose from '../../assets/orbi/orbi-kind-dance.png'
 import workPose from '../../assets/orbi/orbi-kind-work.png'
 import runPose from '../../assets/orbi/orbi-kind-run.png'
 import {
+  ORBI_DANCE_MS,
+  ORBI_IDLE_MS,
+  ORBI_WAVE_MS,
   isOrbiMotion,
-  nextOrbiTour,
+  orbiNavRunRemaining,
+  poseAfterIdle,
+  poseForTap,
+  resolveOrbiPose,
   type OrbiMotion,
   type OrbiStage,
 } from '../../lib/orbiMotion'
 import { cn } from '../../lib/utils'
-
-/** How long a tour pose plays before Orbi settles back into idle. */
-const TOUR_MS = 2400
-/** Quiet idle between tour poses — Calm Home, not a loop of constant tricks. */
-const IDLE_DWELL_MS = 6800
-/** Wave held after a tap, even if a tour pose was in progress. */
-const WAVE_MS = 1800
 
 const POSE_SRC: Record<OrbiMotion, string> = {
   idle: idlePose,
@@ -36,10 +35,14 @@ function pinnedPose(): OrbiMotion | null {
   return isOrbiMotion(raw) ? raw : null
 }
 
+function initialLive(): OrbiMotion {
+  return orbiNavRunRemaining() > 0 ? 'rennen' : 'idle'
+}
+
 /**
- * Orbi Kind — committed transparent PNGs (idle, wave, dance, work, run).
- * No backdrop. Tap plays winken. Idle bobs. Reduced motion stays on the still idle frame.
- * Teen and Adult are not drawn.
+ * Orbi Kind — CSS pose swap across the five transparent PNGs, plus a light idle bob.
+ * Tap waves. After ~8s idle, one dance, then idle again.
+ * Busy shows work. A nav cue shows a short run. Reduced motion stays on still idle.
  */
 export function OrbitRobot({
   className,
@@ -47,6 +50,7 @@ export function OrbitRobot({
   onTap,
   label,
   motion: motionProp,
+  busy = false,
   size = 'hero',
   stage = 'kind',
 }: {
@@ -54,19 +58,33 @@ export function OrbitRobot({
   tapped?: boolean
   onTap?: () => void
   label?: string
-  /** Controlled pose. Omit to let Orbi idle and tour on its own. */
+  /** Controlled pose. Omit to let Orbi follow the provisional defaults. */
   motion?: OrbiMotion
+  /** Loading or in-flight work. Shows the work pose. */
+  busy?: boolean
   size?: 'hero' | 'compact'
   /** Only Kind is shipped. Other stage names stay on the Kind art. */
   stage?: OrbiStage
 }) {
-  const [live, setLive] = useState<OrbiMotion>('idle')
+  const [live, setLive] = useState<OrbiMotion>(initialLive)
   const [pinned] = useState(pinnedPose)
   const [reduced, setReduced] = useState(false)
-  const waveUntil = useRef(0)
-  const motion = motionProp ?? pinned ?? live
+  const [seq, setSeq] = useState(0)
+  const entry = useRef<OrbiMotion>(initialLive())
+  const [prevBusy, setPrevBusy] = useState(busy)
+  if (busy !== prevBusy) {
+    setPrevBusy(busy)
+    if (!busy) setLive('idle')
+  }
+
   const driven = motionProp == null && pinned == null
-  const shown: OrbiMotion = reduced ? 'idle' : motion
+  const shown = resolveOrbiPose({
+    reduced,
+    pinned,
+    motion: motionProp,
+    busy,
+    live,
+  })
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -77,18 +95,21 @@ export function OrbitRobot({
   }, [])
 
   const onPress = () => {
-    if (driven && !reduced) {
-      waveUntil.current = Date.now() + WAVE_MS
-      setLive('winken')
+    if (driven && !reduced && !busy) {
+      entry.current = poseForTap()
+      setLive(poseForTap())
+      setSeq((n) => n + 1)
     }
     onTap?.()
   }
 
   useEffect(() => {
-    if (!driven || reduced) return
+    if (!driven || reduced || busy) {
+      entry.current = 'idle'
+      return
+    }
     let stopped = false
     let timer = 0
-    let pose: OrbiMotion = 'idle'
 
     const arm = (delay: number, fn: () => void) => {
       timer = window.setTimeout(() => {
@@ -96,34 +117,33 @@ export function OrbitRobot({
       }, delay)
     }
 
-    const settle = () => {
-      const hold = waveUntil.current - Date.now()
-      if (hold > 0) {
-        arm(hold, settle)
-        return
-      }
-      pose = 'idle'
+    const beginIdle = () => {
       setLive('idle')
-      arm(IDLE_DWELL_MS, play)
+      arm(ORBI_IDLE_MS, () => {
+        setLive(poseAfterIdle())
+        arm(ORBI_DANCE_MS, beginIdle)
+      })
     }
 
-    const play = () => {
-      const hold = waveUntil.current - Date.now()
-      if (hold > 0) {
-        arm(hold, play)
-        return
-      }
-      pose = nextOrbiTour(pose)
-      setLive(pose)
-      arm(TOUR_MS, settle)
-    }
+    const start = entry.current
+    entry.current = 'idle'
+    if (start === 'winken') arm(ORBI_WAVE_MS, beginIdle)
+    else if (start === 'rennen') arm(orbiNavRunRemaining(), beginIdle)
+    else arm(ORBI_IDLE_MS, () => {
+      setLive(poseAfterIdle())
+      arm(ORBI_DANCE_MS, beginIdle)
+    })
 
-    arm(IDLE_DWELL_MS, play)
     return () => {
       stopped = true
       window.clearTimeout(timer)
+      // Strict-mode remounts the effect immediately. Keep the entry pose
+      // unless a newer tap already replaced it.
+      if (entry.current === 'idle' && (start === 'winken' || start === 'rennen')) {
+        entry.current = start
+      }
     }
-  }, [driven, reduced])
+  }, [driven, reduced, busy, seq])
 
   const slot = size === 'compact' ? 'h-28 w-36' : 'h-52 w-60'
 

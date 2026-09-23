@@ -5,6 +5,7 @@ import { AuthProvider } from './lib/auth'
 import { I18nProvider, useI18n } from './lib/i18n'
 import { initRewards } from './lib/rewards'
 import { initStore } from './lib/store'
+import { OrbitRobot } from './components/home/OrbitRobot'
 import { HomePage } from './pages/HomePage'
 import { PrefsPage } from './pages/PrefsPage'
 import { MatchPage } from './pages/MatchPage'
@@ -174,7 +175,7 @@ function BootScreen() {
   const { t } = useI18n()
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-surface">
-      <div className="h-10 w-10 rounded-2xl border border-cyan/30 bg-cyan/10 skeleton-shimmer" />
+      <OrbitRobot motion="arbeiten" size="compact" />
       <p className="text-sm text-muted">{t('brand.loading')}</p>
     </div>
   )

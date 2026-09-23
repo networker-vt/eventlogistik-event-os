@@ -16,6 +16,7 @@ import { SchemeToggle } from '../theme/SchemeToggle'
 import { KidsBanner } from '../kids/KidsBanner'
 import { ParentalGateHost } from '../kids/ParentalGate'
 import { isKidsMode, subscribeKids } from '../../lib/kids'
+import { cueOrbiNavRun } from '../../lib/orbiMotion'
 
 function documentTitleFor(pathname: string, t: (key: string) => string) {
   if (pathname === '/' || pathname === '') return `Orbit — ${t('brand.tagline')}`
@@ -42,6 +43,11 @@ export function AppShell() {
   const { t, stub } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
+  const [seenPath, setSeenPath] = useState(location.pathname)
+  if (seenPath !== location.pathname) {
+    setSeenPath(location.pathname)
+    cueOrbiNavRun()
+  }
   const [createOpen, setCreateOpen] = useState(false)
   const [prefs, setPrefs] = useState(getPrefs)
   const [kids, setKids] = useState(isKidsMode)
