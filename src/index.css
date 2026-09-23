@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface: #faf8f5;
-  --color-surface-2: #f3efe8;
-  --color-surface-3: #ece6dc;
-  --color-border: #ddd5c8;
+  --color-surface: #F7F6F3;
+  --color-surface-2: #F1EFEA;
+  --color-surface-3: #E7E4DD;
+  --color-border: #DDD8D0;
   --color-cyan: #0f766e;
   --color-teal: #0d9488;
   --color-muted: #6b6560;
@@ -66,7 +66,7 @@ html[data-scheme="light"] {
   --el-bottom-chrome: calc(var(--el-nav-stack) + 0.75rem);
   --theme-accent: #0f766e;
   --theme-accent-2: #0d9488;
-  --theme-on-accent: #faf8f5;
+  --theme-on-accent: #F7F6F3;
   --theme-wash: transparent;
   color-scheme: light;
   /* Readable “dark-UI” neutrals inverted for parchment */
@@ -85,9 +85,9 @@ html[data-scheme="light"] {
 }
 
 [data-theme="home"] {
-  --theme-accent: #0f766e;
-  --theme-accent-2: #0d9488;
-  --theme-wash: color-mix(in oklab, #0f766e 9%, transparent);
+  --theme-accent: #C65D4E;
+  --theme-accent-2: #A34B3E;
+  --theme-wash: color-mix(in oklab, #C65D4E 8%, transparent);
 }
 [data-theme="match"] {
   --theme-accent: #b45309;
@@ -437,16 +437,22 @@ textarea:focus-visible,
   .stagger-in > *:nth-child(7) { animation-delay: 0.2s; }
   .stagger-in > *:nth-child(8) { animation-delay: 0.23s; }
 
-  /* Orbi Kind — transparent PNG. Idle only bobs. Other poses are still frames. */
+  /* Orbi Kind — idle bob only. Other poses are still frames. Tap eases 0.98 back to 1. */
   .orbi-kind-img {
     transform-origin: 50% 100%;
   }
   .orbi-slot[data-orbi-motion="idle"] .orbi-kind-img {
-    animation: orbi-breathe 3.4s ease-in-out infinite;
+    animation: orbi-breathe 2.1s ease-in-out infinite;
   }
   @keyframes orbi-breathe {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
+  }
+  .orbi-tap {
+    transition: transform 0.14s ease;
+  }
+  .orbi-tap:active {
+    transform: scale(0.98);
   }
 
 }
@@ -461,8 +467,11 @@ textarea:focus-visible,
   .success-pop,
   .success-check,
   .stagger-in > *,
-  .orbi-kind-img {
+  .orbi-kind-img,
+  .orbi-tap,
+  .orbi-tap:active {
     animation: none !important;
+    transform: none;
   }
   .text-shimmer {
     background: linear-gradient(135deg, #00f0ff, #14b8a6);

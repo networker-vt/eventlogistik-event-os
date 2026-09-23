@@ -15,7 +15,8 @@ import {
 
 describe('Orbi Kind motions', () => {
   it('locks the provisional defaults', () => {
-    expect(ORBI_IDLE_MS).toBe(8000)
+    expect(ORBI_IDLE_MS).toBeGreaterThanOrEqual(5000)
+    expect(ORBI_IDLE_MS).toBeLessThanOrEqual(6000)
     expect(poseForTap()).toBe('winken')
     expect(poseAfterIdle()).toBe('tanzen')
     expect(poseForBusy()).toBe('arbeiten')

@@ -1,8 +1,8 @@
 # Orbit
 
-**Dein Orbit für Arbeit — Matching statt Spam.**
+**Dein Orbit — Marktplatz für alles.**
 
-Global all-industry marketplace OS (v2.8.1): 90-day focus **DE Freelancer/KMU — Jobs finden oder anbieten**. Dual-sided plus Orbit Assist / Orbi trip cards. Kabine / Gift / Channels stay stubs. Event/VT catalog is not in the primary IA. **Orbit Kids** + **Campus** (Lernen) live under Home discover tiles.
+Marketplace for everything (v2.8.1): Reise, Kabine, Lernen, Services, Jobs, B2B und Social. Home leads with Orbi, then a greeting, a compact news strip of real articles, and at most three quiet discover links. Kabine / Gift / Channels stay stubs. **Orbit Kids** and **Campus** live under Mehr.
 
 - **Live (GitHub Pages):** https://networker-vt.github.io/eventlogistik-event-os/
 - **Repo:** https://github.com/networker-vt/eventlogistik-event-os
@@ -13,21 +13,21 @@ Global all-industry marketplace OS (v2.8.1): 90-day focus **DE Freelancer/KMU �
 
 ## IA (v2.8.1)
 
-**Start · Match · Social · Mein** — four-tab bottom nav. Create in the header (not on Home). Home: robot + greeting + **Was brauchst du?** → outlined **Suchen / Anbieten / Weitermachen** → one filled **Orbit fragen** → **one Tageskarte** → below-fold **Mehr entdecken** (Abflug, Campus, Entdecker, Kabine, Firma/Crew — not Mein/Social/Wallet). **Mein** is account-only (Wallet adult, Prefs, Verify, Erstellen/Anbieten stubs, Ideen-Box, Channels). Kids: PIN first, 0 Credits, hide Wallet, no social channel connects. Light parchment default.
+**Start · Match · Social · Mein** — four-tab bottom nav. Create in the header (not on Home). Home: Orbi hero above the greeting, one filled **Orbit fragen**, one Tageskarte, then a news strip and at most three quiet discover links (the rest under Mehr). No credit balance on Home. **Mein** is account-only (Wallet adult, Prefs, Verify, Erstellen/Anbieten stubs, Ideen-Box, Channels). Kids: PIN first, 0 Credits, hide Wallet, no social channel connects. Cream base, sparse coral on Home.
 
 ## Core routes (v2.8.1)
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Start — robot + Was brauchst du?, Suchen / Anbieten / Weitermachen, one Tageskarte, one filled Orbit fragen, Mehr entdecken (Abflug, Campus, Entdecker, Kabine, Firma/Crew). No Mein / Social / Wallet tiles. |
-| `/match` | Match — algorithmic deck (jobs, services, travel, people) from prefs + behavior stubs |
-| `/treffer` | Treffer — jobs/services swipe |
-| `/crew` | Crew — B2B hiring / employer match |
+| `/` | Start — Orbi hero above the greeting, Orbit fragen, one Tageskarte, real news strip, ≤3 discover links. No wallet or credit balance. |
+| `/match` | Match — algorithmic deck (travel, kabine, learning, services, jobs, B2B, people) from prefs + behavior stubs |
+| `/treffer` | Treffer — swipe offers and requests across the marketplace |
+| `/crew` | Crew — B2B partners and offers |
 | `/kabine` (`/look`) | Kabine — photo/video try-on (base free) |
 | `/social` | Social hub — feed, like, share, vernetzen. Chat at `/social/chat` |
 | `/messages` | Redirects to `/social/chat` |
 | `/wallet` | Credits (21M cap), gift/sponsoring, methods, bookings, tickets |
-| `/abflug` (`/reise`) | Abflug marketplace (demo, cheapest-first) |
+| `/abflug` (`/reise`) | Abflug — live rail via transport.rest or bahn.de; flights/hotels/cars/packages are filled search links. No invented bookings. |
 | `/channels` | Opt-in stubs (Meta, X, Steam/PlayStation/Xbox, …) + community link-stubs |
 | `/mein` | Account tiles: Wallet (adult), Prefs, Verify, Erstellen/Anbieten stubs, Ideen-Box, Channels |
 | `/firma` | Company hub |

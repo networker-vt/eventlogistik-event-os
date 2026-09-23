@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mic, Send } from 'lucide-react'
-import { TileGrid } from '../components/ui/TileGrid'
-import { homeDiscoverTiles } from '../lib/hubTiles'
+import { HOME_PRIMARY_COUNT, splitAdaptiveHome } from '../lib/hubTiles'
+import { getWidgetTaps, subscribeWidgetTaps } from '../lib/widgetUsage'
 import { TripOptionCards } from '../components/assist/TripOptionCards'
 import { FuerDichCard } from '../components/home/FuerDichCard'
 import { OrbitRobot } from '../components/home/OrbitRobot'
@@ -23,7 +23,7 @@ import { subscribeBehavior } from '../lib/behavior'
 import { subscribeChannels } from '../lib/channels'
 import { rankFuerDich } from '../lib/fuerDich'
 import { NewsStrip } from '../components/home/NewsStrip'
-import { consumeAssistTurn, formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
+import { consumeAssistTurn } from '../lib/credits'
 import { isDemo } from '../lib/flags'
 import { getResume, subscribeResume } from '../lib/resume'
 import { dueReminders, subscribeReminders, tapReminder } from '../lib/reminders'
@@ -54,7 +54,6 @@ export function HomePage() {
   const [prefs, setPrefs] = useState(getPrefs)
   const [company, setCompany] = useState(getCompany)
   const [behaviorTick, setBehaviorTick] = useState(0)
-  const [credits, setCredits] = useState(getCredits)
   const [plan, setPlan] = useState<AssistPlan | null>(getLastPlan)
   const [ask, setAsk] = useState('')
   const [busy, setBusy] = useState(false)
@@ -68,6 +67,7 @@ export function HomePage() {
   const [robotAsk, setRobotAsk] = useState<RobotAsk | null>(null)
   const [kids, setKids] = useState(isKidsMode)
   const [tripVoicePick, setTripVoicePick] = useState<1 | 2 | 3 | null>(null)
+  const [widgetTaps, setWidgetTaps] = useState(getWidgetTaps)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
   const { listings: raw } = useListings({})
   const daily = useMemo(() => pickTageskarte(new Date(), { kids }), [kids])
@@ -78,34 +78,38 @@ export function HomePage() {
   useEffect(() => {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
     const u2 = subscribeBehavior(() => setBehaviorTick((n) => n + 1))
-    const u3 = subscribeCredits(() => setCredits(getCredits()))
     const u4 = subscribeCompany(() => setCompany(getCompany()))
     const u5 = subscribeAssist(() => setPlan(getLastPlan()))
     const u6 = subscribeChannels(() => setBehaviorTick((n) => n + 1))
     const u7 = subscribeResume(() => setResume(getResume()))
     const u8 = subscribeReminders(() => setReminders(dueReminders()))
     const u9 = subscribeKids(() => setKids(isKidsMode()))
+    const u10 = subscribeWidgetTaps(() => setWidgetTaps(getWidgetTaps()))
     return () => {
       u1()
       u2()
-      u3()
       u4()
       u5()
       u6()
       u7()
       u8()
       u9()
+      u10()
       abortRef.current?.abort()
     }
   }, [])
 
   const fuerDich = useMemo(() => {
-    const ranked = rankFuerDich(raw, prefs, resolved, 8)
+    const ranked = rankFuerDich(raw, prefs, resolved, 8).filter((item) => item.lane !== 'news')
     if (!kids) return ranked
     if (!kidsMaySeeJobs()) return []
     return ranked.filter((item) => item.action !== 'look' && item.action !== 'book')
   }, [raw, prefs, behaviorTick, resolved, kids])
-  const newsItems = useMemo(() => rankHomeNews(prefs, resolved, 2), [prefs, behaviorTick, resolved])
+  const newsItems = useMemo(() => rankHomeNews(prefs, resolved, 3), [prefs, behaviorTick, resolved])
+  const widgets = useMemo(
+    () => splitAdaptiveHome({ kids, hideTravel: kidsHideTravel(), hideWallet }, widgetTaps, t),
+    [kids, hideWallet, widgetTaps, t],
+  )
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
   const greeting = first ? `${t('home.hello')}, ${first}.` : `${t('home.hello')}.`
@@ -205,32 +209,24 @@ export function HomePage() {
     { id: 'resume', title: t('home.tileResume') },
   ]
 
-  const discover = homeDiscoverTiles(t, {
-    kids,
-    hideTravel: kidsHideTravel(),
-    hideWallet,
-  })
-
   return (
     <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome pt-6 md:pt-10">
       <header className="space-y-4">
+        <div className="flex flex-col items-center px-2 text-center" data-orbi-primary="1" data-orbi-hero="above-greeting">
+          <OrbitRobot
+            tapped={robotTapped}
+            onTap={onRobotTap}
+            label={t('home.robotAria')}
+            stage="kind"
+            busy={busy}
+          />
+        </div>
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted">
             Orbit{isDemo ? ` · ${t('home.demoBadge')}` : ''}
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink md:text-[2rem]">{greeting}</h1>
           <p className="mt-1 max-w-sm text-sm text-muted">{t('home.need')}</p>
-          <div className="flex flex-col items-center px-2 pt-2 text-center" data-orbi-primary="1">
-            <OrbitRobot
-              tapped={robotTapped}
-              onTap={onRobotTap}
-              label={t('home.robotAria')}
-              stage="kind"
-              busy={busy}
-            />
-            <p className="mt-1 text-sm font-semibold text-ink">{t('home.orbiKind')}</p>
-            <p className="text-xs text-muted">{t('home.orbiTap')}</p>
-          </div>
         </div>
 
         {robotAsk && robotCopy && (
@@ -332,11 +328,38 @@ export function HomePage() {
         )}
       </div>
 
+      <NewsStrip items={newsItems} />
+
       <section className="space-y-3 pt-2" aria-labelledby="mehr-entdecken">
         <h2 id="mehr-entdecken" className="text-xs font-medium uppercase tracking-wider text-muted">
           {t('home.mehrEntdecken')}
         </h2>
-        <TileGrid tiles={discover} label={t('home.mehrEntdecken')} />
+        <ul
+          aria-label={t('home.mehrEntdecken')}
+          data-home-discover={Math.min(widgets.primary.length, HOME_PRIMARY_COUNT)}
+          className="space-y-0.5"
+        >
+          {widgets.primary.slice(0, HOME_PRIMARY_COUNT).map((tile) => (
+            <li key={tile.id ?? tile.to}>
+              <Link
+                to={tile.to}
+                data-tile-id={tile.id}
+                className="inline-flex min-h-11 items-center gap-2 text-sm text-muted hover:text-ink"
+              >
+                <span aria-hidden>{tile.emoji}</span>
+                <span>{tile.label}</span>
+                {tile.demo && (
+                  <span className="text-[9px] font-medium uppercase tracking-wide">{t('home.demoBadge')}</span>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        {widgets.folded.length > 0 && (
+          <Link to="/mehr" className="inline-flex min-h-11 items-center text-sm text-muted hover:text-ink">
+            {t('home.widgetsMore')}
+          </Link>
+        )}
         {resume && (
           <Link
             to={resume.path}
@@ -345,8 +368,6 @@ export function HomePage() {
             {t('home.tileResume')}: {resume.title}
           </Link>
         )}
-
-        <NewsStrip items={newsItems} />
 
         {fuerDich.length === 0 ? (
           <Empty emoji="✨" title={t('home.dealsEmpty')} hint={t('home.dealsEmptyHint')} className="py-6" />
@@ -362,18 +383,6 @@ export function HomePage() {
           </div>
         )}
 
-        {!hideWallet && (
-          <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
-            <Link to="/wallet" className="tabular-nums text-ink hover:text-[var(--theme-accent)]">
-              {credits.balance} Credits
-            </Link>
-            <span>{formatSupplyLine()}</span>
-            {getSignupIdentity()?.earlyTester && (
-              <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
-            )}
-            <span>· {t('home.creditsPeek')}</span>
-          </p>
-        )}
       </section>
     </div>
   )

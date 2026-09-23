@@ -1,6 +1,6 @@
 import type { VehicleSize } from './types'
 
-/** Transport size taxonomy for event logistics (reference + create form). */
+/** Transport size taxonomy for the marketplace catalog (reference + create form). */
 export const vehicleSizes: VehicleSize[] = [
   {
     id: 'vs-sprinter',

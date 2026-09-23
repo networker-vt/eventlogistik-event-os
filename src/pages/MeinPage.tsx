@@ -261,7 +261,14 @@ export function MeinPage() {
             Wizard
           </Button>
         </div>
-        <p className="text-xs text-muted">Seite: {prefs.side === 'seeker' ? 'Jobsuche' : 'Hiring'}</p>
+        <p className="text-xs text-muted">
+          Seite:{' '}
+          {prefs.side === 'seeker'
+            ? t('mein.sideSeeker')
+            : prefs.side === 'employer'
+              ? t('mein.sideOffer')
+              : t('role.both')}
+        </p>
         <h3 className="text-sm font-semibold">Branchen</h3>
         <div className="flex flex-wrap gap-2">
           {filledIndustries().map((ind) => (

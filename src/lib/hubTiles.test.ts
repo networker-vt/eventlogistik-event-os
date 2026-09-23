@@ -4,9 +4,11 @@ import {
   HOME_DISCOVER_DEFS,
   MEHR_DISCOVER_DEFS,
   MEIN_ACCOUNT_DEFS,
+  HOME_PRIMARY_COUNT,
   everyTileHasEmoji,
   homeDiscoverHasAccountLinks,
   homeDiscoverTiles,
+  splitAdaptiveHome,
   mehrDiscoverTiles,
   meinAccountTiles,
   meinHasDiscoverLinks,
@@ -66,6 +68,18 @@ describe('Orbit 2.8.1 hub split', () => {
     const home = homeDiscoverTiles((k) => tStatic(k, 'de'), kids)
     expect(home.some((t) => t.id === 'abflug' || t.id === 'firma' || t.id === 'crew')).toBe(false)
     expect(home.some((t) => t.id === 'campus' || t.id === 'entdecker' || t.id === 'kabine')).toBe(true)
+  })
+
+  it('Home discover shows at most three quiet links and folds the rest', () => {
+    const split = splitAdaptiveHome(adult, {}, (k) => tStatic(k, 'de'))
+    expect(HOME_PRIMARY_COUNT).toBe(3)
+    expect(split.primary).toHaveLength(3)
+    expect(split.primary.map((t) => t.id)).toEqual(['abflug', 'kabine', 'match'])
+    expect(homeDiscoverHasAccountLinks(split.primary)).toBe(false)
+    expect(split.folded.some((t) => t.id === 'jobs')).toBe(true)
+    const kidsSplit = splitAdaptiveHome(kids, {}, (k) => tStatic(k, 'de'))
+    expect(kidsSplit.primary.length).toBeLessThanOrEqual(3)
+    expect(kidsSplit.primary.some((t) => t.id === 'abflug' || t.id === 'firma' || t.id === 'crew')).toBe(false)
   })
 
   it('every catalog tile has a visible emoji', () => {
