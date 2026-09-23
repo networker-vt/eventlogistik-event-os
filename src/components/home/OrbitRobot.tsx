@@ -8,6 +8,7 @@ export function OrbitRobot({
   label,
   size = 'md',
   expanded = false,
+  mood = 'idle',
 }: {
   className?: string
   tapped?: boolean
@@ -15,17 +16,22 @@ export function OrbitRobot({
   label?: string
   size?: 'md' | 'lg' | 'hero'
   expanded?: boolean
+  /** Short playful reaction. Idle bob stays on the hero. */
+  mood?: 'idle' | 'tap' | 'happy' | 'think'
 }) {
   const svg = (
     <svg
       className={cn(
         'orbit-robot shrink-0',
-        size === 'hero' && 'orbit-robot-hero h-28 w-28',
+        size === 'hero' && 'orbit-robot-hero h-40 w-40',
         size === 'lg' && 'h-20 w-20',
         size === 'md' && 'h-10 w-10',
-        tapped && 'is-tapped',
+        (tapped || mood === 'tap') && 'is-tapped',
+        mood === 'happy' && 'is-happy',
+        mood === 'think' && 'is-think',
         className,
       )}
+      data-orbi-mood={mood}
       viewBox="0 0 40 40"
       aria-hidden={onTap ? true : undefined}
       focusable="false"

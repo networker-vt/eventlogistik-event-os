@@ -493,6 +493,16 @@ textarea:focus-visible,
   .orbit-robot.is-tapped .orbit-robot-eye {
     animation: orbit-tap-blink 0.5s ease;
   }
+  @keyframes orbit-happy {
+    0%, 100% { transform: translateY(0) scale(1); }
+    45% { transform: translateY(-8px) scale(1.05); }
+  }
+  .orbit-robot.is-happy {
+    animation: orbit-happy 0.7s ease;
+  }
+  .orbit-robot.is-think .orbit-robot-eyes {
+    transform: translateY(-1.4px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

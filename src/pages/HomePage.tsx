@@ -26,6 +26,7 @@ import { dueReminders, subscribeReminders, tapReminder } from '../lib/reminders'
 import { rankHomeNews } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
 import { pickAdaptiveRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotAsk'
+import { orbiFeedReply } from '../lib/orbiFeed'
 import { dismissOrbiTour, markOrbiIntroSeen, orbiIntroSeen, orbiTourOff } from '../lib/orbiPresence'
 import { getWidgetTaps, subscribeWidgetTaps } from '../lib/widgetUsage'
 import { canListen, listenOnce } from '../lib/speech'
@@ -58,6 +59,8 @@ export function HomePage() {
   const [proOpen, setProOpen] = useState(false)
   const [proShort, setProShort] = useState(false)
   const [robotTapped, setRobotTapped] = useState(false)
+  const [mood, setMood] = useState<'idle' | 'tap' | 'happy' | 'think'>('idle')
+  const [feed, setFeed] = useState<{ key: string; to: string } | null>(null)
   const [robotAsk, setRobotAsk] = useState<RobotAsk | null>(null)
   const [orbiIntro, setOrbiIntro] = useState(() => !orbiIntroSeen())
   const [tourOn, setTourOn] = useState(false)
@@ -154,6 +157,14 @@ export function HomePage() {
     }
   }
 
+  const showFeed = (q: string) => {
+    const reply = orbiFeedReply(q, { kids, interests: prefs.interests })
+    setFeed({ key: reply.key, to: reply.to })
+    setMood('think')
+    window.setTimeout(() => setMood('happy'), 420)
+    window.setTimeout(() => setMood('idle'), 1200)
+  }
+
   const submitAsk = async (text: string) => {
     const q = text.trim()
     if (!q || busy) return
@@ -166,6 +177,7 @@ export function HomePage() {
       setTripVoicePick(spokenPick)
       return
     }
+    showFeed(q)
     const gate = await consumeAssistTurn()
     if (gate === 'need_credits') {
       pendingAsk.current = q
@@ -216,7 +228,11 @@ export function HomePage() {
 
   const onRobotTap = () => {
     setRobotTapped(true)
-    window.setTimeout(() => setRobotTapped(false), 700)
+    setMood('tap')
+    window.setTimeout(() => {
+      setRobotTapped(false)
+      setMood('idle')
+    }, 700)
     if (orbiIntro) return
     if (!tourOff) {
       setRobotAsk(null)
@@ -257,25 +273,24 @@ export function HomePage() {
             Orbit{isDemo ? ` · ${t('home.demoBadge')}` : ''}
           </p>
           <div
-            className="mt-3 flex flex-col items-center gap-4 text-center md:flex-row md:items-center md:text-left"
+            className="mt-4 flex flex-col items-center gap-3 text-center"
             data-orbi-hero="1"
             data-orbi-primary="1"
           >
-            <div className="flex flex-col items-center gap-1">
-              <div className="grid h-36 w-36 place-items-center rounded-full bg-[var(--theme-accent)]/12 ring-1 ring-[var(--theme-accent)]/30">
-                <OrbitRobot
-                  size="hero"
-                  tapped={robotTapped}
-                  expanded={orbiIntro || tourOn || Boolean(robotAsk)}
-                  onTap={onRobotTap}
-                  label={t('home.robotAria')}
-                />
-              </div>
-              <span className="text-xs font-semibold tracking-wide text-[var(--theme-accent)]">Orbi</span>
+            <div className="grid h-52 w-52 place-items-center rounded-full bg-[var(--theme-accent)]/12 ring-1 ring-[var(--theme-accent)]/30">
+              <OrbitRobot
+                size="hero"
+                mood={mood}
+                tapped={robotTapped}
+                expanded={orbiIntro || tourOn || Boolean(robotAsk) || Boolean(feed)}
+                onTap={onRobotTap}
+                label={t('home.robotAria')}
+              />
             </div>
-            <div className="min-w-0">
-              <h1 className="text-3xl font-bold tracking-tight text-ink md:text-[2rem]">{greeting}</h1>
-              <p className="mt-1 max-w-sm text-sm text-muted">{t('home.need')}</p>
+            <span className="text-sm font-semibold tracking-wide text-[var(--theme-accent)]">Orbi</span>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-ink">{greeting}</h1>
+              <p className="mt-1 text-sm text-muted">{t('home.need')}</p>
             </div>
           </div>
         </div>
@@ -356,7 +371,15 @@ export function HomePage() {
               className="w-full resize-none rounded-2xl border border-border bg-surface-2 px-3 py-3 text-base text-ink placeholder:text-muted outline-none focus:border-[var(--theme-accent)]/50"
             />
           </label>
-          {assistNote && <p className="text-[11px] text-amber-200">{assistNote}</p>}
+          {feed && (
+          <div className="rounded-2xl border border-border/80 bg-surface-2/60 px-3 py-3 text-left" role="status" data-orbi-feed="1">
+            <p className="text-sm text-ink">{t(feed.key)}</p>
+            <Button type="button" size="sm" variant="ghost" className="mt-2" onClick={() => navigate(feed.to)}>
+              {t('orbi.feedGo')}
+            </Button>
+          </div>
+        )}
+        {assistNote && <p className="text-[11px] text-amber-200">{assistNote}</p>}
           {proOpen && !kids && (
             <div
               className="rounded-2xl border border-violet-400/40 bg-surface-2 p-4"

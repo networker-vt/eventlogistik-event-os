@@ -25,6 +25,7 @@ import { LanguageSwitcher } from '../components/i18n/LanguageSwitcher'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { RoleSwitcher } from '../components/role/RoleSwitcher'
 import { ChannelLinks } from '../components/mein/ChannelLinks'
+import { HeuteVerdienen } from '../components/mein/HeuteVerdienen'
 import { VerifyPanel } from '../components/verify/VerifyPanel'
 import { ReminderOptIn } from '../components/reminders/ReminderOptIn'
 import { CATALOG_KIND_LABEL, catalogSectionPath, resolveCatalogEntry } from '../data/catalog/lookup'
@@ -188,6 +189,8 @@ export function MeinPage() {
           </Link>
         </div>
       </header>
+
+      <HeuteVerdienen />
 
       <VerifyPanel />
       <ReminderOptIn />
