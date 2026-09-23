@@ -1,3 +1,5 @@
+import { voiceConsentGranted } from './voiceConsent'
+
 export function canListen(): boolean {
   if (typeof window === 'undefined') return false
   const w = window as Window & {
@@ -20,6 +22,10 @@ interface SpeechRecognitionLike {
 
 export function listenOnce(lang: string): Promise<string | null> {
   return new Promise((resolve) => {
+    if (!voiceConsentGranted()) {
+      resolve(null)
+      return
+    }
     const w = window as Window & {
       SpeechRecognition?: new () => SpeechRecognitionLike
       webkitSpeechRecognition?: new () => SpeechRecognitionLike

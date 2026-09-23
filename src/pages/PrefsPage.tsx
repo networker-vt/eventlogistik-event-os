@@ -10,6 +10,8 @@ import { isKidsMode } from '../lib/kids'
 import { buildPrefsFromSetup, parseMarketplaceIntent } from '../lib/parseIntent'
 import { completePrefs, getPrefs, MARKETPLACE_INTERESTS, savePrefs, type MarketplaceInterest } from '../lib/prefs'
 import { canListen, listenOnce } from '../lib/speech'
+import { grantVoiceConsent, readVoiceConsent, voiceConsentGranted, type VoiceConsent } from '../lib/voiceConsent'
+import { VoiceConsentAsk } from '../components/voice/VoiceConsentAsk'
 import { cn } from '../lib/utils'
 
 function Chip({
@@ -58,7 +60,7 @@ export function PrefsPage() {
   const [interestsTouched, setInterestsTouched] = useState(initial.interests.length > 0)
   const [cityDraft, setCityDraft] = useState('')
   const [listening, setListening] = useState(false)
-  const [voiceConsent, setVoiceConsent] = useState<'idle' | 'ask' | 'yes'>('idle')
+  const [voiceConsent, setVoiceConsent] = useState<VoiceConsent>(readVoiceConsent)
   const speechOk = canListen()
   const parsed = useMemo(() => parseMarketplaceIntent(note), [note])
   const interestChoices = MARKETPLACE_INTERESTS.filter((id) => !(kids && id === 'social'))
@@ -100,6 +102,7 @@ export function PrefsPage() {
 
   const startVoice = async () => {
     if (!speechOk || listening) return
+    if (!voiceConsentGranted()) return
     setListening(true)
     const said = await listenOnce(resolved === 'de' ? 'de-DE' : 'en-GB')
     setListening(false)
@@ -108,7 +111,7 @@ export function PrefsPage() {
 
   const onVoice = () => {
     if (!speechOk || listening) return
-    if (voiceConsent !== 'yes') {
+    if (voiceConsent !== 'yes' || !voiceConsentGranted()) {
       setVoiceConsent('ask')
       return
     }
@@ -173,24 +176,14 @@ export function PrefsPage() {
                 <Mic size={16} /> {listening ? t('prefs.voiceListening') : t('prefs.voice')}
               </Button>
               {voiceConsent === 'ask' && (
-                <div className="rounded-2xl border border-border bg-surface-2 p-3 text-sm" data-voice-consent="1">
-                  <p>{t('prefs.voiceConsent')}</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => {
-                        setVoiceConsent('yes')
-                        void startVoice()
-                      }}
-                    >
-                      {t('prefs.voiceAllow')}
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => setVoiceConsent('idle')}>
-                      {t('prefs.voiceCancel')}
-                    </Button>
-                  </div>
-                </div>
+                <VoiceConsentAsk
+                  onAllow={() => {
+                    grantVoiceConsent()
+                    setVoiceConsent('yes')
+                    void startVoice()
+                  }}
+                  onCancel={() => setVoiceConsent('idle')}
+                />
               )}
             </div>
           ) : (

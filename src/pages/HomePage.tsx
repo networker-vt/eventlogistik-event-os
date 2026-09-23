@@ -30,6 +30,8 @@ import { pickAdaptiveRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotA
 import { dismissOrbiTour, markOrbiIntroSeen, orbiIntroSeen, orbiTourOff } from '../lib/orbiPresence'
 import { getWidgetTaps, subscribeWidgetTaps } from '../lib/widgetUsage'
 import { canListen, listenOnce } from '../lib/speech'
+import { grantVoiceConsent, readVoiceConsent, voiceConsentGranted, type VoiceConsent } from '../lib/voiceConsent'
+import { VoiceConsentAsk } from '../components/voice/VoiceConsentAsk'
 import { matchSpokenTripChoice } from '../lib/trip'
 import { pickTageskarte } from '../lib/tageskarte'
 import { cn } from '../lib/utils'
@@ -50,6 +52,7 @@ export function HomePage() {
   const [ask, setAsk] = useState('')
   const [busy, setBusy] = useState(false)
   const [listening, setListening] = useState(false)
+  const [voiceConsent, setVoiceConsent] = useState<VoiceConsent>(readVoiceConsent)
   const [resume, setResume] = useState(getResume)
   const [reminders, setReminders] = useState(dueReminders)
   const [assistNote, setAssistNote] = useState<string | null>(null)
@@ -191,8 +194,9 @@ export function HomePage() {
     await runPlan(q)
   }
 
-  const onMic = async () => {
+  const startVoice = async () => {
     if (!canListen() || listening) return
+    if (!voiceConsentGranted()) return
     setListening(true)
     const said = await listenOnce(resolved === 'de' ? 'de-DE' : 'en-GB')
     setListening(false)
@@ -200,6 +204,15 @@ export function HomePage() {
       setAsk(said)
       await submitAsk(said)
     }
+  }
+
+  const onMic = () => {
+    if (!canListen() || listening) return
+    if (voiceConsent !== 'yes' || !voiceConsentGranted()) {
+      setVoiceConsent('ask')
+      return
+    }
+    void startVoice()
   }
 
   const onRobotTap = () => {
@@ -378,13 +391,25 @@ export function HomePage() {
               )}
             </div>
           )}
+          {canListen() && voiceConsent === 'ask' && (
+            <div data-voice-consent="1">
+            <VoiceConsentAsk
+              onAllow={() => {
+                grantVoiceConsent()
+                setVoiceConsent('yes')
+                void startVoice()
+              }}
+              onCancel={() => setVoiceConsent('idle')}
+            />
+            </div>
+          )}
           <div className="flex items-center gap-2">
             {canListen() && (
               <Button
                 type="button"
                 variant="ghost"
                 size="md"
-                onClick={() => void onMic()}
+                onClick={onMic}
                 aria-label={t('assist.voice')}
                 className={cn('h-11 w-11 shrink-0 px-0', listening && 'bg-[var(--theme-accent)]/15')}
               >
