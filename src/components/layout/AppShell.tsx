@@ -11,6 +11,7 @@ import { BrandIcon, BrandMark } from '../brand/BrandMark'
 import { SkipLink } from '../a11y/SkipLink'
 import { copyrightLine } from '../../lib/legal'
 import { getPrefs, subscribePrefs } from '../../lib/prefs'
+import { recordWidgetVisit } from '../../lib/widgetUsage'
 import { touchResume } from '../../lib/resume'
 import { SchemeToggle } from '../theme/SchemeToggle'
 import { KidsBanner } from '../kids/KidsBanner'
@@ -53,6 +54,7 @@ export function AppShell() {
   useEffect(() => {
     document.title = documentTitleFor(location.pathname, t)
     touchResume(`${location.pathname}${location.hash}`, document.title)
+    recordWidgetVisit(location.pathname)
   }, [location.pathname, location.hash, t])
 
   const primaryNav = [

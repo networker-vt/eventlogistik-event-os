@@ -455,6 +455,21 @@ textarea:focus-visible,
   .orbit-robot-hero {
     animation: orbit-bob-hero 2.8s ease-in-out infinite;
   }
+  @keyframes news-ticker-rtl {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .news-ticker-track {
+    animation: news-ticker-rtl 46s linear infinite;
+  }
+  .news-ticker:hover .news-ticker-track,
+  .news-ticker:focus-within .news-ticker-track,
+  .news-ticker-static {
+    animation-play-state: paused;
+  }
+  .news-ticker-static {
+    animation: none;
+  }
   .orbit-robot-eye {
     transform-box: fill-box;
     transform-origin: center;
@@ -492,7 +507,8 @@ textarea:focus-visible,
   .stagger-in > *,
   .orbit-robot,
   .orbit-robot-hero,
-  .orbit-robot-eye {
+  .orbit-robot-eye,
+  .news-ticker-track {
     animation: none !important;
   }
   .text-shimmer {

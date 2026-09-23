@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mic, Send } from 'lucide-react'
 import { TileGrid } from '../components/ui/TileGrid'
-import { homeDiscoverTiles } from '../lib/hubTiles'
+import { splitAdaptiveHome } from '../lib/hubTiles'
 import { TripOptionCards } from '../components/assist/TripOptionCards'
 import { FuerDichCard } from '../components/home/FuerDichCard'
 import { OrbitRobot } from '../components/home/OrbitRobot'
@@ -32,6 +32,7 @@ import { rankHomeNews } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
 import { pickAdaptiveRobotAsk, robotAskCopy, type RobotAsk } from '../lib/robotAsk'
 import { dismissOrbiTour, markOrbiIntroSeen, orbiIntroSeen, orbiTourOff } from '../lib/orbiPresence'
+import { getWidgetTaps, subscribeWidgetTaps } from '../lib/widgetUsage'
 import { canListen, listenOnce } from '../lib/speech'
 import { matchSpokenTripChoice } from '../lib/trip'
 import { pickTageskarte, tageskarteCopy } from '../lib/tageskarte'
@@ -72,6 +73,8 @@ export function HomePage() {
   const [tourOn, setTourOn] = useState(false)
   const [tourStep, setTourStep] = useState(0)
   const [tourOff, setTourOff] = useState(() => orbiTourOff())
+  const [widgetTaps, setWidgetTaps] = useState(getWidgetTaps)
+  const [widgetsOpen, setWidgetsOpen] = useState(false)
   const [kids, setKids] = useState(isKidsMode)
   const [tripVoicePick, setTripVoicePick] = useState<1 | 2 | 3 | null>(null)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
@@ -91,6 +94,7 @@ export function HomePage() {
     const u7 = subscribeResume(() => setResume(getResume()))
     const u8 = subscribeReminders(() => setReminders(dueReminders()))
     const u9 = subscribeKids(() => setKids(isKidsMode()))
+    const u10 = subscribeWidgetTaps(() => setWidgetTaps(getWidgetTaps()))
     return () => {
       u1()
       u2()
@@ -101,6 +105,7 @@ export function HomePage() {
       u7()
       u8()
       u9()
+      u10()
       abortRef.current?.abort()
     }
   }, [])
@@ -111,7 +116,7 @@ export function HomePage() {
     if (!kidsMaySeeJobs()) return []
     return ranked.filter((item) => item.action !== 'look' && item.action !== 'book')
   }, [raw, prefs, behaviorTick, resolved, kids])
-  const newsItems = useMemo(() => rankHomeNews(prefs, resolved, 2), [prefs, behaviorTick, resolved])
+  const newsItems = useMemo(() => rankHomeNews(prefs, resolved, 8), [prefs, behaviorTick, resolved])
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
   const greeting = first ? `${t('home.hello')}, ${first}.` : `${t('home.hello')}.`
@@ -235,11 +240,15 @@ export function HomePage() {
     { id: 'resume', title: t('home.tileResume') },
   ]
 
-  const discover = homeDiscoverTiles(t, {
-    kids,
-    hideTravel: kidsHideTravel(),
-    hideWallet,
-  })
+  const widgets = useMemo(
+    () =>
+      splitAdaptiveHome(
+        { kids, hideTravel: kidsHideTravel(), hideWallet },
+        widgetTaps,
+        t,
+      ),
+    [kids, hideWallet, widgetTaps, t],
+  )
 
   return (
     <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome pt-6 md:pt-10">
@@ -396,7 +405,20 @@ export function HomePage() {
         <h2 id="mehr-entdecken" className="text-xs font-medium uppercase tracking-wider text-muted">
           {t('home.mehrEntdecken')}
         </h2>
-        <TileGrid tiles={discover} label={t('home.mehrEntdecken')} />
+        <TileGrid tiles={widgets.primary} label={t('home.mehrEntdecken')} />
+        {widgets.folded.length > 0 && (
+          <div className="space-y-3">
+            <button
+              type="button"
+              className="min-h-11 text-sm font-medium text-[var(--theme-accent)]"
+              aria-expanded={widgetsOpen}
+              onClick={() => setWidgetsOpen((open) => !open)}
+            >
+              {widgetsOpen ? t('home.widgetsLess') : t('home.widgetsMore')}
+            </button>
+            {widgetsOpen && <TileGrid tiles={widgets.folded} label={t('home.widgetsMore')} />}
+          </div>
+        )}
         {resume && (
           <Link
             to={resume.path}
