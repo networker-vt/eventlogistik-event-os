@@ -3,6 +3,15 @@ export const ORBI_MOTIONS = ['idle', 'winken', 'tanzen', 'arbeiten', 'rennen'] a
 
 export type OrbiMotion = (typeof ORBI_MOTIONS)[number]
 
+/** Kind ships now. Teen and Adult are named stubs until their drawings exist. */
+export const ORBI_STAGES = ['kind', 'teen', 'adult'] as const
+
+export type OrbiStage = (typeof ORBI_STAGES)[number]
+
+export function isOrbiStage(value: string | null | undefined): value is OrbiStage {
+  return !!value && (ORBI_STAGES as readonly string[]).includes(value)
+}
+
 /** Discrete tour after idle — wave, dance, work, run. */
 export const ORBI_TOUR: readonly OrbiMotion[] = ['winken', 'tanzen', 'arbeiten', 'rennen']
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ORBI_TOUR, isOrbiMotion, nextOrbiTour } from './orbiMotion'
+import { ORBI_STAGES, ORBI_TOUR, isOrbiMotion, isOrbiStage, nextOrbiTour } from './orbiMotion'
 
 describe('Orbi Kind motions', () => {
   it('tours winken, tanzen, arbeiten, and rennen', () => {
@@ -19,5 +19,12 @@ describe('Orbi Kind motions', () => {
     expect(isOrbiMotion('tanzen')).toBe(true)
     expect(isOrbiMotion('stock')).toBe(false)
     expect(isOrbiMotion(null)).toBe(false)
+  })
+
+  it('names Kind as the shipped stage and keeps Teen and Adult as stubs', () => {
+    expect(ORBI_STAGES[0]).toBe('kind')
+    expect(isOrbiStage('teen')).toBe(true)
+    expect(isOrbiStage('adult')).toBe(true)
+    expect(isOrbiStage('stock')).toBe(false)
   })
 })

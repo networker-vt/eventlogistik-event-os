@@ -3,6 +3,7 @@ import {
   isOrbiMotion,
   nextOrbiTour,
   type OrbiMotion,
+  type OrbiStage,
 } from '../../lib/orbiMotion'
 import { cn } from '../../lib/utils'
 
@@ -30,10 +31,9 @@ function pinnedPose(): OrbiMotion | null {
 }
 
 /**
- * Orbi Kind — original chibi companion.
- * White body, black visor, glowing cyan ring eyes, short antennae.
- * Inline SVG layers only (no bitmap, no backdrop). Idle breathe, plus
- * winken / tanzen / arbeiten / rennen from a gentle tour or a Home tap.
+ * Orbi Kind — original jointed chibi. Not a stock bitmap.
+ * White head and torso, gray ears and limb joints, black visor, cyan ring eyes, short antennae.
+ * Inline SVG only, no backdrop. Teen and Adult accept the stage name but still draw Kind.
  */
 export function OrbitRobot({
   className,
@@ -42,6 +42,7 @@ export function OrbitRobot({
   label,
   motion: motionProp,
   size = 'hero',
+  stage = 'kind',
 }: {
   className?: string
   tapped?: boolean
@@ -50,6 +51,8 @@ export function OrbitRobot({
   /** Controlled pose. Omit to let Orbi idle and tour on its own. */
   motion?: OrbiMotion
   size?: 'hero' | 'compact'
+  /** Kind is the only drawing. `teen` and `adult` are stubs for later proportions. */
+  stage?: OrbiStage
 }) {
   const rawId = useId().replace(/[^a-zA-Z0-9]/g, '')
   const uid = `orbi${rawId}`
@@ -109,40 +112,36 @@ export function OrbitRobot({
     }
   }, [driven])
 
-  const slot = size === 'compact' ? 'h-24 w-[5.45rem]' : 'h-32 w-[7.25rem]'
+  const slot = size === 'compact' ? 'h-28 w-[5rem]' : 'h-48 w-[8.5rem]'
 
   const svg = (
     <svg
       className={cn('orbi-kind h-full w-full overflow-visible', className)}
-      viewBox="0 0 200 220"
+      viewBox="0 -18 240 336"
       data-orbi-motion={motion}
       data-orbi-kind="1"
+      data-orbi-stage={stage}
+      data-orbi-look="kind"
       aria-hidden="true"
       focusable="false"
     >
       <defs>
-        <radialGradient id={`${uid}-body`} cx="34%" cy="28%" r="76%">
+        <radialGradient id={`${uid}-shell`} cx="32%" cy="28%" r="75%">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="40%" stopColor="#f6f8fb" />
-          <stop offset="76%" stopColor="#d3dce8" />
-          <stop offset="100%" stopColor="#a9b8c9" />
+          <stop offset="55%" stopColor="#f4f7fb" />
+          <stop offset="100%" stopColor="#d5dee8" />
         </radialGradient>
-        <radialGradient id={`${uid}-limb`} cx="30%" cy="22%" r="80%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="52%" stopColor="#e6edf5" />
-          <stop offset="100%" stopColor="#9eafc2" />
-        </radialGradient>
-        <radialGradient id={`${uid}-ball`} cx="34%" cy="30%" r="72%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#b7c4d4" />
-        </radialGradient>
-        <linearGradient id={`${uid}-stem`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#b4c2d2" />
+        <linearGradient id={`${uid}-joint`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#d5dde6" />
+          <stop offset="100%" stopColor="#8d99a8" />
         </linearGradient>
+        <radialGradient id={`${uid}-ear`} cx="35%" cy="30%" r="70%">
+          <stop offset="0%" stopColor="#e7edf3" />
+          <stop offset="100%" stopColor="#aeb8c4" />
+        </radialGradient>
         <linearGradient id={`${uid}-visor`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#1a2740" />
-          <stop offset="42%" stopColor="#070b12" />
+          <stop offset="45%" stopColor="#070b12" />
           <stop offset="100%" stopColor="#05070c" />
         </linearGradient>
         <filter id={`${uid}-glow`} x="-60%" y="-60%" width="220%" height="220%">
@@ -159,10 +158,10 @@ export function OrbitRobot({
 
       <ellipse
         className="orbi-shadow"
-        cx="100"
-        cy="206"
-        rx="36"
-        ry="6"
+        cx="120"
+        cy="302"
+        rx="50"
+        ry="7"
         fill="rgba(28, 25, 23, 0.16)"
         filter={`url(#${uid}-ground)`}
       />
@@ -170,89 +169,69 @@ export function OrbitRobot({
       <g className="orbi-float">
         <g className="orbi-rig">
           <g className="orbi-leg orbi-leg-l">
-            <rect x="73" y="158" width="22" height="40" rx="11" fill={`url(#${uid}-limb)`} stroke="#c5d0de" strokeWidth="1.1" />
+            <circle cx="96" cy="214" r="9" fill={`url(#${uid}-joint)`} />
+            <rect x="89" y="218" width="15" height="28" rx="7.5" fill={`url(#${uid}-joint)`} />
+            <circle cx="96" cy="248" r="8" fill={`url(#${uid}-joint)`} />
+            <rect x="90" y="252" width="13" height="20" rx="6.5" fill={`url(#${uid}-joint)`} />
+            <rect x="76" y="266" width="34" height="18" rx="9" fill={`url(#${uid}-shell)`} />
           </g>
           <g className="orbi-leg orbi-leg-r">
-            <rect x="105" y="158" width="22" height="40" rx="11" fill={`url(#${uid}-limb)`} stroke="#c5d0de" strokeWidth="1.1" />
+            <circle cx="144" cy="214" r="9" fill={`url(#${uid}-joint)`} />
+            <rect x="136" y="218" width="15" height="28" rx="7.5" fill={`url(#${uid}-joint)`} />
+            <circle cx="144" cy="248" r="8" fill={`url(#${uid}-joint)`} />
+            <rect x="137" y="252" width="13" height="20" rx="6.5" fill={`url(#${uid}-joint)`} />
+            <rect x="130" y="266" width="34" height="18" rx="9" fill={`url(#${uid}-shell)`} />
           </g>
 
-          <g className="orbi-body">
-            <circle cx="100" cy="108" r="60" fill={`url(#${uid}-body)`} stroke="#c5d0de" strokeWidth="1.25" />
-            <ellipse
-              cx="76"
-              cy="78"
-              rx="28"
-              ry="16"
-              fill="#ffffff"
-              opacity="0.82"
-              transform="rotate(-22 76 78)"
-            />
-            <ellipse cx="124" cy="136" rx="26" ry="16" fill="#8ea0b8" opacity="0.18" />
-          </g>
+          <ellipse cx="120" cy="186" rx="40" ry="34" fill={`url(#${uid}-shell)`} />
+          <ellipse cx="104" cy="170" rx="16" ry="10" fill="#ffffff" opacity="0.7" />
+
+          <circle cx="120" cy="102" r="52" fill={`url(#${uid}-shell)`} />
+          <ellipse cx="100" cy="78" rx="22" ry="12" fill="#ffffff" opacity="0.8" transform="rotate(-18 100 78)" />
+          <circle cx="66" cy="108" r="16" fill={`url(#${uid}-ear)`} />
+          <circle cx="174" cy="108" r="16" fill={`url(#${uid}-ear)`} />
 
           <g className="orbi-face">
-            <rect x="50" y="78" width="100" height="54" rx="27" fill={`url(#${uid}-visor)`} />
-            <ellipse cx="78" cy="94" rx="30" ry="11" fill="#ffffff" opacity="0.16" />
-            <path
-              d="M66 90 Q100 82 138 92"
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              opacity="0.22"
-            />
+            <rect x="86" y="90" width="68" height="40" rx="20" fill={`url(#${uid}-visor)`} />
+            <ellipse cx="108" cy="102" rx="18" ry="8" fill="#ffffff" opacity="0.14" />
             <g className="orbi-eyes" filter={`url(#${uid}-glow)`}>
               <g className="orbi-eye">
-                <circle cx="78" cy="104" r="14" fill="#39f0ff" opacity="0.35" />
-                <circle cx="78" cy="104" r="9.4" fill="none" stroke="#5ef6ff" strokeWidth="3.6" />
-                <circle cx="78" cy="104" r="9.4" fill="none" stroke="#f4feff" strokeWidth="1.15" />
+                <circle cx="106" cy="110" r="12" fill="#39f0ff" opacity="0.35" />
+                <circle cx="106" cy="110" r="8" fill="none" stroke="#5ef6ff" strokeWidth="3.5" />
+                <circle cx="106" cy="110" r="8" fill="none" stroke="#f4feff" strokeWidth="1.1" />
               </g>
               <g className="orbi-eye">
-                <circle cx="122" cy="104" r="14" fill="#39f0ff" opacity="0.35" />
-                <circle cx="122" cy="104" r="9.4" fill="none" stroke="#5ef6ff" strokeWidth="3.6" />
-                <circle cx="122" cy="104" r="9.4" fill="none" stroke="#f4feff" strokeWidth="1.15" />
+                <circle cx="134" cy="110" r="12" fill="#39f0ff" opacity="0.35" />
+                <circle cx="134" cy="110" r="8" fill="none" stroke="#5ef6ff" strokeWidth="3.5" />
+                <circle cx="134" cy="110" r="8" fill="none" stroke="#f4feff" strokeWidth="1.1" />
               </g>
             </g>
-            <path
-              className="orbi-smile"
-              d="M90 120 Q100 128 110 120"
-              fill="none"
-              stroke="#7af6ff"
-              strokeWidth="2.1"
-              strokeLinecap="round"
-            />
           </g>
 
           <g className="orbi-arm orbi-arm-l">
-            <rect x="14" y="98" width="32" height="52" rx="16" fill={`url(#${uid}-limb)`} stroke="#c5d0de" strokeWidth="1.1" />
-            <ellipse cx="26" cy="110" rx="9" ry="6" fill="#ffffff" opacity="0.7" />
+            <circle cx="82" cy="168" r="10" fill={`url(#${uid}-joint)`} />
+            <rect x="75" y="176" width="14" height="30" rx="7" fill={`url(#${uid}-joint)`} />
+            <circle cx="82" cy="208" r="8" fill={`url(#${uid}-joint)`} />
+            <rect x="70" y="212" width="22" height="28" rx="11" fill={`url(#${uid}-shell)`} />
           </g>
           <g className="orbi-arm orbi-arm-r">
-            <rect x="154" y="98" width="32" height="52" rx="16" fill={`url(#${uid}-limb)`} stroke="#c5d0de" strokeWidth="1.1" />
-            <ellipse cx="174" cy="110" rx="9" ry="6" fill="#ffffff" opacity="0.55" />
+            <circle cx="158" cy="168" r="10" fill={`url(#${uid}-joint)`} />
+            <rect x="151" y="176" width="14" height="30" rx="7" fill={`url(#${uid}-joint)`} />
+            <circle cx="158" cy="208" r="8" fill={`url(#${uid}-joint)`} />
+            <rect x="148" y="212" width="22" height="28" rx="11" fill={`url(#${uid}-shell)`} />
           </g>
 
           <g className="orbi-antenna orbi-antenna-l">
-            <path
-              d="M84 54 C78 40 72 32 66 24"
-              fill="none"
-              stroke={`url(#${uid}-stem)`}
-              strokeWidth="4.2"
-              strokeLinecap="round"
-            />
-            <circle cx="64" cy="20" r="8.2" fill={`url(#${uid}-ball)`} stroke="#c5d0de" strokeWidth="0.8" />
-            <circle cx="61" cy="17" r="2.4" fill="#ffffff" opacity="0.9" />
+            <path d="M104 58 C98 44 90 34 82 26" fill="none" stroke="#c5ced8" strokeWidth="4" strokeLinecap="round" />
+            <circle cx="78" cy="22" r="6" fill={`url(#${uid}-ear)`} />
+            <path d="M74 16 C68 8 62 2 56 -2" fill="none" stroke="#c5ced8" strokeWidth="3.4" strokeLinecap="round" />
+            <circle cx="52" cy="-6" r="7" fill={`url(#${uid}-ear)`} />
           </g>
           <g className="orbi-antenna orbi-antenna-r">
-            <path
-              d="M116 54 C122 40 128 32 134 24"
-              fill="none"
-              stroke={`url(#${uid}-stem)`}
-              strokeWidth="4.2"
-              strokeLinecap="round"
-            />
-            <circle cx="136" cy="20" r="8.2" fill={`url(#${uid}-ball)`} stroke="#c5d0de" strokeWidth="0.8" />
-            <circle cx="133" cy="17" r="2.4" fill="#ffffff" opacity="0.9" />
+            <path d="M136 58 C142 44 150 34 158 26" fill="none" stroke="#c5ced8" strokeWidth="4" strokeLinecap="round" />
+            <circle cx="162" cy="22" r="6" fill={`url(#${uid}-ear)`} />
+            <path d="M166 16 C172 8 178 2 184 -2" fill="none" stroke="#c5ced8" strokeWidth="3.4" strokeLinecap="round" />
+            <circle cx="188" cy="-6" r="7" fill={`url(#${uid}-ear)`} />
           </g>
         </g>
       </g>

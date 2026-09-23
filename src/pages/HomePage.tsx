@@ -218,16 +218,17 @@ export function HomePage() {
           <p className="text-xs font-medium uppercase tracking-wider text-muted">
             Orbit{isDemo ? ` · ${t('home.demoBadge')}` : ''}
           </p>
-          <div className="mt-2 flex items-center gap-3" data-orbi-primary="1">
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink md:text-[2rem]">{greeting}</h1>
+          <p className="mt-1 max-w-sm text-sm text-muted">{t('home.need')}</p>
+          <div className="flex flex-col items-center px-2 pt-2 text-center" data-orbi-primary="1">
             <OrbitRobot
               tapped={robotTapped}
               onTap={onRobotTap}
               label={t('home.robotAria')}
+              stage="kind"
             />
-            <div className="min-w-0">
-              <h1 className="text-3xl font-bold tracking-tight text-ink md:text-[2rem]">{greeting}</h1>
-              <p className="mt-1 max-w-sm text-sm text-muted">{t('home.need')}</p>
-            </div>
+            <p className="mt-1 text-sm font-semibold text-ink">{t('home.orbiKind')}</p>
+            <p className="text-xs text-muted">{t('home.orbiTap')}</p>
           </div>
         </div>
 

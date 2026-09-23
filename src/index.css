@@ -460,16 +460,16 @@ textarea:focus-visible,
     transform-origin: 50% 50%;
     animation: orbi-blink 5.2s ease-in-out infinite;
   }
-  .orbi-kind .orbi-arm-l {
-    transform-origin: 92% 14%;
-    transform: rotate(-8deg);
+  .orbi-kind .orbi-arm-l,
+  .orbi-kind .orbi-arm-r,
+  .orbi-kind .orbi-leg {
+    transform-origin: 50% 12%;
   }
-  .orbi-kind .orbi-arm-r {
-    transform-origin: 8% 14%;
+  .orbi-kind .orbi-arm-l {
     transform: rotate(8deg);
   }
-  .orbi-kind .orbi-leg {
-    transform-origin: 50% 6%;
+  .orbi-kind .orbi-arm-r {
+    transform: rotate(-8deg);
   }
   .orbi-kind .orbi-antenna {
     transform-origin: 50% 100%;
@@ -505,13 +505,13 @@ textarea:focus-visible,
     50% { transform: rotate(-5deg); }
   }
   @keyframes orbi-winken-arm {
-    0% { transform: rotate(12deg); }
+    0% { transform: rotate(-8deg); }
     14% { transform: rotate(-158deg); }
     32% { transform: rotate(-128deg); }
     50% { transform: rotate(-164deg); }
     68% { transform: rotate(-132deg); }
     86% { transform: rotate(-156deg); }
-    100% { transform: rotate(12deg); }
+    100% { transform: rotate(-8deg); }
   }
   @keyframes orbi-winken-tilt {
     0%, 100% { transform: rotate(0deg); }
@@ -522,12 +522,12 @@ textarea:focus-visible,
     50% { transform: translateY(-8px) rotate(7deg); }
   }
   @keyframes orbi-dance-arm-l {
-    0%, 100% { transform: rotate(-8deg); }
-    50% { transform: rotate(-72deg); }
+    0%, 100% { transform: rotate(8deg); }
+    50% { transform: rotate(132deg); }
   }
   @keyframes orbi-dance-arm-r {
-    0%, 100% { transform: rotate(8deg); }
-    50% { transform: rotate(72deg); }
+    0%, 100% { transform: rotate(-8deg); }
+    50% { transform: rotate(-132deg); }
   }
   @keyframes orbi-dance-leg-l {
     0%, 100% { transform: rotate(10deg); }
@@ -542,12 +542,12 @@ textarea:focus-visible,
     50% { transform: rotate(7deg) translateY(2px); }
   }
   @keyframes orbi-work-arm-l {
-    0%, 100% { transform: rotate(18deg); }
-    50% { transform: rotate(34deg); }
+    0%, 100% { transform: rotate(-12deg); }
+    50% { transform: rotate(-36deg); }
   }
   @keyframes orbi-work-arm-r {
-    0%, 100% { transform: rotate(-34deg); }
-    50% { transform: rotate(-18deg); }
+    0%, 100% { transform: rotate(12deg); }
+    50% { transform: rotate(36deg); }
   }
   @keyframes orbi-work-eyes {
     0%, 100% { transform: translateY(2px) scaleY(0.92); }
@@ -558,12 +558,12 @@ textarea:focus-visible,
     50% { transform: translateY(-7px) rotate(9deg); }
   }
   @keyframes orbi-run-arm-l {
-    0%, 100% { transform: rotate(28deg); }
-    50% { transform: rotate(-36deg); }
+    0%, 100% { transform: rotate(42deg); }
+    50% { transform: rotate(-28deg); }
   }
   @keyframes orbi-run-arm-r {
-    0%, 100% { transform: rotate(-28deg); }
-    50% { transform: rotate(36deg); }
+    0%, 100% { transform: rotate(-42deg); }
+    50% { transform: rotate(28deg); }
   }
   @keyframes orbi-run-leg-l {
     0%, 100% { transform: rotate(24deg); }
