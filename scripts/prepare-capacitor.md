@@ -6,7 +6,7 @@
 
 GitHub Pages bleibt `base: /eventlogistik-event-os/` (`npm run build`, `npm run deploy:pages`).
 
-**Blocker:** Ohne **Apple Developer**-Account von Mirco Küßner kann niemand nach TestFlight hochladen. Dieses Repo enthält keine Secrets, Zertifikate oder Store-Binaries.
+**Blocker:** Ohne **Apple Developer**-Account von Mirco Küßner kann niemand nach TestFlight hochladen. Dieses Repo enthält keine Secrets, Zertifikate oder Store-Binaries. Upload ohne Mac: GitHub Actions, siehe [`docs/TESTFLIGHT.md`](../docs/TESTFLIGHT.md).
 
 ## 0. Accounts (muss der Operator anlegen)
 
@@ -99,6 +99,6 @@ Ohne diese URLs lehnen beide Stores die Einreichung ab.
 
 ## 7. Was dieses Repo nicht tun kann
 
-- Kein Apple-Login des Operators, keine Zertifikate
-- Kein Upload nach TestFlight (dafür `docs/TESTFLIGHT.md` auf einem Mac)
+- Kein Apple-Login des Operators, keine Zertifikate im Repo
+- TestFlight-Upload läuft über GitHub Actions (macOS-Runner), sobald die Secrets aus `docs/TESTFLIGHT.md` gesetzt sind. Ein lokaler Mac ist dafür nicht nötig.
 - Kein Play-Store-Projekt

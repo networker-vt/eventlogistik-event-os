@@ -1,0 +1,5 @@
+# TestFlight lane only. GitHub Pages does not use Ruby.
+# Pinned so CI does not float. No Gemfile.lock: resolve native gems on the macOS runner.
+source "https://rubygems.org"
+
+gem "fastlane", "2.240.1"

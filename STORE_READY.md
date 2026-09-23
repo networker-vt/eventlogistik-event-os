@@ -78,16 +78,16 @@ Stores akzeptieren keine Platzhalter. Benötigt:
 - [ ] Play: Datensicherheit + Zielgruppe
 - [ ] Apple: Privacy Nutrition Label + Alter
 - [ ] **Apple Developer des Operators** (Play Console erst, wenn Android drankommt)
-- [x] Capacitor-iOS-Projekt unter `ios/` — Archivieren und Hochladen macht der Operator
+- [x] Capacitor-iOS-Projekt unter `ios/` — Archivieren und Hochladen macht der Operator (GitHub Actions → iOS TestFlight, siehe `docs/TESTFLIGHT.md`)
 - [ ] Keine Fake-„Submitted“-Statusmeldungen
 
 ## Was noch nicht Store-fertig ist
 
-- iOS-Scaffold liegt im Repo; signiertes IPA / TestFlight-Upload nicht
+- iOS-Scaffold und der TestFlight-Workflow liegen im Repo. Ein signiertes IPA entsteht erst, wenn der Operator den Workflow mit seinen Secrets startet. **Noch nichts eingereicht.**
 - Kein Android-Projekt
 - Keine Push-Notifications
 - Keine echten Zahlungen (Wallet = Demo bis Stripe/PayPal/Banking-KYC)
 - Operator ist Privatperson — Store-Publisher-Identität muss zum Impressum passen
 - Credits sind **kein** fertiges IAP-Produkt
 
-PWA = heute installierbar. iOS-Shell = `docs/TESTFLIGHT.md`, Upload nur mit Mircos Apple-Account. **Wir haben nichts eingereicht.** Play bleibt offen.
+PWA = heute installierbar. iOS-Shell und der Actions-Upload = `docs/TESTFLIGHT.md`, nur mit Mircos Apple-Account. **Wir haben nichts eingereicht.** Play bleibt offen.
