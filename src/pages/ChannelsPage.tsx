@@ -14,8 +14,8 @@ const COMMUNITY = [
   },
   {
     id: 'match',
-    title: 'Jobs & Match',
-    hint: 'Suchen, anbieten, Mutuals',
+    title: 'Match',
+    hint: 'Angebote und Gesuche über den Marktplatz',
     icon: Briefcase,
     to: '/match',
   },
