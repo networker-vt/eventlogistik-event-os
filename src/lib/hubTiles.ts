@@ -159,7 +159,7 @@ const ADAPTIVE_ORDER: WidgetArea[] = [
   'jobs',
 ]
 
-/** Loud Home discover tiles under „Mehr entdecken“. Never a 7-tile grid next to Assist. */
+/** At most three quiet Home links under „Mehr entdecken“. Home does not render the loud TileGrid. */
 export const HOME_PRIMARY_COUNT = 3
 
 export function splitAdaptiveHome(

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mic, Send } from 'lucide-react'
-import { TileGrid } from '../components/ui/TileGrid'
 import { HOME_PRIMARY_COUNT, splitAdaptiveHome } from '../lib/hubTiles'
 import { TripOptionCards } from '../components/assist/TripOptionCards'
 import { OrbitRobot } from '../components/home/OrbitRobot'
@@ -454,10 +453,27 @@ export function HomePage() {
             {t('home.mehrEntdecken')}
           </h2>
           <NewsStrip items={newsItems} />
-          <TileGrid
-            tiles={widgets.primary.slice(0, HOME_PRIMARY_COUNT)}
-            label={t('home.mehrEntdecken')}
-          />
+          <ul
+            aria-label={t('home.mehrEntdecken')}
+            data-home-discover={Math.min(widgets.primary.length, HOME_PRIMARY_COUNT)}
+            className="space-y-0.5"
+          >
+            {widgets.primary.slice(0, HOME_PRIMARY_COUNT).map((tile) => (
+              <li key={tile.id ?? tile.to}>
+                <Link
+                  to={tile.to}
+                  data-tile-id={tile.id}
+                  className="inline-flex min-h-11 items-center gap-2 text-sm text-muted hover:text-ink"
+                >
+                  <span aria-hidden>{tile.emoji}</span>
+                  <span>{tile.label}</span>
+                  {tile.demo && (
+                    <span className="text-[9px] font-medium uppercase tracking-wide">{t('home.demoBadge')}</span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
           {widgets.folded.length > 0 && (
             <Link to="/mehr" className="inline-flex min-h-11 items-center text-sm text-muted hover:text-ink">
               {t('home.widgetsMore')}
