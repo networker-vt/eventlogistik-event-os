@@ -27,3 +27,14 @@ dist-ssr
 .env.local
 dist
 eventlogistik-event-os-web.zip
+orbit-web.zip
+
+# Capacitor iOS — commit the Xcode project; ignore machine/build output
+ios/App/Pods/
+ios/App/build/
+ios/App/output/
+ios/App/App/public/
+ios/DerivedData/
+DerivedData/
+**/*.xcuserstate
+**/xcuserdata/

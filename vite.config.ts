@@ -4,7 +4,26 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
 
-const BASE = '/eventlogistik-event-os/'
+/** GitHub Pages path. Do not change the default — `deploy:pages` depends on it. */
+const PAGES_BASE = '/eventlogistik-event-os/'
+
+/**
+ * Shell env only (not `.env`).
+ * `CAPACITOR=1` or `VITE_BASE=/` → native shell.
+ * Unset → Pages base.
+ */
+function resolveBase(): string {
+  const fromEnv = process.env.VITE_BASE?.trim()
+  if (fromEnv) {
+    if (fromEnv === '/') return '/'
+    const withLead = fromEnv.startsWith('/') ? fromEnv : `/${fromEnv}`
+    return withLead.endsWith('/') ? withLead : `${withLead}/`
+  }
+  if (process.env.CAPACITOR === '1') return '/'
+  return PAGES_BASE
+}
+
+const BASE = resolveBase()
 
 export default defineConfig({
   base: BASE,

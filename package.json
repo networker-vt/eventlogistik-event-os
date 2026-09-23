@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:ios": "CAPACITOR=1 tsc -b && CAPACITOR=1 vite build",
+    "cap:sync": "npm run build:ios && npx cap sync ios",
     "lint": "oxlint",
     "test": "vitest run",
     "preview": "vite preview",
@@ -13,6 +15,11 @@
     "build:zip": "npm run build && cp dist/index.html dist/404.html && cd dist && zip -r ../orbit-web.zip ."
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3",
     "@supabase/supabase-js": "^2.116.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
@@ -22,6 +29,8 @@
     "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

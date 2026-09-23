@@ -114,4 +114,4 @@ Store-URLs (Pages-Basis `/eventlogistik-event-os/`):
 
 ## Stores
 
-Siehe `STORE_READY.md` und `scripts/prepare-capacitor.md`. Einreichung nur mit Apple- und Google-Konten des Operators.
+iOS/TestFlight: `docs/TESTFLIGHT.md` (Bundle `app.orbit.companion`). Siehe auch `STORE_READY.md`. Kein Play-Projekt in diesem Repo. Einreichung nur mit dem Apple-Konto des Operators.
