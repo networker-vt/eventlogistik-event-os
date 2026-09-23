@@ -100,6 +100,17 @@ describe('Adaptive Orbi prompt', () => {
     expect(isKabineAsk(kid.item)).toBe(false)
   })
 
+  it('keeps dating and social asks off Home', () => {
+    const social = pickAdaptiveRobotAsk({
+      interests: ['social'],
+      recentText: 'Leute treffen heute Abend',
+      now: new Date('2026-09-17T19:40:00+02:00'),
+    })
+    expect(social.via).toBe('time')
+    expect(social.item.kind).not.toBe('social')
+    expect(social.item.to.startsWith('/social')).toBe(false)
+  })
+
   it('falls back to the time-of-day question when nothing is known', () => {
     const morning = pickAdaptiveRobotAsk({ now: new Date('2026-09-17T07:30:00+02:00') })
     expect(morning.via).toBe('time')

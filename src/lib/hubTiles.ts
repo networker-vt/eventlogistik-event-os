@@ -159,7 +159,7 @@ const ADAPTIVE_ORDER: WidgetArea[] = [
   'jobs',
 ]
 
-export const HOME_PRIMARY_COUNT = 7
+export const HOME_PRIMARY_COUNT = 3
 
 export function splitAdaptiveHome(
   ctx: HubCtx,

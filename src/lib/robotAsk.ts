@@ -250,10 +250,11 @@ export function pickAdaptiveRobotAsk(
     const picked = pickRobotAsk(now, { kids: true })
     return { ...picked, via: 'time' }
   }
+  const allow = (id: string) => id !== 'social' && Boolean(ADAPTIVE_ASKS[id])
   const usageHits = opts?.recentText
-    ? parseMarketplaceIntent(opts.recentText).interests.filter((id) => ADAPTIVE_ASKS[id])
+    ? parseMarketplaceIntent(opts.recentText).interests.filter(allow)
     : []
-  const prefHits = (opts?.interests ?? []).filter((id) => ADAPTIVE_ASKS[id])
+  const prefHits = (opts?.interests ?? []).filter(allow)
   let via: AdaptiveVia = 'time'
   let id: string | undefined
   if (usageHits.length) {

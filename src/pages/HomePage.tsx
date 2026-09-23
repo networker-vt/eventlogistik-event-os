@@ -4,27 +4,23 @@ import { Mic, Send } from 'lucide-react'
 import { TileGrid } from '../components/ui/TileGrid'
 import { splitAdaptiveHome } from '../lib/hubTiles'
 import { TripOptionCards } from '../components/assist/TripOptionCards'
-import { FuerDichCard } from '../components/home/FuerDichCard'
 import { OrbitRobot } from '../components/home/OrbitRobot'
 import { OrbiPresence } from '../components/home/OrbiPresence'
 import { Tageskarte } from '../components/home/Tageskarte'
 import { Button } from '../components/ui/Button'
-import { Empty } from '../components/ui/Empty'
-import { useListings, useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
-import {
-  buildAssistPlan,
-  getLastPlan,
-  subscribeAssist,
-  type AssistPlan,
-} from '../lib/assist'
+import { buildAssistPlan, getLastPlan, subscribeAssist, type AssistPlan } from '../lib/assist'
 import { getCompany, subscribeCompany } from '../lib/company'
-import { isCompanySide, getPrefs, savePrefs, subscribePrefs, type PrefsSide } from '../lib/prefs'
+import { isCompanySide, getPrefs, subscribePrefs } from '../lib/prefs'
 import { getBehavior, subscribeBehavior } from '../lib/behavior'
 import { subscribeChannels } from '../lib/channels'
-import { rankFuerDich } from '../lib/fuerDich'
 import { NewsStrip } from '../components/home/NewsStrip'
-import { consumeAssistTurn, formatSupplyLine, getCredits, getSignupIdentity, subscribeCredits } from '../lib/credits'
+import {
+  ASSIST_PRO_BURNS,
+  consumeAssistTurn,
+  spendProAssist,
+  type AssistProBurn,
+} from '../lib/credits'
 import { isDemo } from '../lib/flags'
 import { getResume, subscribeResume } from '../lib/resume'
 import { dueReminders, subscribeReminders, tapReminder } from '../lib/reminders'
@@ -35,38 +31,30 @@ import { dismissOrbiTour, markOrbiIntroSeen, orbiIntroSeen, orbiTourOff } from '
 import { getWidgetTaps, subscribeWidgetTaps } from '../lib/widgetUsage'
 import { canListen, listenOnce } from '../lib/speech'
 import { matchSpokenTripChoice } from '../lib/trip'
-import { pickTageskarte, tageskarteCopy } from '../lib/tageskarte'
+import { pickTageskarte } from '../lib/tageskarte'
 import { cn } from '../lib/utils'
-import {
-  isKidsMode,
-  kidsHideTravel,
-  kidsHideWallet,
-  kidsMaySeeJobs,
-  subscribeKids,
-} from '../lib/kids'
-
-type WarmChip = 'seek' | 'offer' | 'resume'
+import { isKidsMode, kidsHideTravel, kidsHideWallet, subscribeKids } from '../lib/kids'
 
 export function HomePage() {
-  useStoreVersion()
   const { t, resolved } = useI18n()
   const { user } = useAuth()
   const navigate = useNavigate()
   const askRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const pendingAsk = useRef('')
+  const sentinelRef = useRef<HTMLDivElement>(null)
   const [prefs, setPrefs] = useState(getPrefs)
   const [company, setCompany] = useState(getCompany)
   const [behaviorTick, setBehaviorTick] = useState(0)
-  const [credits, setCredits] = useState(getCredits)
   const [plan, setPlan] = useState<AssistPlan | null>(getLastPlan)
   const [ask, setAsk] = useState('')
   const [busy, setBusy] = useState(false)
   const [listening, setListening] = useState(false)
-  const [warm, setWarm] = useState<WarmChip>('seek')
-  const [pendingSide, setPendingSide] = useState<PrefsSide | null>(null)
   const [resume, setResume] = useState(getResume)
   const [reminders, setReminders] = useState(dueReminders)
   const [assistNote, setAssistNote] = useState<string | null>(null)
+  const [proOpen, setProOpen] = useState(false)
+  const [proShort, setProShort] = useState(false)
   const [robotTapped, setRobotTapped] = useState(false)
   const [robotAsk, setRobotAsk] = useState<RobotAsk | null>(null)
   const [orbiIntro, setOrbiIntro] = useState(() => !orbiIntroSeen())
@@ -75,26 +63,24 @@ export function HomePage() {
   const [tourOff, setTourOff] = useState(() => orbiTourOff())
   const [widgetTaps, setWidgetTaps] = useState(getWidgetTaps)
   const [widgetsOpen, setWidgetsOpen] = useState(false)
+  const [secondaryOn, setSecondaryOn] = useState(false)
   const [kids, setKids] = useState(isKidsMode)
   const [tripVoicePick, setTripVoicePick] = useState<1 | 2 | 3 | null>(null)
   const companyView = isCompanySide(prefs.side) && prefs.side !== 'both'
-  const { listings: raw } = useListings({})
   const daily = useMemo(() => pickTageskarte(new Date(), { kids }), [kids])
-  const dailyCopy = tageskarteCopy(daily.item, resolved)
   const robotCopy = robotAsk ? robotAskCopy(robotAsk, resolved) : null
   const hideWallet = kidsHideWallet()
 
   useEffect(() => {
     const u1 = subscribePrefs(() => setPrefs(getPrefs()))
     const u2 = subscribeBehavior(() => setBehaviorTick((n) => n + 1))
-    const u3 = subscribeCredits(() => setCredits(getCredits()))
-    const u4 = subscribeCompany(() => setCompany(getCompany()))
-    const u5 = subscribeAssist(() => setPlan(getLastPlan()))
-    const u6 = subscribeChannels(() => setBehaviorTick((n) => n + 1))
-    const u7 = subscribeResume(() => setResume(getResume()))
-    const u8 = subscribeReminders(() => setReminders(dueReminders()))
-    const u9 = subscribeKids(() => setKids(isKidsMode()))
-    const u10 = subscribeWidgetTaps(() => setWidgetTaps(getWidgetTaps()))
+    const u3 = subscribeCompany(() => setCompany(getCompany()))
+    const u4 = subscribeAssist(() => setPlan(getLastPlan()))
+    const u5 = subscribeChannels(() => setBehaviorTick((n) => n + 1))
+    const u6 = subscribeResume(() => setResume(getResume()))
+    const u7 = subscribeReminders(() => setReminders(dueReminders()))
+    const u8 = subscribeKids(() => setKids(isKidsMode()))
+    const u9 = subscribeWidgetTaps(() => setWidgetTaps(getWidgetTaps()))
     return () => {
       u1()
       u2()
@@ -105,47 +91,43 @@ export function HomePage() {
       u7()
       u8()
       u9()
-      u10()
       abortRef.current?.abort()
     }
   }, [])
 
-  const fuerDich = useMemo(() => {
-    const ranked = rankFuerDich(raw, prefs, resolved, 8)
-    if (!kids) return ranked
-    if (!kidsMaySeeJobs()) return []
-    return ranked.filter((item) => item.action !== 'look' && item.action !== 'book')
-  }, [raw, prefs, behaviorTick, resolved, kids])
-  const newsItems = useMemo(() => rankHomeNews(prefs, resolved, 8), [prefs, behaviorTick, resolved])
+  useEffect(() => {
+    if (secondaryOn) return
+    const node = sentinelRef.current
+    if (!node || typeof IntersectionObserver === 'undefined') return
+    let observer: IntersectionObserver | null = null
+    const arm = () => {
+      if (observer) return
+      observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) setSecondaryOn(true)
+      })
+      observer.observe(node)
+    }
+    window.addEventListener('scroll', arm, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', arm)
+      observer?.disconnect()
+    }
+  }, [secondaryOn])
+
+  const newsItems = useMemo(
+    () => (secondaryOn ? rankHomeNews(prefs, resolved, 8) : []),
+    [secondaryOn, prefs, behaviorTick, resolved],
+  )
+  const widgets = useMemo(
+    () =>
+      secondaryOn
+        ? splitAdaptiveHome({ kids, hideTravel: kidsHideTravel(), hideWallet }, widgetTaps, t)
+        : { primary: [], folded: [] },
+    [secondaryOn, kids, hideWallet, widgetTaps, t],
+  )
 
   const first = companyView && company.firmName ? company.firmName : user?.name.split(' ')[0]
   const greeting = first ? `${t('home.hello')}, ${first}.` : `${t('home.hello')}.`
-  const stems: Record<WarmChip, string> = {
-    seek: t('home.stemSeek'),
-    offer: t('home.stemOffer'),
-    resume: resume ? `${t('home.stemResume')}${resume.title}` : t('home.stemThink'),
-  }
-  const placeholder =
-    warm === 'offer' ? t('home.phOffer') : warm === 'resume' ? t('home.phResume') : companyView ? t('assist.phCompany') : t('home.phSeek')
-
-  const pickWarm = (id: WarmChip) => {
-    setWarm(id)
-    setPendingSide(id === 'seek' ? 'seeker' : id === 'offer' ? 'employer' : null)
-    setAsk((prev) => {
-      const trimmed = prev.trim()
-      const wasStem = (Object.values(stems) as string[]).some(
-        (s) => !trimmed || trimmed === s.trim() || prev === s,
-      )
-      return wasStem ? stems[id] : prev
-    })
-    window.requestAnimationFrame(() => {
-      const el = askRef.current
-      if (!el) return
-      el.focus()
-      const len = el.value.length
-      el.setSelectionRange(len, len)
-    })
-  }
 
   const fillPrompt = (prompt: string) => {
     setAsk(prompt)
@@ -158,8 +140,21 @@ export function HomePage() {
     })
   }
 
+  const runPlan = async (q: string) => {
+    abortRef.current?.abort()
+    const ac = new AbortController()
+    abortRef.current = ac
+    setBusy(true)
+    try {
+      const next = await buildAssistPlan(q, resolved, ac.signal)
+      if (next) setPlan(next)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const submitAsk = async (text: string) => {
-    const q = text.trim() || dailyCopy.prompt
+    const q = text.trim()
     if (!q || busy) return
     const spokenPick = plan?.tripOptions?.length ? matchSpokenTripChoice(q) : null
     if (spokenPick) {
@@ -172,24 +167,29 @@ export function HomePage() {
     }
     const gate = await consumeAssistTurn()
     if (gate === 'need_credits') {
+      pendingAsk.current = q
+      setProOpen(true)
+      setProShort(false)
       setAssistNote(t('home.assistNeedCredits'))
       return
     }
-    if (gate === 'paid') setAssistNote(t('home.assistPaid'))
-    else setAssistNote(null)
-    abortRef.current?.abort()
-    const ac = new AbortController()
-    abortRef.current = ac
-    setBusy(true)
-    try {
-      const next = await buildAssistPlan(q, resolved, ac.signal)
-      if (next) {
-        setPlan(next)
-        if (pendingSide) savePrefs({ side: pendingSide })
-      }
-    } finally {
-      setBusy(false)
+    setProOpen(false)
+    setAssistNote(null)
+    await runPlan(q)
+  }
+
+  const confirmPro = async (burn: AssistProBurn) => {
+    const q = (pendingAsk.current || ask).trim()
+    if (!q || busy || kids) return
+    const paid = await spendProAssist(burn)
+    if (!paid) {
+      setProShort(true)
+      return
     }
+    setProShort(false)
+    setProOpen(false)
+    setAssistNote(t('home.assistPaid'))
+    await runPlan(q)
   }
 
   const onMic = async () => {
@@ -216,11 +216,15 @@ export function HomePage() {
     const recent = getBehavior().events.find((event) => event.query)?.query
     const next = pickAdaptiveRobotAsk({
       kids,
-      interests: prefs.interests,
+      interests: prefs.interests.filter((id) => id !== 'social'),
       recentText: recent,
     })
+    const safe =
+      next.item.kind === 'social' || next.item.to.startsWith('/social')
+        ? pickAdaptiveRobotAsk({ kids }).item
+        : next.item
     setTourOn(false)
-    setRobotAsk(next.item)
+    setRobotAsk(safe)
   }
 
   const dismissIntro = () => {
@@ -234,22 +238,6 @@ export function HomePage() {
     setTourOn(false)
   }
 
-  const chips: { id: WarmChip; title: string }[] = [
-    { id: 'seek', title: t('home.tileSeek') },
-    { id: 'offer', title: t('home.tileOffer') },
-    { id: 'resume', title: t('home.tileResume') },
-  ]
-
-  const widgets = useMemo(
-    () =>
-      splitAdaptiveHome(
-        { kids, hideTravel: kidsHideTravel(), hideWallet },
-        widgetTaps,
-        t,
-      ),
-    [kids, hideWallet, widgetTaps, t],
-  )
-
   return (
     <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome pt-6 md:pt-10">
       <header className="space-y-4">
@@ -257,7 +245,11 @@ export function HomePage() {
           <p className="text-xs font-medium uppercase tracking-wider text-muted">
             Orbit{isDemo ? ` · ${t('home.demoBadge')}` : ''}
           </p>
-          <div className="mt-3 flex flex-col items-center gap-4 text-center md:flex-row md:items-center md:text-left" data-orbi-hero="1">
+          <div
+            className="mt-3 flex flex-col items-center gap-4 text-center md:flex-row md:items-center md:text-left"
+            data-orbi-hero="1"
+            data-orbi-primary="1"
+          >
             <div className="flex flex-col items-center gap-1">
               <div className="grid h-36 w-36 place-items-center rounded-full bg-[var(--theme-accent)]/12 ring-1 ring-[var(--theme-accent)]/30">
                 <OrbitRobot
@@ -335,22 +327,6 @@ export function HomePage() {
           </p>
         )}
 
-        <nav aria-label={t('home.chipsAria')} className="flex flex-wrap gap-2">
-          {chips
-            .filter((chip) => !(kids && chip.id === 'offer'))
-            .map((chip) => (
-            <Button
-              key={chip.id}
-              type="button"
-              size="sm"
-              variant={warm === chip.id ? 'tonal' : 'secondary'}
-              onClick={() => pickWarm(chip.id)}
-            >
-              {chip.title}
-            </Button>
-          ))}
-        </nav>
-
         <form
           className="space-y-2"
           onSubmit={(e) => {
@@ -359,22 +335,55 @@ export function HomePage() {
           }}
         >
           <label className="block">
-            <span className="sr-only">{placeholder}</span>
+            <span className="sr-only">{t('home.phSeek')}</span>
             <textarea
               ref={askRef}
               value={ask}
               onChange={(e) => setAsk(e.target.value)}
               rows={2}
-              placeholder={placeholder}
+              placeholder={t('home.phSeek')}
               className="w-full resize-none rounded-2xl border border-border bg-surface-2 px-3 py-3 text-base text-ink placeholder:text-muted outline-none focus:border-[var(--theme-accent)]/50"
             />
           </label>
           {assistNote && <p className="text-[11px] text-amber-200">{assistNote}</p>}
+          {proOpen && !kids && (
+            <div
+              className="rounded-2xl border border-violet-400/40 bg-surface-2 p-4"
+              data-pro-assist="1"
+              role="group"
+              aria-label={t('assist.proTitle')}
+            >
+              <p className="text-sm font-semibold text-ink">{t('assist.proTitle')}</p>
+              <p className="mt-1 text-xs text-muted">{t('assist.proHint')}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {ASSIST_PRO_BURNS.map((burn) => (
+                  <Button
+                    key={burn}
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => void confirmPro(burn)}
+                  >
+                    {burn}
+                  </Button>
+                ))}
+              </div>
+              {proShort && (
+                <p className="mt-3 text-xs text-muted">
+                  {t('assist.proShort')}{' '}
+                  <Link to="/mein" className="text-[var(--theme-accent)] hover:underline">
+                    {t('assist.proMein')}
+                  </Link>
+                </p>
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-2">
             {canListen() && (
               <Button
                 type="button"
-                variant="secondary"
+                variant="ghost"
                 size="md"
                 onClick={() => void onMic()}
                 aria-label={t('assist.voice')}
@@ -383,80 +392,65 @@ export function HomePage() {
                 <Mic size={18} />
               </Button>
             )}
-            <Button type="submit" className="flex-1" disabled={busy} data-home-primary="1">
+            <Button type="submit" variant="ghost" className="flex-1" disabled={busy || !ask.trim()}>
               {busy ? t('assist.thinking') : t('assist.submit')} <Send size={16} />
             </Button>
           </div>
         </form>
       </header>
 
-      <div className={plan ? 'assist-result space-y-6' : undefined} data-assist-result={plan ? '1' : undefined}>
-        <Tageskarte item={daily.item} slot={daily.slot} plan={plan} onUsePrompt={fillPrompt} />
-        {plan?.tripOptions && plan.tripOptions.length > 0 && (
-          <TripOptionCards
-            options={plan.tripOptions}
-            pendingVoice={tripVoicePick}
-            onConsumedVoice={() => setTripVoicePick(null)}
-          />
-        )}
-      </div>
+      {plan && (
+        <div className="assist-result space-y-6" data-assist-result="1">
+          <Tageskarte item={daily.item} slot={daily.slot} plan={plan} onUsePrompt={fillPrompt} />
+          {plan.tripOptions && plan.tripOptions.length > 0 && (
+            <TripOptionCards
+              options={plan.tripOptions}
+              pendingVoice={tripVoicePick}
+              onConsumedVoice={() => setTripVoicePick(null)}
+            />
+          )}
+        </div>
+      )}
 
-      <section className="space-y-3 pt-2" aria-labelledby="mehr-entdecken">
-        <h2 id="mehr-entdecken" className="text-xs font-medium uppercase tracking-wider text-muted">
-          {t('home.mehrEntdecken')}
-        </h2>
-        <TileGrid tiles={widgets.primary} label={t('home.mehrEntdecken')} />
-        {widgets.folded.length > 0 && (
-          <div className="space-y-3">
-            <button
-              type="button"
-              className="min-h-11 text-sm font-medium text-[var(--theme-accent)]"
-              aria-expanded={widgetsOpen}
-              onClick={() => setWidgetsOpen((open) => !open)}
-            >
-              {widgetsOpen ? t('home.widgetsLess') : t('home.widgetsMore')}
-            </button>
-            {widgetsOpen && <TileGrid tiles={widgets.folded} label={t('home.widgetsMore')} />}
-          </div>
-        )}
-        {resume && (
-          <Link
-            to={resume.path}
-            className="inline-flex min-h-11 items-center text-sm text-ink-soft hover:text-ink"
-          >
-            {t('home.tileResume')}: {resume.title}
-          </Link>
-        )}
+      <div ref={sentinelRef} className="h-px" data-home-secondary-sentinel="1" />
 
-        <NewsStrip items={newsItems} />
+      {!secondaryOn && (
+        <button
+          type="button"
+          className="min-h-11 text-sm text-muted hover:text-ink"
+          onClick={() => setSecondaryOn(true)}
+        >
+          {t('home.secondaryOpen')}
+        </button>
+      )}
 
-        {fuerDich.length === 0 ? (
-          <Empty emoji="✨" title={t('home.dealsEmpty')} hint={t('home.dealsEmptyHint')} className="py-6" />
-        ) : (
-          <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
-            <ul className="flex snap-x snap-mandatory gap-2">
-              {fuerDich.map((item) => (
-                <li key={item.id}>
-                  <FuerDichCard item={item} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {!hideWallet && (
-          <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
-            <Link to="/wallet" className="tabular-nums text-ink hover:text-[var(--theme-accent)]">
-              {credits.balance} Credits
+      {secondaryOn && (
+        <section className="space-y-3 pt-2" data-home-secondary="1" aria-labelledby="home-secondary">
+          <h2 id="home-secondary" className="text-xs font-medium uppercase tracking-wider text-muted">
+            {t('home.mehrEntdecken')}
+          </h2>
+          <NewsStrip items={newsItems} />
+          <TileGrid tiles={widgets.primary} label={t('home.mehrEntdecken')} />
+          {widgets.folded.length > 0 && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                className="min-h-11 text-sm font-medium text-[var(--theme-accent)]"
+                aria-expanded={widgetsOpen}
+                onClick={() => setWidgetsOpen((open) => !open)}
+              >
+                {widgetsOpen ? t('home.widgetsLess') : t('home.widgetsMore')}
+              </button>
+              {widgetsOpen && <TileGrid tiles={widgets.folded} label={t('home.widgetsMore')} />}
+            </div>
+          )}
+          {resume && (
+            <Link to={resume.path} className="inline-flex min-h-11 items-center text-sm text-ink-soft hover:text-ink">
+              {t('home.tileResume')}: {resume.title}
             </Link>
-            <span>{formatSupplyLine()}</span>
-            {getSignupIdentity()?.earlyTester && (
-              <span className="text-amber-200/80">Early Tester #{getSignupIdentity()?.ordinal}</span>
-            )}
-            <span>· {t('home.creditsPeek')}</span>
-          </p>
-        )}
-      </section>
+          )}
+        </section>
+      )}
     </div>
   )
 }

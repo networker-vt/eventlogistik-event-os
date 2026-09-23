@@ -739,6 +739,14 @@ export const CREDITS_BOOST_KINDS: CreditSpendKind[] = [
   'look_shop',
 ]
 
+/** Basis Orbi stays free. Pro Assist burns only after an explicit choice. */
+export const ASSIST_PRO_BURNS = [5, 25, 40] as const
+export type AssistProBurn = (typeof ASSIST_PRO_BURNS)[number]
+
+export function isAssistProBurn(value: number): value is AssistProBurn {
+  return (ASSIST_PRO_BURNS as readonly number[]).includes(value)
+}
+
 export const FREE_ASSIST_PER_DAY = 8
 
 export function markMeaningfulAction() {
@@ -752,8 +760,12 @@ export function hasMeaningfulAction() {
   return Boolean(get().meaningfulAt)
 }
 
-/** Extra Assist after the free daily lane — money moment, not while scrolling. Kids never pay. */
-export async function consumeAssistTurn(): Promise<'ok' | 'paid' | 'need_credits'> {
+/**
+ * Basis Assist: free daily lane. Kids never burn.
+ * Over the free lane this does not spend — the UI must open Pro Assist first.
+ */
+export async function consumeAssistTurn(): Promise<'ok' | 'need_credits'> {
+  if (kidsCreditsFrozen()) return 'ok'
   const next = structuredClone(get())
   const day = todayKey()
   if (next.assistDay !== day) {
@@ -765,13 +777,14 @@ export async function consumeAssistTurn(): Promise<'ok' | 'paid' | 'need_credits
     commit(next)
     return 'ok'
   }
-  if (kidsCreditsFrozen()) return 'need_credits'
-  const paid = await spendCredits(
-    CREDITS_COSTS.assist_priority.credits,
-    'assist_priority',
-    CREDITS_COSTS.assist_priority.label,
-  )
-  return paid ? 'paid' : 'need_credits'
+  return 'need_credits'
+}
+
+/** Burn an explicit Pro-Assist tier from the existing balance. Never mints from the 21M reserve. */
+export async function spendProAssist(burn: AssistProBurn): Promise<CreditsState | null> {
+  if (kidsCreditsFrozen()) return null
+  if (!isAssistProBurn(burn)) return null
+  return spendCredits(burn, 'assist_priority', `Pro-Assist · ${burn} Credits`)
 }
 
 function monthKey() {

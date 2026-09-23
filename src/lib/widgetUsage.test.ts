@@ -25,17 +25,16 @@ describe('Home widget usage', () => {
 
   it('starts with a marketplace-wide set and folds unused jobs', () => {
     const { primary, folded } = splitAdaptiveHome(adult, {}, t)
-    expect(primary.map((tile) => tile.id)).toEqual([
-      'abflug',
-      'kabine',
-      'match',
+    expect(primary.map((tile) => tile.id)).toEqual(['abflug', 'kabine', 'match'])
+    expect(folded.map((tile) => tile.id)).toEqual([
       'campus',
       'entdecker',
       'firma',
       'crew',
+      'marktplatz',
+      'jobs',
     ])
-    expect(folded.map((tile) => tile.id)).toContain('jobs')
-    expect(primary.some((tile) => tile.id === 'jobs')).toBe(false)
+    expect(primary).toHaveLength(3)
   })
 
   it('raises a tapped area and keeps untouched jobs folded', () => {
@@ -43,8 +42,7 @@ describe('Home widget usage', () => {
     recordWidgetVisit('/abflug')
     recordWidgetVisit('/kabine')
     const { primary, folded } = splitAdaptiveHome(adult, undefined, t)
-    expect(primary[0]?.id).toBe('kabine')
-    expect(primary.map((tile) => tile.id)).toContain('abflug')
+    expect(primary.map((tile) => tile.id)).toEqual(['kabine', 'abflug', 'match'])
     expect(folded.map((tile) => tile.id)).toContain('jobs')
     expect(primary.some((tile) => tile.id === 'jobs')).toBe(false)
   })
@@ -62,6 +60,7 @@ describe('Home widget usage', () => {
     expect(ids).not.toContain('firma')
     expect(ids).not.toContain('crew')
     expect(ids).not.toContain('jobs')
-    expect(primary.map((tile) => tile.id)).toEqual(['kabine', 'match', 'campus', 'entdecker', 'marktplatz'])
+    expect(primary.map((tile) => tile.id)).toEqual(['kabine', 'match', 'campus'])
+    expect(folded.map((tile) => tile.id)).toEqual(['entdecker', 'marktplatz'])
   })
 })
