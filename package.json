@@ -7,10 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "vitest run",
+    "test": "vitest run && node --test scripts/emit-pages-legal.test.mjs",
     "preview": "vite preview",
     "deploy:pages": "bash scripts/deploy-pages.sh",
-    "build:zip": "npm run build && cp dist/index.html dist/404.html && cd dist && zip -r ../orbit-web.zip ."
+    "build:zip": "npm run build && cp dist/index.html dist/404.html && bash scripts/emit-pages-legal.sh dist && cd dist && zip -r ../orbit-web.zip ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
