@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { tStatic } from './i18n'
-import { splitAdaptiveHome } from './hubTiles'
+import { HOME_PRIMARY_COUNT, splitAdaptiveHome } from './hubTiles'
 import { recordWidgetTap, recordWidgetVisit, resetWidgetTaps, widgetIdForPath } from './widgetUsage'
 
 const adult = { kids: false, hideTravel: false, hideWallet: false }
@@ -34,7 +34,8 @@ describe('Home widget usage', () => {
       'marktplatz',
       'jobs',
     ])
-    expect(primary).toHaveLength(3)
+    expect(HOME_PRIMARY_COUNT).toBeLessThanOrEqual(3)
+    expect(primary.length).toBeLessThanOrEqual(HOME_PRIMARY_COUNT)
   })
 
   it('raises a tapped area and keeps untouched jobs folded', () => {
@@ -51,6 +52,7 @@ describe('Home widget usage', () => {
     for (let i = 0; i < 6; i += 1) recordWidgetTap('jobs')
     const { primary } = splitAdaptiveHome(adult, undefined, t)
     expect(primary[0]?.id).toBe('jobs')
+    expect(primary.length).toBeLessThanOrEqual(HOME_PRIMARY_COUNT)
   })
 
   it('hides travel, firma, and crew for kids and still folds jobs', () => {

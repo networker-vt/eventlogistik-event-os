@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mic, Send } from 'lucide-react'
 import { TileGrid } from '../components/ui/TileGrid'
-import { splitAdaptiveHome } from '../lib/hubTiles'
+import { HOME_PRIMARY_COUNT, splitAdaptiveHome } from '../lib/hubTiles'
 import { TripOptionCards } from '../components/assist/TripOptionCards'
 import { OrbitRobot } from '../components/home/OrbitRobot'
 import { OrbiPresence } from '../components/home/OrbiPresence'
@@ -62,7 +62,6 @@ export function HomePage() {
   const [tourStep, setTourStep] = useState(0)
   const [tourOff, setTourOff] = useState(() => orbiTourOff())
   const [widgetTaps, setWidgetTaps] = useState(getWidgetTaps)
-  const [widgetsOpen, setWidgetsOpen] = useState(false)
   const [secondaryOn, setSecondaryOn] = useState(false)
   const [kids, setKids] = useState(isKidsMode)
   const [tripVoicePick, setTripVoicePick] = useState<1 | 2 | 3 | null>(null)
@@ -430,19 +429,14 @@ export function HomePage() {
             {t('home.mehrEntdecken')}
           </h2>
           <NewsStrip items={newsItems} />
-          <TileGrid tiles={widgets.primary} label={t('home.mehrEntdecken')} />
+          <TileGrid
+            tiles={widgets.primary.slice(0, HOME_PRIMARY_COUNT)}
+            label={t('home.mehrEntdecken')}
+          />
           {widgets.folded.length > 0 && (
-            <div className="space-y-3">
-              <button
-                type="button"
-                className="min-h-11 text-sm font-medium text-[var(--theme-accent)]"
-                aria-expanded={widgetsOpen}
-                onClick={() => setWidgetsOpen((open) => !open)}
-              >
-                {widgetsOpen ? t('home.widgetsLess') : t('home.widgetsMore')}
-              </button>
-              {widgetsOpen && <TileGrid tiles={widgets.folded} label={t('home.widgetsMore')} />}
-            </div>
+            <Link to="/mehr" className="inline-flex min-h-11 items-center text-sm text-muted hover:text-ink">
+              {t('home.widgetsMore')}
+            </Link>
           )}
           {resume && (
             <Link to={resume.path} className="inline-flex min-h-11 items-center text-sm text-ink-soft hover:text-ink">
