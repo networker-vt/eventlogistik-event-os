@@ -20,6 +20,7 @@ import type {
 } from '../types'
 import { deriveMarketType } from './market'
 import { isSupabaseConfigured } from './supabase'
+import { isFlagOn } from './flags'
 import {
   fetchSupabaseSnapshot,
   pushBookingStatusToSupabase,
@@ -218,6 +219,7 @@ export const store = {
           l.ownerName.toLowerCase().includes(q),
       )
     }
+    if (!isFlagOn('credits')) return items
     return items.sort((a, b) => (a.featured === b.featured ? 0 : a.featured ? -1 : 1))
   },
 
@@ -235,7 +237,7 @@ export const store = {
     mutate((d) => {
       d.listings.unshift(item)
     })
-    void pushListingToSupabase(item)
+    if (isFlagOn('publishListings')) void pushListingToSupabase(item)
     return item
   },
 
@@ -247,7 +249,7 @@ export const store = {
       d.listings[i] = { ...d.listings[i], ...patch, id: d.listings[i].id }
       updated = d.listings[i]
     })
-    if (updated) void pushListingToSupabase(updated)
+    if (updated && isFlagOn('publishListings')) void pushListingToSupabase(updated)
     return updated
   },
 

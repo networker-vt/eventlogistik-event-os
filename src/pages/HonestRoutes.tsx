@@ -7,6 +7,7 @@ import { fortbildungen } from '../data/wissen/fortbildung'
 import { branchenMedien } from '../data/wissen/medien'
 import { newsTitle } from '../lib/homeSuggestions'
 import { useI18n } from '../lib/i18n'
+import { isFlagOn } from '../lib/flags'
 
 function httpsOnly(url: string) {
   return url.startsWith('https://')
@@ -36,7 +37,7 @@ export function NewsArchivePage() {
               rel="noreferrer"
               className="block rounded-2xl border border-border bg-surface-2 px-3 py-3 hover:border-[var(--theme-accent)]/40"
             >
-              <p className="text-[11px] uppercase tracking-wide text-muted">{item.source}</p>
+              <p className="text-xs uppercase tracking-wide text-muted">{item.source}</p>
               <p className="mt-1 text-sm font-medium text-ink">{newsTitle(item, resolved)}</p>
             </a>
           </li>
@@ -65,7 +66,7 @@ export function InnovationPage() {
                 rel="noreferrer"
                 className="block rounded-2xl border border-border bg-surface-2 px-3 py-3 hover:border-[var(--theme-accent)]/40"
               >
-                <p className="text-[11px] uppercase tracking-wide text-muted">
+                <p className="text-xs uppercase tracking-wide text-muted">
                   {card.sourceName} · {card.date}
                 </p>
                 <p className="mt-1 text-sm font-medium text-ink">{card.title}</p>
@@ -97,9 +98,11 @@ export function WissenPage() {
         <Empty emoji="📚" title={t('archive.missingTitle')} hint={t('archive.wissenLead')} />
         <div className="flex flex-wrap gap-2">
           <ButtonLink to="/wissen">{t('archive.wissenTitle')}</ButtonLink>
+          {isFlagOn('campus') && (
           <ButtonLink to="/campus" variant="ghost">
             {t('campus.nav')}
           </ButtonLink>
+          )}
         </div>
       </div>
     )
@@ -140,7 +143,7 @@ export function WissenPage() {
                   rel="noreferrer"
                   className="block rounded-2xl border border-border bg-surface-2 px-3 py-3 hover:border-[var(--theme-accent)]/40"
                 >
-                  <p className="text-[11px] uppercase tracking-wide text-muted">{item.source}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted">{item.source}</p>
                   <p className="mt-1 text-sm font-medium text-ink">{item.title}</p>
                   <p className="mt-1 text-xs text-muted">
                     {item.provider}
@@ -152,7 +155,7 @@ export function WissenPage() {
           </ul>
         </section>
       )}
-      <ButtonLink to="/campus">{t('campus.nav')}</ButtonLink>
+      {isFlagOn('campus') && <ButtonLink to="/campus">{t('campus.nav')}</ButtonLink>}
     </div>
   )
 }

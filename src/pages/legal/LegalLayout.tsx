@@ -22,6 +22,9 @@ export function LegalLayout({ title, children }: { title: string; children: Reac
         <Link to="/agb" className="text-cyan">
           AGB
         </Link>
+        <Link to="/ranking" className="text-cyan">
+          Ranking
+        </Link>
         <Link to="/" className="text-muted">
           Zur App
         </Link>

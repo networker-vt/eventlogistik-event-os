@@ -15,6 +15,7 @@ import {
   contributorProofMatches,
   type ContributorMergedPrProof,
 } from './credits'
+import { isFlagOn } from './flags'
 import { kidsCreditsFrozen } from './kids'
 import { getPrefs } from './prefs'
 
@@ -103,6 +104,7 @@ function alreadyWelcomed(): boolean {
 
 /** Call once on app boot. Grants early-tester or later welcome from the 21M reserve. */
 export async function initRewards() {
+  if (!isFlagOn('credits')) return get()
   const flags = structuredClone(get())
   if (flags.welcome || alreadyWelcomed()) {
     flags.welcome = true
@@ -118,6 +120,7 @@ export async function initRewards() {
 }
 
 export async function grantWelcomeOnSignup() {
+  if (!isFlagOn('credits')) return
   const flags = structuredClone(get())
   if (flags.signup) return
   flags.signup = true
@@ -129,7 +132,7 @@ export async function grantWelcomeOnSignup() {
 }
 
 export async function maybeGrantPrefsComplete() {
-  if (kidsCreditsFrozen()) return
+  if (!isFlagOn('credits') || kidsCreditsFrozen()) return
   const flags = structuredClone(get())
   if (flags.prefs) return
   if (!getPrefs().completed) return
@@ -139,7 +142,7 @@ export async function maybeGrantPrefsComplete() {
 }
 
 export async function maybeGrantProfileComplete() {
-  if (kidsCreditsFrozen()) return
+  if (!isFlagOn('credits') || kidsCreditsFrozen()) return
   const flags = structuredClone(get())
   if (flags.profileComplete) return
   try {
@@ -161,7 +164,7 @@ export async function maybeGrantProfileComplete() {
 }
 
 export async function grantSuccessfulMatch() {
-  if (kidsCreditsFrozen()) return null
+  if (!isFlagOn('credits') || kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   if (flags.successfulMatch) return null
   const next = await earnCredits(15, 'Erfolgreiches Match (Demo) — Rewards-Pool')
@@ -172,7 +175,7 @@ export async function grantSuccessfulMatch() {
 }
 
 export async function grantIdeaReward() {
-  if (kidsCreditsFrozen()) return null
+  if (!isFlagOn('credits') || kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   if (flags.ideas >= 3) return null
   const next = await earnCredits(8, `Feedback / Ideen-Box (${flags.ideas + 1}/3, Demo) — Rewards-Pool`)
@@ -190,7 +193,7 @@ export type { ContributorMergedPrProof }
  * Anti-farm: 1 grant per PR number (`contributor:pr:{n}`).
  */
 export async function grantContributorMergedPr(prNumber: number, proof: ContributorMergedPrProof) {
-  if (kidsCreditsFrozen()) return null
+  if (!isFlagOn('credits') || kidsCreditsFrozen()) return null
   if (!contributorProofMatches(prNumber, proof)) return null
   const n = proof.serverOrdinal
   const flags = structuredClone(get())
@@ -212,7 +215,7 @@ export function __resetRewardsForTests() {
 }
 
 export async function grantReviewReward() {
-  if (kidsCreditsFrozen()) return null
+  if (!isFlagOn('credits') || kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   if (flags.reviews >= 5) return null
   const next = await earnCredits(10, `Erfahrungs-Review (${flags.reviews + 1}/5, Demo) — Rewards-Pool`)
@@ -224,7 +227,7 @@ export async function grantReviewReward() {
 
 /** Small daily bonus for actually searching / swiping — capped, not spammy. */
 export async function grantSearchActivity() {
-  if (kidsCreditsFrozen()) return null
+  if (!isFlagOn('credits') || kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   const day = todayKey()
   if (flags.searchDays.includes(day)) return null
@@ -237,7 +240,7 @@ export async function grantSearchActivity() {
 }
 
 export async function grantJobCompleted(bookingId: string) {
-  if (kidsCreditsFrozen()) return null
+  if (!isFlagOn('credits') || kidsCreditsFrozen()) return null
   const flags = structuredClone(get())
   if (flags.completedJobs.includes(bookingId)) return null
   if (flags.completedJobs.length >= 5) return null

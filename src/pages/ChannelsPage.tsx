@@ -74,7 +74,7 @@ export function ChannelsPage() {
                     <span className="text-sm font-medium text-ink">{ch.title}</span>
                     <Badge tone="amber">Demo</Badge>
                   </span>
-                  <span className="block text-[11px] text-muted">{ch.hint}</span>
+                  <span className="block text-xs text-muted">{ch.hint}</span>
                 </span>
               </Link>
             </li>

@@ -13,7 +13,7 @@ import type { AuthUser, Profile, Role } from '../types'
 import { uid } from './utils'
 import { consumePendingReferral } from './referral'
 import { isSupabaseConfigured, supabase } from './supabase'
-import { markEmailVerified, stubVerifyPhone } from './verify'
+import { markDemoPhoneVerified, markEmailVerified } from './verify'
 import { hydrateCreditsLedger } from './credits'
 
 const AUTH_KEY = 'el_auth_user'
@@ -161,7 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       store.upsertProfile(p)
       persist({ id: p.id, email: p.email, name: p.name, role: p.role }, p)
       consumePendingReferral(p.id)
-      stubVerifyPhone('01710000000')
+      markDemoPhoneVerified()
       void import('./rewards').then((m) => m.grantWelcomeOnSignup()).catch(() => undefined)
     },
     [persist],

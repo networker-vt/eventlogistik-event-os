@@ -23,7 +23,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
           </option>
         ))}
       </select>
-      {stub && !compact && <p className="text-xs text-amber-200/90">{t('stub.banner')}</p>}
+      {import.meta.env.DEV && stub && !compact && <p className="text-xs text-amber-200/90">{t('stub.banner')}</p>}
     </div>
   )
 }

@@ -12,6 +12,18 @@ interface ImportMetaEnv {
   readonly VITE_LLM_API_KEY?: string
   readonly VITE_LLM_URL?: string
   readonly VITE_LLM_MODEL?: string
+  readonly VITE_FLAG_CREDITS?: string
+  readonly VITE_FLAG_KIDS?: string
+  readonly VITE_FLAG_CHANNELS?: string
+  readonly VITE_FLAG_IDEAS?: string
+  readonly VITE_FLAG_INTEGRATIONS?: string
+  readonly VITE_FLAG_KABINE?: string
+  readonly VITE_FLAG_CAMPUS?: string
+  readonly VITE_FLAG_PHOTO_JOBS?: string
+  readonly VITE_FLAG_VERIFY_ID?: string
+  readonly VITE_FLAG_ENTDECKER?: string
+  readonly VITE_FLAG_INTERVIEW?: string
+  readonly VITE_FLAG_PUBLISH_LISTINGS?: string
 }
 
 interface ImportMeta {

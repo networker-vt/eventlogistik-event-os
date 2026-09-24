@@ -12,7 +12,7 @@ export function SupplyMeter({ className }: { className?: string }) {
     <div className={cn('space-y-2', className)}>
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-sm font-semibold tabular-nums text-ink">{formatSupplyLine(p)}</p>
-        <p className="text-[11px] text-muted">Cap 21.000.000</p>
+        <p className="text-xs text-muted">Cap 21.000.000</p>
       </div>
       <div
         className="h-2 overflow-hidden rounded-full bg-black/40"
@@ -24,7 +24,7 @@ export function SupplyMeter({ className }: { className?: string }) {
       >
         <div className="h-full rounded-full bg-violet-400" style={{ width: `${Math.max(pct, 0.4)}%` }} />
       </div>
-      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-neutral-300">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-300">
         <span>
           Reserve {p.remainingReserve.toLocaleString('de-DE')} ({reservePct.toFixed(1)} %)
         </span>
@@ -32,9 +32,9 @@ export function SupplyMeter({ className }: { className?: string }) {
         <span>P2P-Float {p.p2pFloat.toLocaleString('de-DE')}</span>
       </div>
       <div className="rounded-lg border border-violet-400/25 bg-black/20 px-3 py-2">
-        <p className="text-[11px] uppercase tracking-wider text-violet-200">Wert-Index (Stub)</p>
+        <p className="text-xs uppercase tracking-wider text-violet-200">Wert-Index (Stub)</p>
         <p className="text-xl font-bold tabular-nums text-ink">{wert.value.toLocaleString('de-DE')}</p>
-        <p className="text-[11px] text-muted">
+        <p className="text-xs text-muted">
           {wert.activeUsers.toLocaleString('de-DE')} aktive Nutzer (Demo) · {wert.formula}
         </p>
       </div>

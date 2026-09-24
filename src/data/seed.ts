@@ -6,7 +6,7 @@ export const seedProfiles: Profile[] = [
   {
     id: DEMO_USER_ID,
     name: 'Alex Müller',
-    email: 'alex@demo.eventlogistik.de',
+    email: 'alex@example.invalid',
     role: 'agency',
     city: 'Berlin',
     bio: 'Eventagentur mit Fokus auf Corporate & Festival-Logistik.',
@@ -24,7 +24,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-2',
     name: 'Sara König',
-    email: 'sara@lichtwerk.de',
+    email: 'sara@example.invalid',
     role: 'freelancer',
     city: 'Hamburg',
     bio: 'Freelance Lichttechnikerin, 12 Jahre Festival- & TV-Erfahrung.',
@@ -41,7 +41,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-3',
     name: 'Tom Becker',
-    email: 'tom@rigpro.de',
+    email: 'tom@example.invalid',
     role: 'freelancer',
     city: 'Köln',
     bio: 'Rigger & Stagehand, IPAF & PSAgA zertifiziert.',
@@ -58,7 +58,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-4',
     name: 'AudioForce GmbH',
-    email: 'hello@audioforce.de',
+    email: 'hello@example.invalid',
     role: 'company',
     city: 'München',
     bio: 'Full-Service Tontechnik für Touren und Hallen-Events.',
@@ -72,7 +72,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-5',
     name: 'FleetMove Logistics',
-    email: 'disposition@fleetmove.de',
+    email: 'disposition@example.invalid',
     role: 'transporter',
     city: 'Frankfurt',
     bio: 'Sprinter bis 7,5t — deutschlandweit, Mit Fahrer.',
@@ -86,7 +86,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-6',
     name: 'QuickRun Kuriere',
-    email: 'go@quickrun.de',
+    email: 'go@example.invalid',
     role: 'courier',
     city: 'Berlin',
     bio: 'Same-Day Event-Kurier: Funk, Akkus, Tickets, Last-Mile.',
@@ -100,7 +100,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-7',
     name: 'Hotel am Messepark',
-    email: 'events@messepark-hotel.de',
+    email: 'events@example.invalid',
     role: 'hotel',
     city: 'Köln',
     bio: 'Crew-Zimmer & Blockbuchungen neben der Koelnmesse.',
@@ -114,7 +114,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-8',
     name: 'RentGear Pro',
-    email: 'verleih@rentgear.de',
+    email: 'verleih@example.invalid',
     role: 'material',
     city: 'Stuttgart',
     bio: 'LED Walls, Moving Heads, Truss & Strom — dry hire & full service.',
@@ -128,7 +128,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-9',
     name: 'Mila Hartmann',
-    email: 'mila@demo.eventlogistik.de',
+    email: 'mila@example.invalid',
     role: 'freelancer',
     city: 'Berlin',
     bio: 'Senior Lighting Operator — GrandMA3, Network, Festival & Corporate.',
@@ -145,7 +145,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-10',
     name: 'Jonas Weber',
-    email: 'jonas@foh-weber.de',
+    email: 'jonas@example.invalid',
     role: 'freelancer',
     city: 'Hamburg',
     bio: 'FOH / Systemtech — Club, Arena & Corporate. L-Acoustics, d&b, RF-Koordination.',
@@ -162,7 +162,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-11',
     name: 'Lena Vogt',
-    email: 'lena@pixelrack.de',
+    email: 'lena@example.invalid',
     role: 'freelancer',
     city: 'Berlin',
     bio: 'Medienserver disguise / Notch / Pixera. Corporate Playback & Unreal-Grundlagen.',
@@ -180,7 +180,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-care-1',
     name: 'Amina Saleh',
-    email: 'amina@care-orbit.demo',
+    email: 'amina@example.invalid',
     role: 'freelancer',
     city: 'Köln',
     bio: 'Examined Pflegefachkraft — Ambulant & Stationär. DE + AR.',
@@ -197,7 +197,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-it-1',
     name: 'Chris Nguyen',
-    email: 'chris@dev-orbit.demo',
+    email: 'chris@example.invalid',
     role: 'freelancer',
     city: 'Berlin',
     bio: 'Full-Stack (React/Node) · Remote-first · DE/EN.',
@@ -214,7 +214,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-retail-1',
     name: 'CityMart HR',
-    email: 'hr@citymart.demo',
+    email: 'hr@example.invalid',
     role: 'company',
     city: 'Hamburg',
     bio: 'Filialhandel — Verkäufer:innen & Lager.',
@@ -228,7 +228,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-b2b-1',
     name: 'Northline Ops',
-    email: 'hello@northline-ops.demo',
+    email: 'hello@example.invalid',
     role: 'company',
     city: 'Amsterdam',
     bio: 'B2B SaaS for warehouse ops & WMS. EU-first, English + Dutch.',
@@ -242,7 +242,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-b2b-2',
     name: 'PeakStaff',
-    email: 'partners@peakstaff.demo',
+    email: 'partners@example.invalid',
     role: 'company',
     city: 'London',
     bio: 'Staffing for logistics, care and retail. Looking for site partners across EU.',
@@ -256,7 +256,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-b2b-3',
     name: 'Harbor Fulfill',
-    email: 'bd@harbor-fulfill.demo',
+    email: 'bd@example.invalid',
     role: 'company',
     city: 'Rotterdam',
     bio: 'EU fulfillment & last-mile SLAs. Seeking software and retail partners.',
@@ -270,7 +270,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-svc-1',
     name: 'Nora Patel',
-    email: 'nora@ledger-orbit.demo',
+    email: 'nora@example.invalid',
     role: 'freelancer',
     city: 'Remote',
     bio: 'Freelance bookkeeping & payroll setup for SMEs. EN/DE. Remote-first.',
@@ -287,7 +287,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-svc-2',
     name: 'Luca Rossi',
-    email: 'luca@words-orbit.demo',
+    email: 'luca@example.invalid',
     role: 'freelancer',
     city: 'Milan',
     bio: 'Translation EN/IT/DE — product UI, contracts, support macros.',
@@ -304,7 +304,7 @@ export const seedProfiles: Profile[] = [
   {
     id: 'user-ptn-1',
     name: 'GreenShelf Retail',
-    email: 'collab@greenshelf.demo',
+    email: 'collab@example.invalid',
     role: 'company',
     city: 'Madrid',
     bio: 'Independent grocery chain seeking DACH co-marketing and local suppliers.',

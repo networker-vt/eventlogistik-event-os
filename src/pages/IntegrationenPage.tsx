@@ -61,8 +61,8 @@ export function IntegrationenPage() {
                     <Badge tone="cyan">{item.connect}</Badge>
                   </div>
                   <p className="mt-1 text-sm text-neutral-300">{item.blurb}</p>
-                  <p className="mt-1 text-[11px] text-muted">{item.vendor} · {item.notes}</p>
-                  <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
+                  <p className="mt-1 text-xs text-muted">{item.vendor} · {item.notes}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
                     <span className="chip">Projekte {syncLabel(item.sync.projects)}</span>
                     <span className="chip">Jobs {syncLabel(item.sync.jobs)}</span>
                     <span className="chip">Crew {syncLabel(item.sync.crew)}</span>
@@ -78,7 +78,7 @@ export function IntegrationenPage() {
                     Docs <ExternalLink size={12} />
                   </a>
                   {linkout ? (
-                    <span className="text-center text-[11px] text-muted">Kein Connect</span>
+                    <span className="text-center text-xs text-muted">Kein Connect</span>
                   ) : planned ? (
                     <Button size="sm" variant="ghost" disabled>
                       Bald

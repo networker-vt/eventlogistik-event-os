@@ -9,6 +9,7 @@ import { SpeakButton } from '../components/a11y/SpeakButton'
 import { useI18n } from '../lib/i18n'
 import { TRAVEL_DISCLAIMER_DE, TRAVEL_DISCLAIMER_EN, TRAVEL_KIND_META, TRAVEL_KINDS, type TravelKind } from '../lib/travel'
 import { buyBoost, CREDITS_COSTS, hasTravelDeepScan, subscribeCredits } from '../lib/credits'
+import { isFlagOn } from '../lib/flags'
 import { LaneBadge } from '../components/credits/LaneBadge'
 import { KidsBlocked } from '../components/kids/KidsBlocked'
 import { emitParentalRequired, kidsHideTravel, subscribeKids } from '../lib/kids'
@@ -135,6 +136,7 @@ export function TravelPage() {
 
           {tripCards.length > 0 && <TripOptionCards options={tripCards} />}
 
+          {isFlagOn('credits') && (
           <div className="flex flex-wrap items-center gap-2">
             {scanOn ? (
               <span className="inline-flex items-center gap-2 text-xs text-[var(--theme-accent)]">
@@ -153,8 +155,9 @@ export function TravelPage() {
                 {t('travel.deepScan')} · {CREDITS_COSTS.travel_scan.credits} Credits
               </Button>
             )}
-            <p className="text-[11px] text-muted">{t('travel.deepScanHint')}</p>
+            <p className="text-xs text-muted">{t('travel.deepScanHint')}</p>
           </div>
+          )}
 
           <form
             className="grid gap-2 sm:grid-cols-2"
@@ -274,7 +277,7 @@ function RailLane({
                       {journey.from} → {journey.to}
                       {journey.lines.length ? ` · ${journey.lines.join(' · ')}` : ''}
                     </p>
-                    <p className="mt-1 text-[11px] text-neutral-500">
+                    <p className="mt-1 text-xs text-neutral-500">
                       {journey.transfers} {t('travel.transfers')}
                       {journey.durationMin != null ? ` · ${journey.durationMin} min` : ''}
                       {' · '}

@@ -1,11 +1,25 @@
 /**
  * Flüge / Bahn connectors.
- * Bahn uses the public transport.rest DB endpoint when it responds.
+ * Bahn is a bahn.de search link the user opens. No timetable API.
  * Flights have no free keyless inventory API — filled search links only.
  * Nothing here creates a booking or a price Orbit did not receive.
  */
 
-export const RAIL_API_BASES = ['https://v6.db.transport.rest', 'https://v5.db.transport.rest'] as const
+const AFFILIATE_KEYS = ['aid', 'affiliate', 'aff', 'aff_id', 'partner_id', 'partnerid', 'partner']
+
+/** Drop partner and affiliate query parameters from a search link. */
+export function stripAffiliateParams(href: string): string {
+  try {
+    const url = new URL(href)
+    for (const key of [...url.searchParams.keys()]) {
+      const lower = key.toLowerCase()
+      if (AFFILIATE_KEYS.includes(lower) || lower.includes('affiliate')) url.searchParams.delete(key)
+    }
+    return url.toString()
+  } catch {
+    return href
+  }
+}
 
 export interface RailJourney {
   id: string
@@ -47,7 +61,7 @@ export function bahnSearchUrl(from: string, to: string, dateIso?: string) {
     hd: dateIso || '',
     ht: '08:00',
   })
-  return `https://www.bahn.de/buchung/fahrplan/suche#${hash}`
+  return stripAffiliateParams(`https://www.bahn.de/buchung/fahrplan/suche#${hash}`)
 }
 
 export function flightSearchUrl(from: string, to: string, dateIso?: string, locale: 'de' | 'en' = 'de') {
@@ -61,7 +75,7 @@ export function flightSearchUrl(from: string, to: string, dateIso?: string, loca
         ? 'Flüge'
         : 'Flights'
   const hl = locale === 'de' ? 'de' : 'en'
-  return `https://www.google.com/travel/flights?hl=${hl}&q=${encodeURIComponent(q)}`
+  return stripAffiliateParams(`https://www.google.com/travel/flights?hl=${hl}&q=${encodeURIComponent(q)}`)
 }
 
 function addDays(iso: string, days: number) {
@@ -78,15 +92,15 @@ export function hotelSearchUrl(to: string, dateIso?: string) {
     url.searchParams.set('checkin', dateIso)
     url.searchParams.set('checkout', addDays(dateIso, 1))
   }
-  return url.toString()
+  return stripAffiliateParams(url.toString())
 }
 
 export function carSearchUrl(to: string, dateIso?: string) {
   const city = encodeURIComponent(to.trim())
   if (to.trim() && dateIso) {
-    return `https://www.kayak.de/cars/${city}/${dateIso}/${addDays(dateIso, 1)}`
+    return stripAffiliateParams(`https://www.kayak.de/cars/${city}/${dateIso}/${addDays(dateIso, 1)}`)
   }
-  return to.trim() ? `https://www.kayak.de/cars/${city}` : 'https://www.kayak.de/cars'
+  return stripAffiliateParams(to.trim() ? `https://www.kayak.de/cars/${city}` : 'https://www.kayak.de/cars')
 }
 
 export function packageSearchUrl(from: string, to: string, dateIso?: string, locale: 'de' | 'en' = 'de') {
@@ -95,7 +109,7 @@ export function packageSearchUrl(from: string, to: string, dateIso?: string, loc
       ? `Pauschalreise ${from.trim() ? `von ${from.trim()} ` : ''}nach ${to.trim()}${dateIso ? ` am ${dateIso}` : ''}`.trim()
       : `Package holiday ${from.trim() ? `from ${from.trim()} ` : ''}to ${to.trim()}${dateIso ? ` on ${dateIso}` : ''}`.trim()
   const hl = locale === 'de' ? 'de' : 'en'
-  return `https://www.google.com/travel/flights?hl=${hl}&q=${encodeURIComponent(q)}`
+  return stripAffiliateParams(`https://www.google.com/travel/flights?hl=${hl}&q=${encodeURIComponent(q)}`)
 }
 
 /** Public search for an old demo offer id. Never a fare Orbit received. */
@@ -162,7 +176,7 @@ function legName(value: unknown) {
   return typeof name === 'string' ? name : ''
 }
 
-/** Parse a transport.rest / HAFAS journeys payload. Prices stay null unless the API sent one. */
+/** Parse a HAFAS-shaped journeys payload. Prices stay null unless the payload sent one. */
 export function parseRailJourneys(payload: unknown): RailJourney[] {
   const root = asRecord(payload)
   const journeys = root?.journeys
@@ -215,56 +229,16 @@ export function parseRailJourneys(payload: unknown): RailJourney[] {
   return out
 }
 
-async function readJson(url: string, signal?: AbortSignal): Promise<unknown> {
-  const res = await fetch(url, { signal, headers: { accept: 'application/json' } })
-  if (!res.ok) throw new Error(`rail ${res.status}`)
-  return res.json()
-}
-
-async function resolveStop(base: string, query: string, signal?: AbortSignal): Promise<string | null> {
-  const url = new URL(`${base}/locations`)
-  url.searchParams.set('query', query)
-  url.searchParams.set('results', '1')
-  url.searchParams.set('poi', 'false')
-  url.searchParams.set('addresses', 'false')
-  const json = await readJson(url.toString(), signal)
-  if (!Array.isArray(json)) return null
-  const first = asRecord(json[0])
-  const id = first?.id
-  return typeof id === 'string' && id ? id : null
-}
-
 /**
- * Live DB-compatible journeys via transport.rest.
- * Throws when every base fails so the UI can show Empty + bahn.de instead of a stub.
+ * No timetable request. The page shows a bahn.de link the user can open.
+ * The input is kept so existing callers compile without a network side effect.
  */
-export async function searchLiveRail(input: {
+export async function searchLiveRail(_input: {
   from: string
   to: string
   dateIso?: string
   results?: number
   signal?: AbortSignal
 }): Promise<RailJourney[]> {
-  const fromQ = input.from.trim()
-  const toQ = input.to.trim()
-  if (!fromQ || !toQ) return []
-  let lastError: unknown = null
-  for (const base of RAIL_API_BASES) {
-    try {
-      const fromId = await resolveStop(base, fromQ, input.signal)
-      const toId = await resolveStop(base, toQ, input.signal)
-      if (!fromId || !toId) continue
-      const url = new URL(`${base}/journeys`)
-      url.searchParams.set('from', fromId)
-      url.searchParams.set('to', toId)
-      url.searchParams.set('results', String(input.results ?? 3))
-      url.searchParams.set('stopovers', 'false')
-      if (input.dateIso) url.searchParams.set('departure', `${input.dateIso}T08:00:00`)
-      const json = await readJson(url.toString(), input.signal)
-      return parseRailJourneys(json)
-    } catch (err) {
-      lastError = err
-    }
-  }
-  throw lastError instanceof Error ? lastError : new Error('rail unavailable')
+  return []
 }

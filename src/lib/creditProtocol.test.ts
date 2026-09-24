@@ -25,12 +25,13 @@ import {
   grantWelcomeAllocation,
   purchaseCreditPack,
 } from './credits'
-import { __setAppModeForTests } from './flags'
+import { __setAppModeForTests, __setFlagForTests } from './flags'
 
 describe('Orbit Credits protocol', () => {
   beforeEach(() => {
     localStorage.clear()
     __setAppModeForTests(null)
+    __setFlagForTests('credits', true)
     __resetProtocolForTests()
     __resetCreditsForTests()
   })

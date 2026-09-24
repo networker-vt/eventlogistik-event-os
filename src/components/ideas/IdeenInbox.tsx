@@ -55,7 +55,7 @@ export function IdeenInbox({
                   ))}
                 </div>
               )}
-              <p className="mt-2 text-[11px] text-muted">
+              <p className="mt-2 text-xs text-muted">
                 {formatDateTime(idea.createdAt)}
                 {idea.email ? ` · ${idea.email}` : ' · anonym'}
               </p>

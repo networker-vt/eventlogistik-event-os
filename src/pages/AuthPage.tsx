@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Input, Select } from '../components/ui/Input'
 import { CITIES, ROLE_LABELS } from '../data/constants'
+import { confirmAdult } from '../lib/ageGate'
 import { useAuth } from '../lib/auth'
 import { EARLY_TESTER_GRANT, getSignupIdentity } from '../lib/credits'
+import { isFlagOn } from '../lib/flags'
 import { useI18n } from '../lib/i18n'
 import type { Role } from '../types'
 
@@ -22,6 +24,7 @@ export function AuthPage() {
   const [city, setCity] = useState('Berlin')
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
+  const [adult, setAdult] = useState(false)
 
   if (user) {
     return (
@@ -38,6 +41,8 @@ export function AuthPage() {
 
   const sendMagic = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!adult) return
+    confirmAdult()
     setBusy(true)
     try {
       const res = await requestMagicLink(email, name)
@@ -49,12 +54,14 @@ export function AuthPage() {
 
   const submitRegister = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!adult) return
+    confirmAdult()
     if (mode === 'register') {
       register(email, name, role, city)
       navigate('/')
       return
     }
-    login(email || 'alex@demo.eventlogistik.de', name || 'Alex Müller', role)
+    login(email || 'alex@example.invalid', name || 'Alex Müller', role)
     navigate('/')
   }
 
@@ -66,12 +73,12 @@ export function AuthPage() {
         <p className="mt-1 text-xs text-muted">
           {authBackend === 'supabase' ? t('auth.backendLive') : t('auth.backendDemo')}
         </p>
-        {getSignupIdentity()?.earlyTester ? (
+        {isFlagOn('credits') && getSignupIdentity()?.earlyTester ? (
           <p className="mt-2 text-sm text-amber-200">
             Early Tester #{getSignupIdentity()?.ordinal} — {EARLY_TESTER_GRANT.toLocaleString('de-DE')} Credits
           </p>
         ) : (
-          <p className="mt-2 text-sm text-muted">{t('auth.welcomeHint')}</p>
+          <p className="mt-2 text-sm text-muted">{isFlagOn('credits') ? t('auth.welcomeHint') : t('auth.welcomePlain')}</p>
         )}
       </div>
 
@@ -83,7 +90,7 @@ export function AuthPage() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="du@firma.de"
+          placeholder="name@example.invalid"
         />
         <Input
           label={t('auth.nameOptional')}
@@ -91,12 +98,12 @@ export function AuthPage() {
           onChange={(e) => setName(e.target.value)}
           placeholder="Alex"
         />
-        <Button type="submit" className="w-full" disabled={busy || !email.trim()}>
+        <Button type="submit" className="w-full" disabled={busy || !email.trim() || !adult}>
           {busy ? t('auth.sending') : t('auth.sendLink')}
         </Button>
         {note && <p className="text-xs text-amber-100">{note}</p>}
         {magicPending && (
-          <Button type="button" variant="secondary" className="w-full" onClick={() => { confirmDemoMagic(); navigate('/') }}>
+          <Button type="button" variant="secondary" className="w-full" disabled={!adult} onClick={() => { if (!adult) return; confirmAdult(); confirmDemoMagic(); navigate('/') }}>
             {t('auth.openDemoLink')}
           </Button>
         )}
@@ -143,7 +150,7 @@ export function AuthPage() {
               </option>
             ))}
           </Select>
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={!adult}>
             {t('auth.createAccount')}
           </Button>
         </form>
@@ -152,7 +159,10 @@ export function AuthPage() {
       <Button
         variant="secondary"
         className="w-full"
+        disabled={!adult}
         onClick={() => {
+          if (!adult) return
+          confirmAdult()
           loginDemo()
           navigate('/')
         }}
@@ -162,13 +172,32 @@ export function AuthPage() {
       <Button
         variant="ghost"
         className="w-full"
+        disabled={!adult}
         onClick={() => {
+          if (!adult) return
+          confirmAdult()
           loginDemo('user-b2b-1')
           navigate('/firma')
         }}
       >
         {t('auth.demoFirm')}
       </Button>
+      <label className="flex min-h-11 items-start gap-2 text-sm">
+        <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} />
+        <span>{t('auth.adult')}</span>
+      </label>
+      {!adult && <p className="text-sm text-amber-200">{t('auth.adultHint')}</p>}
+      <p className="text-sm text-muted">
+        {t('auth.acceptBefore')}
+        <Link to="/agb" className="text-cyan">
+          {t('auth.acceptAgb')}
+        </Link>
+        {t('auth.acceptMid')}
+        <Link to="/privacy" className="text-cyan">
+          {t('auth.acceptPrivacy')}
+        </Link>
+        .
+      </p>
       <p className="text-center text-xs text-muted">{t('auth.footer')}</p>
     </div>
   )

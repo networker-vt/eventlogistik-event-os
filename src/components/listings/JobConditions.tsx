@@ -76,7 +76,7 @@ export function JobConditions({
         >
           <i.icon size={14} className="mt-0.5 shrink-0 text-teal" />
           <div>
-            <div className="text-[11px] text-muted">Kondition</div>
+            <div className="text-xs text-muted">Kondition</div>
             {i.label}
           </div>
         </div>

@@ -18,6 +18,9 @@ import { useAuth } from '../lib/auth'
 import { getCompany } from '../lib/company'
 import { CREDITS_COSTS, boostCost, getCredits, spendCredits } from '../lib/credits'
 import { canOffer, subscribeVerify } from '../lib/verify'
+import { isFlagOn } from '../lib/flags'
+import { commercialTraderComplete, type SellerKind, type TraderDetails } from '../lib/seller'
+import { SellerFields, emptyTrader } from '../components/listings/SellerFields'
 import { VerifyPanel } from '../components/verify/VerifyPanel'
 import { LaneBadge } from '../components/credits/LaneBadge'
 import { useI18n } from '../lib/i18n'
@@ -83,6 +86,9 @@ function SimpleCreateListing() {
   const [boost, setBoost] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [offerOk, setOfferOk] = useState(canOffer)
+  const [sellerKind, setSellerKind] = useState<SellerKind>('private')
+  const [trader, setTrader] = useState<TraderDetails>(emptyTrader)
+  const [sellerError, setSellerError] = useState<string | null>(null)
 
   useEffect(() => subscribeVerify(() => setOfferOk(canOffer())), [])
 
@@ -108,10 +114,15 @@ function SimpleCreateListing() {
     }
     const trimmed = title.trim()
     if (!trimmed) return
-    if (intent !== 'need' && !canOffer()) return
+    if (isFlagOn('verifyId') && intent !== 'need' && !canOffer()) return
+    if (sellerKind === 'commercial' && !commercialTraderComplete(trader)) {
+      setSellerError('Gewerblich: Name, Anschrift, E-Mail und Telefon sind Pflicht.')
+      return
+    }
+    setSellerError(null)
     const desc = description.trim() || `${trimmed}`
     let featured = false
-    if (boost && canBoost) {
+    if (isFlagOn('credits') && boost && canBoost) {
       const spent = await spendCredits(cost.credits, 'featured', `${cost.label}: ${trimmed}`)
       featured = Boolean(spent)
     }
@@ -142,6 +153,8 @@ function SimpleCreateListing() {
       offerTags: draft.kind === 'offer' ? company.offers.slice(0, 4) : undefined,
       needTags: draft.kind === 'request' ? company.seeks.slice(0, 4) : undefined,
       matchReason: featured ? 'Orbit Credits Boost (Demo)' : undefined,
+      sellerKind,
+      trader: sellerKind === 'commercial' ? trader : undefined,
     })
     navigate(`/listings/${listing.id}`)
   }
@@ -222,6 +235,7 @@ function SimpleCreateListing() {
             placeholder={t('create.unitPh')}
           />
         </div>
+        {isFlagOn('credits') && (
         <label className="flex min-h-11 items-start gap-2 rounded-xl border border-border bg-black/20 px-3 py-2 text-sm">
           <input
             type="checkbox"
@@ -232,9 +246,12 @@ function SimpleCreateListing() {
           />
           <span>
             {t('create.boost')} ({cost.credits} Credits) <LaneBadge lane="credits" />
-            <span className="block text-[11px] text-muted">{t('create.boostHint')}</span>
+            <span className="block text-xs text-muted">{t('create.boostHint')}</span>
           </span>
         </label>
+        )}
+        <SellerFields kind={sellerKind} onKind={setSellerKind} trader={trader} onTrader={setTrader} />
+        {sellerError && <p className="text-sm text-amber-200">{sellerError}</p>}
         <button
           type="button"
           className="text-sm text-[var(--theme-accent)] hover:underline"
@@ -266,7 +283,7 @@ function SimpleCreateListing() {
             {t('create.demoNote')}
           </p>
         )}
-        {intent !== 'need' && !offerOk && <VerifyPanel focus="offer" />}
+        {isFlagOn('verifyId') && intent !== 'need' && !offerOk && <VerifyPanel focus="offer" />}
         <div className="flex flex-wrap gap-2">
           <Button type="submit" disabled={intent !== 'need' && !offerOk}>
             {t('create.publish')}
@@ -275,7 +292,7 @@ function SimpleCreateListing() {
             {t('create.cancel')}
           </Button>
         </div>
-        <p className="text-[11px] text-muted">
+        <p className="text-xs text-muted">
           <Link to="/listings/new?full=1" className="hover:underline">
             {t('create.classic')}
           </Link>
@@ -313,6 +330,9 @@ function FullCreateListing() {
   const [expensesNote, setExpensesNote] = useState('')
   const [dayHours, setDayHours] = useState(String(MARKET_RATE.dayHours))
   const [vehicleSizeId, setVehicleSizeId] = useState(vehicleSizes[0]?.id ?? '')
+  const [sellerKind, setSellerKind] = useState<SellerKind>('private')
+  const [trader, setTrader] = useState<TraderDetails>(emptyTrader)
+  const [sellerError, setSellerError] = useState<string | null>(null)
 
   const meta = useMemo(() => VERTICAL_META[vertical], [vertical])
   const isJob = vertical === 'job'
@@ -328,6 +348,11 @@ function FullCreateListing() {
       p = demo
     }
     if (!title.trim() || !description.trim()) return
+    if (sellerKind === 'commercial' && !commercialTraderComplete(trader)) {
+      setSellerError('Gewerblich: Name, Anschrift, E-Mail und Telefon sind Pflicht.')
+      return
+    }
+    setSellerError(null)
     if (isJob && !priceFrom) {
       alert('Bitte Tagessatz / Budget angeben — Rates gehören upfront ins Inserat.')
       return
@@ -378,6 +403,8 @@ function FullCreateListing() {
       matchReason: isJob
         ? `Tagessatz ${priceFrom ? `${priceFrom} €` : 'klar'} · ${city} · ${TRAVEL_OPTIONS[travel]} · ${p.verified !== 'none' ? 'Verifiziertes Profil' : 'Neu'}`
         : undefined,
+      sellerKind,
+      trader: sellerKind === 'commercial' ? trader : undefined,
     })
     navigate(`/listings/${listing.id}`)
   }
@@ -599,6 +626,8 @@ function FullCreateListing() {
           </>
         )}
 
+        <SellerFields kind={sellerKind} onKind={setSellerKind} trader={trader} onTrader={setTrader} />
+        {sellerError && <p className="text-sm text-amber-200">{sellerError}</p>}
         {!user && (
           <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
             Nicht eingeloggt — beim Speichern starten wir die Demo-Session und veröffentlichen sofort.

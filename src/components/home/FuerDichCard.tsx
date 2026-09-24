@@ -3,6 +3,7 @@ import { Gift } from 'lucide-react'
 import { useI18n } from '../../lib/i18n'
 import type { FuerDichItem } from '../../lib/fuerDich'
 import { giftWalletHref } from '../../lib/gift'
+import { isFlagOn } from '../../lib/flags'
 import { cn } from '../../lib/utils'
 
 export function FuerDichCard({ item }: { item: FuerDichItem }) {
@@ -16,7 +17,7 @@ export function FuerDichCard({ item }: { item: FuerDichItem }) {
         {item.percent != null && (
           <span
             className={cn(
-              'rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums',
+              'rounded-full border px-2 py-0.5 text-xs font-semibold tabular-nums',
               item.percent >= 75
                 ? 'border-cyan/40 text-cyan'
                 : item.percent >= 55
@@ -28,14 +29,14 @@ export function FuerDichCard({ item }: { item: FuerDichItem }) {
           </span>
         )}
         {item.lane === 'news' && (
-          <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted">
+          <span className="rounded-full border border-border px-2 py-0.5 text-xs uppercase tracking-wide text-muted">
             {t('news.title')}
           </span>
         )}
       </div>
       <p className="mt-2 line-clamp-2 text-sm font-medium leading-snug text-ink">{item.title}</p>
-      <p className="mt-1 truncate text-[11px] text-muted">{item.kicker}</p>
-      {item.reason && <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-neutral-400">{item.reason}</p>}
+      <p className="mt-1 truncate text-xs text-muted">{item.kicker}</p>
+      {item.reason && <p className="mt-1 line-clamp-2 text-xs leading-snug text-neutral-400">{item.reason}</p>}
     </>
   )
 
@@ -55,10 +56,10 @@ export function FuerDichCard({ item }: { item: FuerDichItem }) {
       <Link to={item.to || '/'} className="flex flex-1 flex-col px-3 pt-3 pb-2">
         {body}
       </Link>
-      {item.gift && (
+      {isFlagOn('credits') && item.gift && (
         <Link
           to={giftWalletHref(item.gift)}
-          className="mx-3 mb-3 inline-flex min-h-8 items-center gap-1 text-[11px] text-violet-200 hover:underline"
+          className="mx-3 mb-3 inline-flex min-h-8 items-center gap-1 text-xs text-violet-200 hover:underline"
         >
           <Gift size={12} /> {t('gift.nudge')}
         </Link>

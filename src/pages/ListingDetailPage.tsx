@@ -21,7 +21,10 @@ import { trackBehavior } from '../lib/behavior'
 import { listingSpeech } from '../lib/tts'
 import { listForListing } from '../lib/experience'
 import { giftWalletHref } from '../lib/gift'
+import { isFlagOn } from '../lib/flags'
 import { useI18n } from '../lib/i18n'
+import { ReportButton } from '../components/report/ReportButton'
+import { SellerLabel } from '../components/listings/SellerLabel'
 
 export function ListingDetailPage() {
   const { t } = useI18n()
@@ -145,6 +148,7 @@ export function ListingDetailPage() {
                   })}
                 />
                 <FavoriteButton listingId={listing.id} />
+                {isFlagOn('credits') && (
                 <Link
                   to={giftWalletHref({
                     kind: 'listing',
@@ -157,6 +161,7 @@ export function ListingDetailPage() {
                 >
                   <Gift size={14} /> {t('gift.nudge')}
                 </Link>
+                )}
               </div>
             </div>
             <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
@@ -175,6 +180,10 @@ export function ListingDetailPage() {
                 </span>
               )}
             </p>
+            <div className="mt-3 space-y-2">
+              <SellerLabel listing={listing} />
+              <ReportButton targetKind="listing" targetId={listing.id} />
+            </div>
           </div>
         </div>
 
@@ -182,25 +191,25 @@ export function ListingDetailPage() {
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {listing.venue && (
               <div className="rounded-xl border border-border bg-surface-3/50 px-3 py-2 text-sm">
-                <div className="text-[11px] text-muted">Venue / Ort</div>
+                <div className="text-xs text-muted">Venue / Ort</div>
                 {listing.venue}
               </div>
             )}
             {listing.callTime && (
               <div className="rounded-xl border border-border bg-surface-3/50 px-3 py-2 text-sm">
-                <div className="text-[11px] text-muted">Call-Zeiten</div>
+                <div className="text-xs text-muted">Call-Zeiten</div>
                 {listing.callTime}
               </div>
             )}
             {listing.dateFrom && (
               <div className="rounded-xl border border-border bg-surface-3/50 px-3 py-2 text-sm">
-                <div className="text-[11px] text-muted">Zeitraum</div>
+                <div className="text-xs text-muted">Zeitraum</div>
                 {formatDate(listing.dateFrom)}
                 {listing.dateTo ? ` – ${formatDate(listing.dateTo)}` : ''}
               </div>
             )}
             <div className="rounded-xl border border-border bg-surface-3/50 px-3 py-2 text-sm">
-              <div className="text-[11px] text-muted">Standort</div>
+              <div className="text-xs text-muted">Standort</div>
               {listing.city}
               {listing.venue ? ` · ${listing.venue}` : ''}
             </div>

@@ -17,7 +17,7 @@ const KEY = 'el_fx_cache_v1'
 export interface FxSnapshot {
   base: 'EUR'
   rates: Record<FxCode, number>
-  source: 'static' | 'frankfurter+static-usdt'
+  source: 'static'
   fetchedAt: string
   indicative: true
 }
@@ -62,22 +62,9 @@ export function convertFx(amountEur: number, to: FxCode, rates = getFx().rates) 
   return amountEur * (rates[to] ?? 1)
 }
 
+/** Static indicative rates only. No network call. */
 export async function refreshFx(): Promise<FxSnapshot> {
   const next = defaultSnap()
-  try {
-    const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,GBP,CHF')
-    if (res.ok) {
-      const data = (await res.json()) as { rates?: Record<string, number> }
-      if (data.rates?.USD) next.rates.USD = data.rates.USD
-      if (data.rates?.GBP) next.rates.GBP = data.rates.GBP
-      if (data.rates?.CHF) next.rates.CHF = data.rates.CHF
-      next.rates.USDT = next.rates.USD
-      next.source = 'frankfurter+static-usdt'
-      next.fetchedAt = new Date().toISOString()
-    }
-  } catch {
-    /* keep static */
-  }
   cache = next
   try {
     localStorage.setItem(KEY, JSON.stringify(next))

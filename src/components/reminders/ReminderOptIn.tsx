@@ -22,7 +22,7 @@ export function ReminderOptIn() {
         {state.optIn ? t('remind.off') : t('remind.on')}
       </Button>
       {state.optIn && (
-        <p className="text-[11px] text-muted">
+        <p className="text-xs text-muted">
           {t('remind.cap')} · {remainingReminderSlots()} {t('remind.left')}
         </p>
       )}

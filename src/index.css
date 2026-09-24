@@ -127,7 +127,7 @@ html[data-scheme="dark"] {
   --color-neutral-200: #e5e5e5;
   --color-neutral-300: #d4d4d4;
   --color-neutral-400: #a3a3a3;
-  --color-neutral-500: #737373;
+  --color-neutral-500: #a3a3a3;
   --color-neutral-600: #525252;
   --color-amber-100: #fef3c7;
   --color-amber-200: #fde68a;
@@ -136,6 +136,11 @@ html[data-scheme="dark"] {
   --color-violet-300: #c4b5fd;
   --color-rose-300: #fda4af;
   --color-emerald-300: #6ee7b7;
+}
+
+/* Inactive nav uses this class. Keep it on the theme variable so contrast stays ≥ 4.5:1. */
+.text-neutral-500 {
+  color: var(--color-neutral-500);
 }
 html[data-scheme="dark"] [data-theme="home"] {
   --theme-accent: #2dd4bf;

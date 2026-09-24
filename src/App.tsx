@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { AuthProvider } from './lib/auth'
@@ -16,7 +16,9 @@ import { MessagesPage } from './pages/MessagesPage'
 import { AgbPage } from './pages/legal/AgbPage'
 import { DatenschutzPage } from './pages/legal/DatenschutzPage'
 import { ImpressumPage } from './pages/legal/ImpressumPage'
+import { RankingPage } from './pages/legal/RankingPage'
 import { SupportPage } from './pages/legal/SupportPage'
+import { isFlagOn, type FeatureFlag } from './lib/flags'
 import {
   InnovationPage,
   KatalogPage,
@@ -133,7 +135,7 @@ function AppReady() {
               <Route path="social" element={<SocialPage />} />
               <Route path="social/chat" element={<MessagesPage />} />
               <Route path="social/chat/:threadId" element={<MessagesPage />} />
-              <Route path="entdecker" element={<EntdeckerPage />} />
+              <Route path="entdecker" element={<FlagRoute flag="entdecker"><EntdeckerPage /></FlagRoute>} />
               <Route path="quellen" element={<QuellenPage />} />
               <Route path="jobs/compare/:listingId" element={<CompareOffersPage />} />
               <Route path="listings/new" element={<CreateListingPage />} />
@@ -141,20 +143,20 @@ function AppReady() {
               <Route path="auth" element={<AuthPage />} />
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="mehr" element={<MehrPage />} />
-              <Route path="campus" element={<CampusPage />} />
-              <Route path="lernen" element={<Navigate to="/campus" replace />} />
-              <Route path="kids" element={<KidsPage />} />
-              <Route path="channels" element={<ChannelsPage />} />
-              <Route path="look" element={<LookPage />} />
-              <Route path="kabine" element={<LookPage />} />
+              <Route path="campus" element={<FlagRoute flag="campus"><CampusPage /></FlagRoute>} />
+              <Route path="lernen" element={<Navigate to={isFlagOn('campus') ? '/campus' : '/'} replace />} />
+              <Route path="kids" element={<FlagRoute flag="kids"><KidsPage /></FlagRoute>} />
+              <Route path="channels" element={<FlagRoute flag="channels"><ChannelsPage /></FlagRoute>} />
+              <Route path="look" element={<FlagRoute flag="kabine"><LookPage /></FlagRoute>} />
+              <Route path="kabine" element={<FlagRoute flag="kabine"><LookPage /></FlagRoute>} />
               <Route path="mein" element={<MeinPage />} />
-              <Route path="foto" element={<PhotoJobsPage />} />
-              <Route path="interview" element={<InterviewPage />} />
-              <Route path="interview/:roomId" element={<InterviewPage />} />
+              <Route path="foto" element={<FlagRoute flag="photoJobs"><PhotoJobsPage /></FlagRoute>} />
+              <Route path="interview" element={<FlagRoute flag="interview"><InterviewPage /></FlagRoute>} />
+              <Route path="interview/:roomId" element={<FlagRoute flag="interview"><InterviewPage /></FlagRoute>} />
               <Route path="erfahrungen" element={<ErfahrungenPage />} />
-              <Route path="wallet" element={<WalletPage />} />
-              <Route path="ideen" element={<IdeenPage />} />
-              <Route path="integrationen" element={<IntegrationenPage />} />
+              <Route path="wallet" element={<FlagRoute flag="credits"><WalletPage /></FlagRoute>} />
+              <Route path="ideen" element={<FlagRoute flag="ideas"><IdeenPage /></FlagRoute>} />
+              <Route path="integrationen" element={<FlagRoute flag="integrations"><IntegrationenPage /></FlagRoute>} />
               <Route path="empfehlen" element={<EmpfehlenPage />} />
               <Route path="messages" element={<Navigate to="/social/chat" replace />} />
               <Route path="messages/:threadId" element={<MessagesToSocial />} />
@@ -174,6 +176,7 @@ function AppReady() {
               <Route path="privacy" element={<DatenschutzPage />} />
               <Route path="support" element={<SupportPage />} />
               <Route path="agb" element={<AgbPage />} />
+              <Route path="ranking" element={<RankingPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Route>
@@ -181,6 +184,11 @@ function AppReady() {
       </BrowserRouter>
     </AuthProvider>
   )
+}
+
+function FlagRoute({ flag, children }: { flag: FeatureFlag; children: ReactNode }) {
+  if (!isFlagOn(flag)) return <Navigate to="/" replace />
+  return children
 }
 
 function BootScreen() {

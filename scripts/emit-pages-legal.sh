@@ -4,7 +4,7 @@
 # Copying the same file to `404.html` still responds HTTP 404, which Apple
 # review rejects for Privacy / Support URLs.
 #
-# Paths match src/App.tsx: privacy, support, impressum, and the DE alias datenschutz.
+# Paths match src/App.tsx: privacy, support, impressum, datenschutz, agb, ranking.
 # `npm run build` stays unchanged; deploy-pages.sh calls this script.
 set -euo pipefail
 
@@ -19,7 +19,7 @@ if [[ ! -f "$DIST/index.html" ]]; then
   exit 1
 fi
 
-PATHS=(privacy support impressum datenschutz)
+PATHS=(privacy support impressum datenschutz agb ranking)
 
 for seg in "${PATHS[@]}"; do
   mkdir -p "$DIST/$seg"

@@ -177,11 +177,11 @@ export function WalletPage() {
 
       <section className="relative overflow-hidden rounded-3xl border border-cyan/30 bg-gradient-to-br from-cyan/15 via-surface-2 to-black p-5">
         <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-cyan/20 blur-3xl" />
-        <p className="text-[11px] uppercase tracking-wider text-cyan">Verfügbar (Demo)</p>
+        <p className="text-xs uppercase tracking-wider text-cyan">Verfügbar (Demo)</p>
         <div className="mt-1 text-4xl font-bold tabular-nums tracking-tight text-ink">
           {formatPrice(wallet.balanceEur)}
         </div>
-        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-neutral-300">
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-300">
           {FX_CODES.filter((c) => c !== 'EUR').map((c) => (
             <span key={c}>
               {c} {formatFx(convertFx(wallet.balanceEur, c, fx.rates), c)}
@@ -275,12 +275,12 @@ export function WalletPage() {
           <h2 className="text-lg font-semibold text-violet-200">Orbit Credits</h2>
           <LaneBadge lane="credits" />
           {identity?.earlyTester && (
-            <span className="rounded-full border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[11px] text-amber-100">
+            <span className="rounded-full border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-xs text-amber-100">
               Early Tester #{identity.ordinal}
             </span>
           )}
           {identity && !identity.earlyTester && (
-            <span className="rounded-full border border-white/15 px-2 py-0.5 text-[11px] text-neutral-300">
+            <span className="rounded-full border border-white/15 px-2 py-0.5 text-xs text-neutral-300">
               Signup #{identity.ordinal}
             </span>
           )}
@@ -304,7 +304,7 @@ export function WalletPage() {
 
         <SupplyMeter />
 
-        <p className="text-[11px] text-muted">
+        <p className="text-xs text-muted">
           {t('credits.ledgerMode')}: {ledgerModeLine()}
         </p>
 
@@ -312,7 +312,7 @@ export function WalletPage() {
 
         <div className="rounded-xl border border-violet-400/20 bg-black/20 p-3">
           <h3 className="text-sm font-semibold">Allokation (21M)</h3>
-          <ul className="mt-2 space-y-1 text-[11px] text-neutral-300">
+          <ul className="mt-2 space-y-1 text-xs text-neutral-300">
             {ALLOCATION_TABLE.map((row) => {
               const left =
                 row.id === 'p2p'
@@ -363,7 +363,7 @@ export function WalletPage() {
                     {resolved === 'de' ? pack.labelDe : pack.labelEn}
                   </p>
                   <p className="text-lg font-bold tabular-nums">{pack.credits}</p>
-                  <p className="text-[11px] text-muted">{pack.priceLabel} · Demo</p>
+                  <p className="text-xs text-muted">{pack.priceLabel} · Demo</p>
                 </button>
               ))}
             </div>
@@ -382,7 +382,7 @@ export function WalletPage() {
                   >
                     <div>
                       <p className="text-sm font-medium text-ink">{order.seller}</p>
-                      <p className="text-[11px] text-muted">
+                      <p className="text-xs text-muted">
                         {order.credits} Credits · {order.priceEur.toFixed(2)} € · {order.note}
                       </p>
                     </div>
@@ -546,7 +546,7 @@ export function WalletPage() {
               </Badge>
             )}
           </h3>
-          <p className="mt-1 text-[11px] text-muted">{t('rewards.verbessererHint')}</p>
+          <p className="mt-1 text-xs text-muted">{t('rewards.verbessererHint')}</p>
           <table className="mt-3 w-full text-left text-xs">
             <caption className="sr-only">{t('rewards.tableTitle')}</caption>
             <thead>
@@ -572,7 +572,7 @@ export function WalletPage() {
               <li key={r}>{r}</li>
             ))}
           </ul>
-          <p className="mt-2 text-[11px] text-muted">
+          <p className="mt-2 text-xs text-muted">
             Flags: ideas {getRewardFlags().ideas} · merged PRs {getRewardFlags().grantedPrs.join(', ') || '—'}
           </p>
         </div>
@@ -628,7 +628,7 @@ export function WalletPage() {
           </Select>
         </div>
         <p className="text-2xl font-bold tabular-nums text-cyan">{formatFx(converted, fxTo)}</p>
-        <div className="flex flex-wrap gap-1.5 text-[11px] text-muted">
+        <div className="flex flex-wrap gap-1.5 text-xs text-muted">
           {FX_CODES.map((c) => (
             <span key={c} className="chip">
               1 EUR = {c === 'EUR' ? '1' : fx.rates[c].toFixed(3)} {c}
@@ -753,7 +753,7 @@ export function WalletPage() {
                     <Badge tone={on ? 'green' : 'default'}>{on ? 'verbunden' : 'nicht verbunden'}</Badge>
                     {m.group === 'crypto' && <Badge tone="amber">Krypto</Badge>}
                   </div>
-                  <p className="mt-0.5 text-[11px] text-muted">{on ? st.display : m.hint}</p>
+                  <p className="mt-0.5 text-xs text-muted">{on ? st.display : m.hint}</p>
                 </div>
                 <Button
                   size="sm"
@@ -793,7 +793,7 @@ export function WalletPage() {
                 <li key={tx.id} className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm text-ink">{tx.label}</p>
-                    <p className="text-[11px] text-muted">
+                    <p className="text-xs text-muted">
                       {meta?.label} · {formatDateTime(tx.createdAt)} · Demo
                     </p>
                   </div>

@@ -15,6 +15,7 @@ import { touchResume } from '../../lib/resume'
 import { SchemeToggle } from '../theme/SchemeToggle'
 import { KidsBanner } from '../kids/KidsBanner'
 import { ParentalGateHost } from '../kids/ParentalGate'
+import { isFlagOn } from '../../lib/flags'
 import { isKidsMode, subscribeKids } from '../../lib/kids'
 import { cueOrbiNavRun } from '../../lib/orbiMotion'
 import { recordWidgetVisit } from '../../lib/widgetUsage'
@@ -83,8 +84,8 @@ export function AppShell() {
       className="theme-shell mx-auto flex min-h-dvh max-w-6xl flex-col overflow-x-hidden"
     >
       <SkipLink />
-      {kids && <KidsBanner />}
-      {stub && location.pathname !== '/' && (
+      {isFlagOn('kids') && kids && <KidsBanner />}
+      {import.meta.env.DEV && stub && location.pathname !== '/' && (
         <p className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-100">
           {t('stub.banner')}
         </p>
@@ -101,7 +102,7 @@ export function AppShell() {
             <BrandIcon size={36} />
             <div className="leading-tight">
               <div className="font-bold tracking-tight text-ink">Orbit</div>
-              <div className="text-[10px] uppercase tracking-wider text-[var(--theme-accent)]">
+              <div className="text-xs uppercase tracking-wider text-[var(--theme-accent)]">
                 {t('brand.tagline')}
               </div>
             </div>
@@ -212,6 +213,9 @@ export function AppShell() {
               <Link to="/agb" className="hover:text-[var(--theme-accent)]">
                 {t('footer.terms')}
               </Link>
+              <Link to="/ranking" className="hover:text-[var(--theme-accent)]">
+                Ranking
+              </Link>
             </nav>
             <p>{copyrightLine()}</p>
           </footer>
@@ -220,7 +224,7 @@ export function AppShell() {
 
       <CreateSheet open={createOpen} onClose={() => setCreateOpen(false)} />
       <PwaInstallBanner />
-      <ParentalGateHost />
+      {isFlagOn('kids') && <ParentalGateHost />}
 
       <nav
         className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-surface/95 safe-pb backdrop-blur md:hidden"
@@ -234,7 +238,7 @@ export function AppShell() {
             end={'end' in item ? item.end : false}
             className={({ isActive }) =>
               cn(
-                'relative flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 px-1 text-[10px] text-neutral-500 touch-manipulation transition-colors duration-200',
+                'relative flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 px-1 text-xs text-neutral-500 touch-manipulation transition-colors duration-200',
                 isActive && 'text-[var(--theme-accent)]',
               )
             }

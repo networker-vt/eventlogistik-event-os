@@ -27,7 +27,7 @@ Marketplace for everything (v2.8.1): Reise, Kabine, Lernen, Services, Jobs, B2B 
 | `/social` | Social hub — feed, like, share, vernetzen. Chat at `/social/chat` |
 | `/messages` | Redirects to `/social/chat` |
 | `/wallet` | Credits (21M cap), gift/sponsoring, methods, bookings, tickets |
-| `/abflug` (`/reise`) | Abflug — live rail via transport.rest or bahn.de; flights/hotels/cars/packages are filled search links. No invented bookings. |
+| `/abflug` (`/reise`) | Abflug — bahn.de search link; flights/hotels/cars/packages are filled search links. No invented bookings. |
 | `/channels` | Opt-in stubs (Meta, X, Steam/PlayStation/Xbox, …) + community link-stubs |
 | `/mein` | Account tiles: Wallet (adult), Prefs, Verify, Erstellen/Anbieten stubs, Ideen-Box, Channels |
 | `/firma` | Company hub |

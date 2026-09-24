@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import * as credits from './credits'
 import { __resetCreditsForTests, earnCredits, getCredits, spendCredits } from './credits'
 import { __resetProtocolForTests, getProtocol } from './creditProtocol'
-import { __setAppModeForTests } from './flags'
+import { __setAppModeForTests, __setFlagForTests } from './flags'
 import { __resetKidsForTests, enableKids, kidsCreditsFrozen } from './kids'
 import {
   CONTRIBUTOR_REWARDS,
@@ -17,6 +17,7 @@ describe('Contributor rewards', () => {
   beforeEach(() => {
     localStorage.clear()
     __setAppModeForTests(null)
+    __setFlagForTests('credits', true)
     __resetProtocolForTests()
     __resetCreditsForTests()
     __resetRewardsForTests()
@@ -26,6 +27,7 @@ describe('Contributor rewards', () => {
   afterEach(() => {
     __resetRewardsForTests()
     __resetKidsForTests()
+    __setFlagForTests(null)
   })
 
   it('does not publicly export a naked merged-PR mint', () => {

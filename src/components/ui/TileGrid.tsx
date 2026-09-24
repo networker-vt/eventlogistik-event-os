@@ -63,7 +63,7 @@ export function TileGrid({
             <span className="mt-3 flex w-full items-end justify-between gap-2">
               <span className="text-sm font-semibold leading-tight text-ink">{tile.label}</span>
               {tile.demo && (
-                <span className="shrink-0 rounded-full border border-current/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
+                <span className="shrink-0 rounded-full border border-current/30 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide">
                   Demo
                 </span>
               )}

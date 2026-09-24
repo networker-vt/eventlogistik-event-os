@@ -1,116 +1,129 @@
+import { Link } from 'react-router-dom'
+import { isSupabaseConfigured } from '../../lib/supabase'
 import { LEGAL, LEGAL_ADDRESS_LINE } from '../../lib/legal'
 import { LegalLayout } from './LegalLayout'
 
+/**
+ * Der frühere Kasten „Startklar für die öffentliche Demo…“ steht nicht mehr auf der Seite.
+ * Er kommt erst zurück, wenn eine fachliche Prüfung da ist.
+ */
 export function DatenschutzPage() {
   return (
     <LegalLayout title="Datenschutz / Privacy">
-      <p className="rounded-xl border border-cyan/30 bg-cyan/10 px-4 py-3 text-sm text-cyan">
-        Startklar für die öffentliche Demo. Kein Tracking, keine Bezahldaten. Vor einem kommerziellen
-        Live-Betrieb mit echten Nutzerkonten sollten AV-Verträge (z. B. Supabase) und diese Erklärung
-        noch einmal fachlich geprüft werden.
-      </p>
-
-      <h2>1. Verantwortlicher</h2>
       <p>
-        {LEGAL.operatorName} ({LEGAL.form})
-        <br />
-        {LEGAL.street}, {LEGAL.zip} {LEGAL.city}, {LEGAL.country}
-        <br />
-        E-Mail: <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>
+        Verantwortlich: {LEGAL.operatorName}, {LEGAL_ADDRESS_LINE}, {LEGAL.country}. E-Mail:{' '}
+        <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>. Telefon: {LEGAL.phone}.
+      </p>
+      <p>
+        Orbit ist ein Marktplatz. Verträge über Jobs, Fahrten oder andere Leistungen kommen zwischen
+        den Nutzerinnen und Nutzern zustande, nicht mit {LEGAL.operatorName}.
       </p>
 
-      <h2>2. Hosting</h2>
+      <h2>Welche Dienste wirklich laufen</h2>
       <ul>
         <li>
-          Frontend: GitHub Pages (GitHub, Inc., USA). Beim Abruf fallen technisch notwendige
-          Server-Logs beim Host an (IP, User-Agent, Zeitpunkt).
+          <strong>GitHub Pages</strong> liefert die Web-App aus. Zweck: Betrieb der Seite.
+          Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO. Empfänger: GitHub, Inc. (USA); Übermittlung
+          auf Basis der Standardvertragsklauseln. Speicherdauer der Server-Logs: nach den Fristen
+          von GitHub. Wir führen diese Logs nicht selbst.
         </li>
         <li>
-          Optional später: Supabase (EU-Projekt empfohlen) für Auth/DB — nur wenn in der Umgebung
-          konfiguriert. Ohne Keys bleibt alles lokal im Browser.
+          <strong>Speicher auf deinem Gerät</strong> (localStorage und der Cache der App). Zweck:
+          Konto-Stub, Inserate, Nachrichten, Favoriten, Sprache, Altersbestätigung und Meldungen
+          auf diesem Gerät zu halten. Rechtsgrundlage: § 25 Abs. 2 TDDDG (technisch erforderlich,
+          kein Einwilligungsbanner) und Art. 6 Abs. 1 lit. b und lit. f DSGVO. Speicherdauer: bis
+          du die Website-Daten in den Browser-Einstellungen löschst.
         </li>
-        <li>Kein Analytics-Tool ist aktiv. Kein Consent-Banner nötig, solange kein Tracking dazukommt.</li>
+        <li>
+          <strong>Apple</strong> (Apple Inc. / Apple Distribution International Ltd.), wenn du die
+          iOS-App installierst und öffnest. Zweck: Bereitstellung der App auf dem iPhone.
+          Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Nutzung der App) und lit. f (sicherer
+          Betrieb). Speicherdauer: nach den Regeln von Apple für App- und Gerätedaten. Die Web-App
+          auf GitHub Pages sendet dadurch keine Daten an Apple.
+        </li>
+        {isSupabaseConfigured && (
+          <li>
+            <strong>Supabase</strong> speichert Konto und Inhalte, wenn die Verbindung in diesem
+            Build eingeschaltet ist. Zweck: Anmeldung und Synchronisation. Rechtsgrundlage: Art. 6
+            Abs. 1 lit. b DSGVO. Speicherdauer: bis zur Löschung, soweit keine gesetzliche Pflicht
+            entgegensteht.
+          </li>
+        )}
       </ul>
+      <p>
+        Es gibt kein Analyse-Werkzeug und keine Werbung von Dritten. Wenn du einen Suchlink
+        (bahn.de, Google Flights, Booking, Kayak) selbst öffnest, gilt die Datenschutzerklärung
+        der jeweiligen Seite. Orbit ruft diese Seiten nicht im Hintergrund auf.
+      </p>
 
-      <h2>3. Welche Daten wir verarbeiten</h2>
+      <h2>Was auf dem Gerät liegt</h2>
       <ul>
+        <li>Anmelde-Stub, Profil, Inserate, Nachrichten, Favoriten: bis du den Speicher leerst.</li>
         <li>
-          <strong>Lokal (localStorage):</strong> Demo-Account, Inserate, Wallet-Stubs, Ideen-Box,
-          Referral-Code, Integrations-Status, Favoriten. Diese Daten verlassen das Gerät nicht, solange
-          kein Backend angebunden ist.
+          Altersbestätigung (mindestens 18 Jahre): Zeitpunkt der Bestätigung im localStorage, bis
+          du den Speicher leerst. Es gibt kein eigenes Server-Feld dafür.
         </li>
         <li>
-          <strong>Ideen-Box:</strong> Kategorie, Freitext, optionale E-Mail — nur lokal. Die optionale
-          E-Mail dient Rückfragen und wird nicht an Dritte weitergegeben.
+          Inhaltsmeldungen: Grund, Beschreibung, optional Name und E-Mail, bis du den Speicher
+          leerst oder wir die Meldung nach der Prüfung löschen.
         </li>
-        <li>
-          <strong>Account (geplant / optional Supabase):</strong> Name, E-Mail, Rolle, Stadt,
-          Profilangaben, Inserate, Nachrichten.
-        </li>
-        <li>PWA: Service-Worker cached die App-Shell auf dem Gerät.</li>
+        <li>Sprache und Darstellung: bis du sie änderst oder den Speicher leerst.</li>
       </ul>
 
-      <h2>4. Rechtsgrundlagen</h2>
+      <h2>Firmendaten im Verzeichnis (Art. 14 DSGVO)</h2>
       <p>
-        Art. 6 Abs. 1 lit. b DSGVO (Vertragsanbahnung/-erfüllung bei Registrierung), lit. f
-        (berechtigtes Interesse an sicherem Hosting und Missbrauchsabwehr), lit. a soweit eine
-        Einwilligung eingeholt wird (derzeit nicht für Tracking).
+        Im Firmenverzeichnis stehen Name, Ort und ein Link zur Website oder zu Dry-Hire. Quelle:
+        öffentlich zugängliche Firmenangaben und dry-hire.com. Telefonnummern und E-Mail-Adressen
+        der Firmen speichern wir in der App nicht. Zweck: ein Verzeichnis, um Veranstaltungstechnik
+        zu finden. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einem
+        Verzeichnis öffentlich bekannter Geschäftsdaten). Empfänger: Besucherinnen und Besucher der
+        App. Speicherdauer: bis die nächste Version den Eintrag entfernt oder ein Löschwunsch
+        eingeht. Löschung und Berichtigung: E-Mail an{' '}
+        <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>.
       </p>
 
-      <h2>5. Speicherdauer</h2>
+      <h2>Alter</h2>
       <p>
-        Lokale Demo-Daten bleiben, bis der Browser-Speicher geleert oder die Funktion „reset“ genutzt
-        wird. Hosting-Logs richtet der Anbieter. Bei einem späteren Live-Account: Löschung auf
-        Anfrage an {LEGAL.email}, gesetzliche Aufbewahrung bleibt vorbehalten.
+        Orbit richtet sich an Personen ab 18 Jahren. Bei der Anmeldung bestätigst du das. Die
+        Bestätigung liegt nur auf diesem Gerät.
       </p>
 
-      <h2>6. Betroffenenrechte</h2>
+      <h2>Deine Rechte</h2>
       <p>
-        Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch sowie
-        Beschwerde bei einer Aufsichtsbehörde (in NRW: LDI NRW). Kontakt: {LEGAL.email},{' '}
-        {LEGAL_ADDRESS_LINE}.
+        Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch
+        nach der DSGVO, außerdem Beschwerde bei einer Aufsichtsbehörde (für NRW: LDI NRW).
+        Lokale Daten entfernst du selbst, indem du die Website-Daten löschst. Für alles andere
+        reicht eine E-Mail an <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>.
       </p>
 
-      <h2>7. Drittlandtransfer</h2>
+      <h2>English</h2>
       <p>
-        GitHub Pages kann eine Übermittlung in die USA bedeuten (Standardvertragsklauseln des
-        Anbieters). Keine eigenen Tracking-Cookies.
+        Controller: {LEGAL.operatorName}, {LEGAL_ADDRESS_LINE}, Germany. Email:{' '}
+        <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>. Phone: {LEGAL.phone}.
+      </p>
+      <p>
+        Active services: GitHub Pages (hosting the web app), storage on your device (technically
+        necessary under § 25 (2) TDDDG, no consent banner), and Apple when you use the iOS app.
+        {isSupabaseConfigured ? ' Supabase stores the account when that connection is enabled.' : ''}{' '}
+        There is no analytics tool. Opening a search link (bahn.de, Google Flights, Booking, Kayak)
+        is your request; that site then applies its own policy. Orbit does not call those sites in
+        the background.
+      </p>
+      <p>
+        Company directory (Art. 14 GDPR): name, city and a website or dry-hire link from public
+        business sources. No company phone numbers or emails are stored in the app. Legal basis:
+        legitimate interest in a directory of public business data. Deletion:{' '}
+        <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>. Orbit is for people aged 18 or over.
+        You confirm that at sign-up; the confirmation stays on this device until you clear site
+        data.
       </p>
 
-      <h2>8. Zahlungen</h2>
-      <p>
-        Wallet, IBAN- und Krypto-Formulare sind Demonstrations-UI. Es werden keine Zahlungsdaten an
-        Stripe, PayPal, Banken oder Blockchains übermittelt.
-      </p>
-
-      <h2>Privacy (English)</h2>
-      <p>
-        Controller: {LEGAL.operatorName}, a private individual ({LEGAL.form}), {LEGAL_ADDRESS_LINE},{' '}
-        {LEGAL.country}. Email: <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>. Orbit is not a
-        company and has no trade-register entry.
-      </p>
-      <ul>
-        <li>The public app is hosted on GitHub Pages. The host may keep technical logs (IP, user agent, time).</li>
-        <li>No analytics tool is active. No tracking cookies are set by Orbit.</li>
-        <li>
-          Demo data (account stub, listings, ideas, favorites) stays in this browser until you clear
-          site data. It is not uploaded unless an optional Supabase project is configured later.
-        </li>
-        <li>Wallet and travel forms do not send card, bank, or booking data to a payment or airline system.</li>
-        <li>
-          You can ask for access, correction, or deletion at {LEGAL.email}. You may also complain to
-          the supervisory authority in North Rhine-Westphalia (LDI NRW).
-        </li>
-      </ul>
-      <p>
-        This is a plain-language notice for the demo, not a law-firm opinion. Before a commercial
-        service with real accounts, the text should be reviewed again.
-      </p>
-
-      <p className="text-sm text-muted">
-        Stand: {LEGAL.year} · {LEGAL.operatorName} ·{' '}
-        <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>
-      </p>
+      <nav className="flex flex-wrap gap-3 text-sm">
+        <Link to="/impressum">Impressum</Link>
+        <Link to="/support">Support</Link>
+        <Link to="/agb">AGB</Link>
+        <Link to="/ranking">Ranking</Link>
+      </nav>
     </LegalLayout>
   )
 }

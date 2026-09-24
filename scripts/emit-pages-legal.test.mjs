@@ -6,7 +6,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
 
-const PATHS = ['privacy', 'support', 'impressum', 'datenschutz']
+const PATHS = ['privacy', 'support', 'impressum', 'datenschutz', 'agb', 'ranking']
 
 describe('emit-pages-legal', () => {
   it('matches the React routes and writes directory indexes', () => {
@@ -15,6 +15,8 @@ describe('emit-pages-legal', () => {
     assert.match(app, /path="support"\s+element=\{<SupportPage/)
     assert.match(app, /path="impressum"\s+element=\{<ImpressumPage/)
     assert.match(app, /path="datenschutz"\s+element=\{<DatenschutzPage/)
+    assert.match(app, /path="agb"\s+element=\{<AgbPage/)
+    assert.match(app, /path="ranking"\s+element=\{<RankingPage/)
 
     const script = readFileSync(new URL('./emit-pages-legal.sh', import.meta.url), 'utf8')
     for (const path of PATHS) assert.match(script, new RegExp(`\\b${path}\\b`))

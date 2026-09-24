@@ -69,4 +69,4 @@ export interface CatalogPlatform {
 }
 
 export const CATALOG_DISCLAIMER_DE =
-  'Öffentliche Firmendaten · Angaben ohne Gewähr · Korrekturen: info@orbit.jobs (Betreiber) oder über das jeweilige Impressum der Firma.'
+  'Öffentliche Firmendaten (Name, Ort, Website). Keine Telefonnummern oder E-Mails. Korrekturen und Löschwünsche: siehe Datenschutzerklärung.'

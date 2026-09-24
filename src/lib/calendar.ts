@@ -33,7 +33,7 @@ function escapeIcs(text: string) {
 }
 
 export function buildIcs(ev: CalEventInput): string {
-  const uid = ev.uid || `orbit-${Date.now()}@orbit.jobs`
+  const uid = ev.uid || `orbit-${Date.now()}@example.invalid`
   const start = toIcsUtc(ev.startIso)
   const end = toIcsUtc(
     ev.endIso || new Date(new Date(ev.startIso).getTime() + 60 * 60 * 1000).toISOString(),

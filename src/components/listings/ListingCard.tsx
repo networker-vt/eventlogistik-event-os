@@ -6,6 +6,8 @@ import { Badge } from '../ui/Badge'
 import { VERTICAL_META } from '../../data/constants'
 import { deriveMarketType } from '../../lib/market'
 import { formatDate, formatPriceRange } from '../../lib/utils'
+import { isFlagOn } from '../../lib/flags'
+import { resolveSeller } from '../../lib/seller'
 import { JobConditions } from './JobConditions'
 
 function trustLabel(level: Listing['ownerVerified']) {
@@ -53,7 +55,8 @@ export function ListingCard({
           {!listing.marketType && deriveMarketType(listing) !== 'job' && (
             <Badge tone="violet">{deriveMarketType(listing)}</Badge>
           )}
-          {listing.featured && <Badge tone="cyan">Featured</Badge>}
+          {isFlagOn('credits') && listing.featured && <Badge tone="cyan">Featured</Badge>}
+          <Badge>{resolveSeller(listing).kind === 'commercial' ? 'Gewerblich' : 'Privat'}</Badge>
         </div>
       </div>
 
@@ -61,7 +64,7 @@ export function ListingCard({
         <div className="mb-2 flex items-baseline gap-2">
           <span className="text-xl font-bold tracking-tight text-cyan md:text-[1.35rem]">{rate}</span>
           {listing.dayHours ? (
-            <span className="text-[11px] text-muted">{listing.dayHours}h-Tag</span>
+            <span className="text-xs text-muted">{listing.dayHours}h-Tag</span>
           ) : null}
         </div>
       )}
@@ -81,7 +84,7 @@ export function ListingCard({
       <JobConditions listing={listing} compact />
 
       {listing.matchReason && (
-        <p className="mt-2.5 inline-flex items-start gap-1.5 rounded-xl border border-cyan/20 bg-cyan/10 px-2.5 py-1.5 text-[11px] text-cyan">
+        <p className="mt-2.5 inline-flex items-start gap-1.5 rounded-xl border border-cyan/20 bg-cyan/10 px-2.5 py-1.5 text-xs text-cyan">
           <Sparkles size={12} className="mt-0.5 shrink-0" />
           <span className="line-clamp-2">{listing.matchReason}</span>
         </p>
