@@ -128,6 +128,20 @@ export interface Listing {
   /** DSA: private or commercial seller. Missing means private. */
   sellerKind?: 'private' | 'commercial'
   trader?: { name: string; address: string; email: string; phone: string }
+  /**
+   * Private listings only. Missing or false keeps contact off.
+   * Commercial listings use `trader` and ignore this flag.
+   */
+  showContact?: boolean
+  /** Snapshot copied at publish. Never the live account. */
+  publicContact?: ListingPublicContact
+}
+
+/** Contact the person released for one listing. Stored text only. */
+export interface ListingPublicContact {
+  phone?: string
+  email?: string
+  links?: ProfileLinkInput[]
 }
 
 

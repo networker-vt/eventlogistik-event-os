@@ -73,4 +73,9 @@ describe('dead links', () => {
     const emit = readFileSync(join(root, 'scripts/emit-pages-legal.sh'), 'utf8')
     for (const href of hrefs) assert.match(emit, new RegExp(`\\b${href.slice(1)}\\b`))
   })
+
+  it('does not fall back to the account email or phone on a listing', () => {
+    const page = readFileSync(join(root, 'src/pages/ListingDetailPage.tsx'), 'utf8')
+    assert.doesNotMatch(page, /owner\??\.(email|phone|profileLinks)/)
+  })
 })

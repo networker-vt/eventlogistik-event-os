@@ -25,10 +25,9 @@ import { isFlagOn } from '../lib/flags'
 import { useI18n } from '../lib/i18n'
 import { ReportButton } from '../components/report/ReportButton'
 import { SellerLabel } from '../components/listings/SellerLabel'
-import { ContactButtons } from '../components/contact/ContactButtons'
+import { ListingContact } from '../components/listings/ListingContact'
 import { ShareActions } from '../components/share/ShareActions'
 import { absoluteUrl } from '../lib/share'
-import { resolveSeller } from '../lib/seller'
 
 export function ListingDetailPage() {
   const { t } = useI18n()
@@ -75,9 +74,6 @@ export function ListingDetailPage() {
 
   const meta = VERTICAL_META[listing.vertical]
   const owner = store.getProfile(listing.ownerId)
-  const seller = resolveSeller(listing)
-  const contactAddress =
-    seller.trader?.address || [listing.venue, listing.city].filter(Boolean).join(', ')
   const rate = formatPriceRange(listing.priceFrom, listing.priceTo, listing.priceUnit)
   const isOwner = Boolean(user && user.id === listing.ownerId)
   const apps = isJob ? store.listBookingsForListing(listing.id) : []
@@ -189,16 +185,11 @@ export function ListingDetailPage() {
             </p>
             <div className="mt-3 space-y-3">
               <SellerLabel listing={listing} />
+              <ListingContact listing={listing} canMessage={!isOwner} />
               <ShareActions
                 title={listing.title}
                 text={listing.description.slice(0, 180)}
                 url={absoluteUrl(`/listings/${listing.id}`)}
-              />
-              <ContactButtons
-                phone={seller.trader?.phone || owner?.phone}
-                email={seller.trader?.email || owner?.email}
-                address={contactAddress}
-                links={owner?.profileLinks}
               />
               <ReportButton targetKind="listing" targetId={listing.id} />
             </div>
@@ -357,56 +348,58 @@ export function ListingDetailPage() {
             </Button>
           </div>
         </div>
-      ) : isJob ? (
-        <InteresseButton listing={listing} />
-      ) : done ? (
-        <div className="success-pop rounded-2xl border border-cyan/30 bg-cyan/10 p-5">
-          <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-cyan/40 bg-cyan/15 text-cyan success-check">
-            ✓
-          </div>
-          <h2 className="font-semibold text-cyan">
-            {isJob ? 'Bewerbung gesendet' : 'Anfrage gesendet'}
-          </h2>
-          <p className="mt-1 text-sm text-neutral-300">
-            Status: {BOOKING_STATUS_LABELS.inquiry}. Nächster Schritt: Chat oder Booking-Flow
-            (Angebot → Annahme → Buchung).
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button onClick={() => navigate(`/messages/${done.threadId}`)}>Zum Chat</Button>
-            <Button variant="secondary" onClick={() => navigate(`/bookings/${done.bookingId}`)}>
-              Status öffnen
-            </Button>
-            <Button variant="ghost" onClick={() => navigate(isJob ? '/match' : '/dashboard')}>
-              {isJob ? 'Match' : 'Dashboard'}
-            </Button>
-          </div>
-        </div>
       ) : (
-        <div className="space-y-3 rounded-2xl border border-border bg-surface-2 p-5">
-          <h2 className="font-semibold">Kurze Anfrage</h2>
-          <Textarea
-            label="Nachricht (optional, kein Anschreiben nötig)"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-          {user && projects.length > 0 && (
-            <Select
-              label="Optional: an Projekt anhängen"
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-            >
-              <option value="">Kein Projekt</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
-              ))}
-            </Select>
+        <div id="listing-inquiry">
+          {isJob ? (
+            <InteresseButton listing={listing} />
+          ) : done ? (
+            <div className="success-pop rounded-2xl border border-cyan/30 bg-cyan/10 p-5">
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-cyan/40 bg-cyan/15 text-cyan success-check">
+                ✓
+              </div>
+              <h2 className="font-semibold text-cyan">Anfrage gesendet</h2>
+              <p className="mt-1 text-sm text-neutral-300">
+                Status: {BOOKING_STATUS_LABELS.inquiry}. Nächster Schritt: Chat oder Booking-Flow
+                (Angebot → Annahme → Buchung).
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button onClick={() => navigate(`/messages/${done.threadId}`)}>Zum Chat</Button>
+                <Button variant="secondary" onClick={() => navigate(`/bookings/${done.bookingId}`)}>
+                  Status öffnen
+                </Button>
+                <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+                  Dashboard
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3 rounded-2xl border border-border bg-surface-2 p-5">
+              <h2 className="font-semibold">Kurze Anfrage</h2>
+              <Textarea
+                label="Nachricht (optional, kein Anschreiben nötig)"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+              {user && projects.length > 0 && (
+                <Select
+                  label="Optional: an Projekt anhängen"
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                >
+                  <option value="">Kein Projekt</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </Select>
+              )}
+              <Button className="w-full md:w-auto" size="lg" onClick={submitInquiry}>
+                {user ? 'Anfrage stellen' : 'Demo-Login & Anfrage stellen'}
+              </Button>
+              <p className="text-xs text-muted">Kein CV-Spam — kurze Nachricht reicht.</p>
+            </div>
           )}
-          <Button className="w-full md:w-auto" size="lg" onClick={submitInquiry}>
-            {user ? 'Anfrage stellen' : 'Demo-Login & Anfrage stellen'}
-          </Button>
-          <p className="text-xs text-muted">Kein CV-Spam — kurze Nachricht reicht.</p>
         </div>
       )}
     </div>

@@ -83,6 +83,23 @@ export function DatenschutzPage() {
         <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>.
       </p>
 
+      <h2>Profil-Links und Kontakt im Inserat</h2>
+      <p>
+        Profil-Links (Instagram, Facebook, TikTok, Website) sind freiwillig. Gespeichert wird nur,
+        was du selbst eingibst. Andere Personen sehen sie auf deinem Profil.
+      </p>
+      <p>
+        Bei einem privaten Inserat sind E-Mail und Telefonnummer für andere nur sichtbar, wenn du
+        „Kontakt im Inserat zeigen“ einschaltest. Das ist standardmäßig aus. Ohne diese Freigabe
+        zeigen wir die Konto-E-Mail und die Telefonnummer aus dem Profil nicht im Inserat.
+        Gewerbliche Inserate verlangen und zeigen weiterhin Name, Anschrift, E-Mail und Telefonnummer.
+      </p>
+      <p>
+        WhatsApp, Instagram, Facebook, TikTok und Google Maps werden nur aufgerufen, wenn du selbst
+        auf den Link klickst. Orbit ruft diese Anbieter nicht im Hintergrund auf. Danach gilt die
+        Datenschutzerklärung des jeweiligen Anbieters.
+      </p>
+
       <h2>Alter</h2>
       <p>
         Orbit richtet sich an Personen ab 18 Jahren. Bei der Anmeldung bestätigst du das. Die
@@ -110,6 +127,16 @@ export function DatenschutzPage() {
         There is no analytics tool. Opening a search link (bahn.de, Google Flights, Booking, Kayak)
         is your request; that site then applies its own policy. Orbit does not call those sites in
         the background.
+      </p>
+      <p>
+        Profile links (Instagram, Facebook, TikTok, website) are voluntary. Only what you type is
+        stored, and other people can see them on your profile. On a private listing, email and
+        phone number are visible to others only if you turn on “Show contact on the listing”,
+        which is off by default. Without that choice, the account email and phone number are not
+        shown. Commercial listings still require and show name, address, email, and phone number.
+        WhatsApp, Instagram, Facebook, TikTok, and Google Maps are contacted only when you click
+        the link yourself. Orbit does not call them in the background. After the click, that
+        provider’s privacy policy applies.
       </p>
       <p>
         Company directory (Art. 14 GDPR): name, city and a website or dry-hire link from public

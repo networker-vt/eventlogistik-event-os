@@ -57,7 +57,7 @@ export function ProfileLinkEditor({
                     {t(`contact.${link.kind}`)}: {link.input}
                   </a>
                 ) : (
-                  <p role="status" className="text-sm text-amber-200">
+                  <p role="status" className="text-sm text-warn">
                     {t('profile.linkInvalid')}
                   </p>
                 )}
@@ -99,7 +99,7 @@ export function ProfileLinkEditor({
         {t('profile.addLink')}
       </Button>
       {error && (
-        <p role="status" className="text-sm text-amber-200">
+        <p role="status" className="text-sm text-warn">
           {error}
         </p>
       )}

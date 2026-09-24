@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { absoluteUrl, shareOrCopy, whatsappShareHref } from './share'
+import { absoluteUrl, PUBLIC_SITE_ORIGIN, shareOrCopy, whatsappShareHref } from './share'
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
   vi.restoreAllMocks()
 })
 
@@ -73,9 +74,16 @@ describe('whatsappShareHref', () => {
 })
 
 describe('absoluteUrl', () => {
-  it('prefixes in-app paths with origin and the configured base', () => {
-    const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
-    expect(absoluteUrl('/listings/1')).toBe(`${window.location.origin}${base}/listings/1`)
+  it('uses the public Pages URL and ignores the window origin', () => {
+    expect(PUBLIC_SITE_ORIGIN).toBe('https://networker-vt.github.io/eventlogistik-event-os')
+    expect(absoluteUrl('/listings/1')).toBe(`${PUBLIC_SITE_ORIGIN}/listings/1`)
+    expect(absoluteUrl('/listings/1')).not.toContain('capacitor://')
+    expect(absoluteUrl('/listings/1')).not.toContain(window.location.origin)
     expect(absoluteUrl('https://orbit.invalid/already')).toBe('https://orbit.invalid/already')
+  })
+
+  it('lets VITE_PUBLIC_SITE_URL replace the Pages base', () => {
+    vi.stubEnv('VITE_PUBLIC_SITE_URL', 'https://preview.example/eventlogistik-event-os/')
+    expect(absoluteUrl('/listings/1')).toBe('https://preview.example/eventlogistik-event-os/listings/1')
   })
 })

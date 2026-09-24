@@ -70,6 +70,9 @@ describe('ContactButtons', () => {
       }),
     )
     expect(view.host.querySelector('a')).toBeNull()
+    const hint = view.host.querySelector('[role="status"]')
+    expect(hint?.className).toContain('text-warn')
+    expect(hint?.className).not.toContain('text-amber-200')
     expect(view.host.textContent).toContain('Diese Telefonnummer ist ungültig.')
     expect(view.host.textContent).toContain('Dieser Link ist ungültig.')
     expect(view.host.textContent).not.toContain('E-Mail')

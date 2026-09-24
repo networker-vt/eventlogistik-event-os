@@ -783,6 +783,14 @@ const deDict: Dict = {
   'profile.linkDuplicate': 'Diesen Link hast du schon hinzugefügt.',
   'profile.removeLink': 'Link entfernen',
   'profile.phone': 'Telefon (freiwillig)',
+  'listing.message': 'Nachricht senden',
+  'listing.noMessage': 'Kontakt ist nicht öffentlich. Eine direkte Nachricht ist hier nicht möglich.',
+  'listing.showContact': 'Kontakt im Inserat zeigen',
+  'listing.showContactHint':
+    'Standardmäßig aus. Konto-E-Mail und Telefonnummer bleiben privat, bis du sie für dieses Inserat freigibst.',
+  'listing.reuseProfile': 'Angaben aus dem Profil übernehmen',
+  'listing.contactEmail': 'E-Mail nur für dieses Inserat',
+  'listing.contactPhone': 'Telefon nur für dieses Inserat',
 }
 
 const enDict: Dict = {
@@ -1539,6 +1547,14 @@ const enDict: Dict = {
   'profile.linkDuplicate': 'You already added this link.',
   'profile.removeLink': 'Remove link',
   'profile.phone': 'Phone (optional)',
+  'listing.message': 'Send a message',
+  'listing.noMessage': 'Contact is not public. A direct message is not available here.',
+  'listing.showContact': 'Show contact on the listing',
+  'listing.showContactHint':
+    'Off by default. Account email and phone number stay private until you release them for this listing.',
+  'listing.reuseProfile': 'Use details from the profile',
+  'listing.contactEmail': 'Email for this listing only',
+  'listing.contactPhone': 'Phone number for this listing only',
 }
 
 const dicts: Record<'de' | 'en', Dict> = { de: deDict, en: enDict }

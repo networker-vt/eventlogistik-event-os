@@ -176,7 +176,7 @@ export function ContactButtons({
         </div>
       )}
       {hints.map((hint, index) => (
-        <p key={`${hint}-${index}`} role="status" className="text-sm text-amber-200">
+        <p key={`${hint}-${index}`} role="status" className="text-sm text-warn">
           {hint}
         </p>
       ))}
