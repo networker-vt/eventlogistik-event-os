@@ -8,6 +8,7 @@ import { Input, Select } from '../components/ui/Input'
 import { BOOKING_STATUS_LABELS, VERTICAL_META } from '../data/constants'
 import { useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
+import { isFlagOn } from '../lib/flags'
 import { store } from '../lib/store'
 import type { BookingStatus } from '../types'
 import { formatDate, formatPrice } from '../lib/utils'
@@ -80,6 +81,7 @@ export function BookingPage() {
         {booking.offerAmount != null && (
           <p className="mt-2 text-lg font-semibold text-cyan">{formatPrice(booking.offerAmount)}</p>
         )}
+        {isFlagOn('interview') && (
         <div className="mt-4">
           <Link
             to={`/interview`}
@@ -88,6 +90,7 @@ export function BookingPage() {
             Interview-Raum (Chat · Slot · Video-Stub) →
           </Link>
         </div>
+        )}
       </div>
 
       {booking.dateFrom && (

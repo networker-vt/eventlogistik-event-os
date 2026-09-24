@@ -3,8 +3,11 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
+import { LEGAL } from '../lib/legal'
+import { AgbPage } from '../pages/legal/AgbPage'
 import { DatenschutzPage } from '../pages/legal/DatenschutzPage'
 import { ImpressumPage } from '../pages/legal/ImpressumPage'
+import { RankingPage } from '../pages/legal/RankingPage'
 import { SupportPage } from '../pages/legal/SupportPage'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -20,6 +23,8 @@ function legalRoutes(initialPath: string) {
       createElement(Route, { path: 'datenschutz', element: createElement(DatenschutzPage) }),
       createElement(Route, { path: 'privacy', element: createElement(DatenschutzPage) }),
       createElement(Route, { path: 'support', element: createElement(SupportPage) }),
+      createElement(Route, { path: 'agb', element: createElement(AgbPage) }),
+      createElement(Route, { path: 'ranking', element: createElement(RankingPage) }),
       createElement(Route, { path: '*', element: createElement('p', null, 'missing-legal-route') }),
     ),
   )
@@ -54,7 +59,13 @@ describe('legal routes', () => {
   it('renders privacy, support, and impressum, including a trailing slash', async () => {
     const privacy = await renderAt('/privacy')
     expect(privacy.host.querySelector('h1')?.textContent).toBe('Datenschutz / Privacy')
-    expect(privacy.host.textContent).toContain('Verantwortlicher')
+    expect(privacy.host.textContent).toContain('Verantwortlich')
+    expect(privacy.host.textContent).toContain('TDDDG')
+    expect(privacy.host.textContent).toContain('Art. 14')
+    expect(privacy.host.textContent).not.toContain('Startklar')
+    expect(privacy.host.textContent).not.toContain('BITTE AUSFÜLLEN')
+    expect(privacy.host.textContent).not.toMatch(/Telefon:|Phone:/)
+    expect(privacy.host.textContent).not.toMatch(/IBAN|Krypto/)
     expect(privacy.host.textContent).not.toContain('missing-legal-route')
     await privacy.unmount()
 
@@ -69,11 +80,25 @@ describe('legal routes', () => {
     const support = await renderAt('/support/')
     expect(support.host.querySelector('h1')?.textContent).toBe('Support')
     expect(support.host.textContent).toContain('mirco.kuessner@gmail.com')
+    expect(support.host.textContent).not.toMatch(/Demo-App/i)
     await support.unmount()
 
     const impressum = await renderAt('/impressum/')
     expect(impressum.host.querySelector('h1')?.textContent).toBe('Impressum')
     expect(impressum.host.textContent).toContain('Mirco Küßner')
+    expect(impressum.host.textContent).not.toContain('ec.europa.eu')
+    expect(impressum.host.textContent).not.toContain('BITTE AUSFÜLLEN')
+    expect(impressum.host.textContent).not.toContain('Telefon:')
+    expect(impressum.host.textContent).not.toContain('Gewerbe')
+    expect(LEGAL.phone).toContain('BITTE AUSFÜLLEN')
+    expect(LEGAL.tradeStatus).toContain('BITTE AUSFÜLLEN')
+
+    const agb = await renderAt('/agb')
+    expect(agb.host.textContent).toContain('nicht anwaltlich geprüft')
+    expect(agb.host.textContent).toContain('Vermittler')
+    expect(agb.host.textContent).not.toContain('Kabine')
+    expect(agb.host.textContent).not.toContain('Lernen')
+    await agb.unmount()
     await impressum.unmount()
   })
 

@@ -48,6 +48,7 @@ import {
 } from '../lib/profileHub'
 import { getPrefs, savePrefs, subscribePrefs } from '../lib/prefs'
 import { getCredits, subscribeCredits } from '../lib/credits'
+import { isFlagOn } from '../lib/flags'
 import { filledIndustries } from '../lib/categories'
 import { INDUSTRIES, JOB_TYPES } from '../data/industries'
 import { cn } from '../lib/utils'
@@ -148,7 +149,7 @@ export function MeinPage() {
         <TileGrid tiles={hubTiles} label={t('mein.hub')} />
         <div className="flex flex-wrap gap-2">
           <SpeakButton text={`${t('mein.title')}. ${t('mein.lead')}`} />
-          {!hideWallet && (
+          {!hideWallet && isFlagOn('credits') && (
           <Link
             to="/wallet"
             className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-[var(--theme-accent)]/30 bg-[var(--theme-accent)]/10 px-3 py-2 text-sm"
@@ -160,7 +161,7 @@ export function MeinPage() {
             to="/empfehlen"
             className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-neutral-300 hover:border-[var(--theme-accent)]/40"
           >
-            Empfehlen
+            {isFlagOn('credits') ? 'Empfehlen' : 'Orbit weiterempfehlen'}
           </Link>
           <Link
             to="/erfahrungen"
@@ -189,12 +190,12 @@ export function MeinPage() {
         </div>
       </header>
 
-      <VerifyPanel />
+      {isFlagOn('verifyId') && <VerifyPanel />}
       <ReminderOptIn />
 
       <RoleSwitcher />
 
-      <ChannelLinks />
+      {isFlagOn('channels') && <ChannelLinks />}
 
       <section className="rounded-2xl border border-border bg-surface-2 p-4" id="sprache">
         <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold">
@@ -430,7 +431,7 @@ export function MeinPage() {
                   <ScrollText size={14} className="shrink-0 text-[var(--theme-accent)]" />
                   <span className="truncate font-medium">{d.name}</span>
                 </div>
-                <p className="text-[11px] text-muted">
+                <p className="text-xs text-muted">
                   {d.kind} · {Math.round(d.size / 1024)} KB · {formatDate(d.addedAt.slice(0, 10))}
                 </p>
               </div>

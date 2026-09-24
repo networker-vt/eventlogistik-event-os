@@ -28,7 +28,7 @@ export function ExperienceList({
               <StarRating value={r.rating} readOnly size={14} />
             </div>
             {r.comment && <p className="mt-1 text-sm text-neutral-300">{r.comment}</p>}
-            <p className="mt-1 text-[11px] text-muted">
+            <p className="mt-1 text-xs text-muted">
               {r.targetLabel} · {formatDate(r.createdAt.slice(0, 10))}
             </p>
           </li>

@@ -34,7 +34,7 @@ export function TravelCard({
           <p className="truncate text-sm font-semibold text-ink">{offer.title}</p>
           <Badge tone="amber">{resolved === 'de' ? 'Demo' : 'Demo'}</Badge>
           {cheapest && (
-            <Badge className="border-[var(--theme-accent)]/40 bg-[var(--theme-accent)]/15 text-[10px]">
+            <Badge className="border-[var(--theme-accent)]/40 bg-[var(--theme-accent)]/15 text-xs">
               {resolved === 'de' ? 'günstigste Option (Demo)' : 'cheapest (demo)'}
             </Badge>
           )}
@@ -44,12 +44,12 @@ export function TravelCard({
           {offer.duration ? ` · ${offer.duration}` : ''}
         </p>
         {offer.tags.length > 0 && !compact && (
-          <p className="mt-1 truncate text-[11px] text-neutral-500">{offer.tags.join(' · ')}</p>
+          <p className="mt-1 truncate text-xs text-neutral-500">{offer.tags.join(' · ')}</p>
         )}
       </div>
       <div className="shrink-0 text-right">
         <p className="text-sm font-semibold tabular-nums text-ink">{formatPrice(offer.priceEur)}</p>
-        {offer.rating != null && <p className="text-[11px] text-muted">★ {offer.rating.toFixed(1)}</p>}
+        {offer.rating != null && <p className="text-xs text-muted">★ {offer.rating.toFixed(1)}</p>}
       </div>
     </Link>
   )

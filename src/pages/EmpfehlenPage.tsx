@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button'
 import { useReferral } from '../hooks/useReferral'
 import { REFERRAL_RULES_DE, shareUrl } from '../lib/referral'
 import { claimReferralCreditsDemo, getCredits, subscribeCredits } from '../lib/credits'
+import { isFlagOn } from '../lib/flags'
 import { formatDateTime } from '../lib/utils'
 
 export function EmpfehlenPage() {
@@ -26,6 +27,44 @@ export function EmpfehlenPage() {
     }
   }
 
+  if (!isFlagOn('credits')) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6 pb-scroll-chrome">
+        <header className="space-y-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <Share2 size={22} aria-hidden /> Orbit weiterempfehlen
+          </h1>
+          <p className="text-sm text-muted">Teile den Link, wenn dir Orbit gefällt. Es gibt keine Belohnung.</p>
+        </header>
+        <section className="rounded-3xl border border-border bg-surface-2 p-5">
+          <p className="text-xs uppercase tracking-wider text-muted">Dein Link</p>
+          <p className="mt-2 break-all text-sm text-neutral-200">{url}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => void copy()}>
+              <Copy size={14} /> {copied ? 'Kopiert' : 'Link kopieren'}
+            </Button>
+            {'share' in navigator && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() =>
+                  void navigator.share?.({
+                    title: 'Orbit',
+                    text: 'Orbit weiterempfehlen',
+                    url,
+                  })
+                }
+              >
+                <Share2 size={14} /> Teilen
+              </Button>
+            )}
+          </div>
+        </section>
+        {flash && <p className="text-sm text-amber-200">{flash}</p>}
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-6 pb-scroll-chrome">
       <header className="space-y-2">
@@ -40,7 +79,7 @@ export function EmpfehlenPage() {
       </header>
 
       <section className="relative overflow-hidden rounded-3xl border border-cyan/30 bg-gradient-to-br from-cyan/15 via-surface-2 to-black p-5">
-        <p className="text-[11px] uppercase tracking-wider text-cyan">Dein Code</p>
+        <p className="text-xs uppercase tracking-wider text-cyan">Dein Code</p>
         <div className="mt-1 font-mono text-3xl font-bold tracking-widest text-ink">{referral.code}</div>
         <p className="mt-2 break-all text-xs text-neutral-300">{url}</p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -68,7 +107,7 @@ export function EmpfehlenPage() {
       <section className="card-elevated rounded-2xl border border-border p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-muted">Orbit Credits (Demo)</p>
+            <p className="text-xs uppercase tracking-wider text-muted">Orbit Credits (Demo)</p>
             <p className="text-3xl font-bold tabular-nums text-cyan">{credits.balance}</p>
           </div>
           <Button
@@ -112,7 +151,7 @@ export function EmpfehlenPage() {
             {referral.signups.map((s, i) => (
               <li key={`${s.at}-${i}`} className="flex items-center justify-between gap-3 px-4 py-3">
                 <span className="font-mono text-sm text-cyan">{s.ref}</span>
-                <span className="text-[11px] text-muted">{formatDateTime(s.at)}</span>
+                <span className="text-xs text-muted">{formatDateTime(s.at)}</span>
               </li>
             ))}
           </ul>

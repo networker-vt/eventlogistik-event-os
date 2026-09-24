@@ -5,6 +5,7 @@ import { Button } from '../ui/Button'
 import { useAuth } from '../../lib/auth'
 import { applyInterest, alreadyApplied } from '../../lib/apply'
 import { useI18n } from '../../lib/i18n'
+import { isFlagOn } from '../../lib/flags'
 import type { Listing } from '../../types'
 
 export function InteresseButton({ listing }: { listing: Listing }) {
@@ -47,12 +48,14 @@ export function InteresseButton({ listing }: { listing: Listing }) {
           {done?.threadId && (
             <Button onClick={() => navigate(`/messages/${done.threadId}`)}>{t('apply.chat')}</Button>
           )}
+          {isFlagOn('interview') && (
           <Button
             variant="secondary"
             onClick={() => navigate(`/interview/${done?.interviewId ?? 'iv-demo-1'}`)}
           >
             {t('apply.interview')}
           </Button>
+          )}
         </div>
       </div>
     )

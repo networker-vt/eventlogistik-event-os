@@ -86,7 +86,7 @@ export function GiftSheet({
         <Badge tone="amber">Demo</Badge>
       </div>
       <p className="text-xs text-violet-100/85">{t('gift.lead')}</p>
-      <p className="text-[11px] text-muted">{t('gift.stub')}</p>
+      <p className="text-xs text-muted">{t('gift.stub')}</p>
 
       {flash && (
         <p className="rounded-xl border border-cyan/30 bg-cyan/10 px-3 py-2 text-xs text-cyan">{flash}</p>
@@ -136,7 +136,7 @@ export function GiftSheet({
               )}
             >
               <span className="font-medium text-ink">{r.label}</span>
-              <span className="mt-0.5 block text-[11px] text-muted">
+              <span className="mt-0.5 block text-xs text-muted">
                 {t(`gift.kind.${r.kind}`)}
                 {r.hint ? ` · ${r.hint}` : ''}
               </span>
@@ -154,7 +154,7 @@ export function GiftSheet({
           onChange={(e) => setAmount(e.target.value)}
         />
         <div className="flex items-end">
-          <p className="text-[11px] text-muted">
+          <p className="text-xs text-muted">
             {t('gift.balance')}: {credits.balance}
           </p>
         </div>
@@ -170,7 +170,7 @@ export function GiftSheet({
       </Button>
 
       {gifts.length > 0 && (
-        <ul className="space-y-1 border-t border-violet-500/20 pt-3 text-[11px] text-neutral-300">
+        <ul className="space-y-1 border-t border-violet-500/20 pt-3 text-xs text-neutral-300">
           {gifts.slice(0, 4).map((g) => (
             <li key={g.id} className="flex justify-between gap-2">
               <span className="truncate">

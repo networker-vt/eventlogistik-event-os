@@ -5,6 +5,7 @@ import { StarRating } from '../components/ui/StarRating'
 import { ExperienceList } from '../components/reviews/ExperienceList'
 import { SpeakButton } from '../components/a11y/SpeakButton'
 import { useI18n } from '../lib/i18n'
+import { isFlagOn } from '../lib/flags'
 import { useAuth } from '../lib/auth'
 import {
   EXPERIENCE_LABEL_DE,
@@ -56,7 +57,7 @@ export function ErfahrungenPage() {
       fromName: user?.name || 'Alex Müller',
     })
     setComment('')
-    setFlash(t('reviews.thanks'))
+    setFlash(isFlagOn('credits') ? t('reviews.thanks') : t('reviews.thanksPlain'))
   }
 
   return (

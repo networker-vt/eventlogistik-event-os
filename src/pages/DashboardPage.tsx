@@ -9,6 +9,7 @@ import {
 } from '../data/constants'
 import { useStoreVersion } from '../hooks/useStore'
 import { useAuth } from '../lib/auth'
+import { isFlagOn } from '../lib/flags'
 import { store } from '../lib/store'
 import { formatDate, formatPrice } from '../lib/utils'
 
@@ -58,9 +59,11 @@ export function DashboardPage() {
           <Button size="sm" variant="ghost" onClick={() => navigate('/mein')}>
             <Heart size={16} /> Favoriten
           </Button>
+          {isFlagOn('credits') && (
           <Button size="sm" variant="ghost" onClick={() => navigate('/wallet')}>
             <Wallet size={16} /> Wallet
           </Button>
+          )}
         </div>
       </div>
 

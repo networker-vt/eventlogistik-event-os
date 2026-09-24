@@ -8,7 +8,7 @@ export function NewsStrip({ items }: { items: HomeNewsItem[] }) {
   if (items.length === 0) return null
   return (
     <section className="space-y-1" aria-label={t('news.title')}>
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
+      <p className="text-xs font-medium uppercase tracking-wider text-muted">
         {t('news.title')} · {t('news.demo')}
       </p>
       <ul className="divide-y divide-border/60 overflow-hidden rounded-xl border border-border/60">
@@ -20,7 +20,7 @@ export function NewsStrip({ items }: { items: HomeNewsItem[] }) {
               rel="noreferrer"
               className="flex items-baseline gap-2 px-2.5 py-1.5 hover:bg-ink/5"
             >
-              <span className="shrink-0 text-[10px] text-muted">{item.source}</span>
+              <span className="shrink-0 text-xs text-muted">{item.source}</span>
               <span className="min-w-0 truncate text-xs text-neutral-300">
                 {newsTitle(item, resolved)}
               </span>

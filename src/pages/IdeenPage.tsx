@@ -79,7 +79,7 @@ export function IdeenPage() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="du@crew.de"
+          placeholder="name@example.invalid"
         />
         <Button type="submit" className="w-full">
           In die Ideen-Box

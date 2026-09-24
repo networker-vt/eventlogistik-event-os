@@ -22,7 +22,7 @@ export function SupportPage() {
 
       <h2>Wobei diese Adresse hilft</h2>
       <ul>
-        <li>Fragen zur Demo-App Orbit (PWA).</li>
+        <li>Fragen zur App Orbit (PWA).</li>
         <li>Fehlermeldungen: was du getippt hast, welche Seite, was stattdessen passiert ist.</li>
         <li>
           Datenschutz: Auskunft oder Löschung. Lokale Demo-Daten liegen im Browser — Speicher leeren
@@ -38,6 +38,21 @@ export function SupportPage() {
         <li>Kein Anspruch auf eine Frist. Antwort nach Kapazität einer Privatperson.</li>
       </ul>
 
+      <h2>Kontaktstelle für Nutzer und Behörden</h2>
+      <p>
+        Meldungen zu Inhalten nimmst du in der App über „Inhalt melden“ auf (Inserat, Profil,
+        Nachricht) oder per E-Mail an <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>. Dieselbe
+        Adresse ist die Kontaktstelle für Nutzerinnen, Nutzer und Behörden (Deutsch und Englisch).
+      </p>
+      <p>
+        So werden Meldungen bearbeitet: Sie liegen zuerst auf dem Gerät, das sie absendet, und —
+        wenn ein Kontodienst verbunden ist — zusätzlich dort. {LEGAL.operatorName} liest Grund und
+        Beschreibung, entfernt offensichtlich rechtswidrige Inhalte und sperrt bei schweren oder
+        wiederholten Verstößen das Konto. Wenn ein Name oder eine E-Mail angegeben wurde, gibt es
+        eine kurze Rückmeldung. Eine Beschwerde gegen die Entscheidung geht an dieselbe Adresse
+        (siehe AGB, Art. 20 DSA). Es gibt keine feste Frist; es ist eine einzelne Person.
+      </p>
+
       <h2>English</h2>
       <p>
         {LEGAL.operatorName} runs Orbit as a <strong>private individual</strong>, not a company. There
@@ -45,8 +60,16 @@ export function SupportPage() {
       </p>
       <p>
         Write to <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a> ({LEGAL_ADDRESS_LINE}, Germany)
-        about the demo app, a bug, or a privacy request. Local demo data stays in the browser until
+        about the Orbit app, a bug, or a privacy request. Local data stays in the browser until
         you clear site data. Orbit does not sell tickets and does not take payment.
+      </p>
+      <p>
+        Contact point for users and authorities (German and English):{' '}
+        <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>. Use “Report content” on a listing,
+        profile or message, or write to that address. Reports are stored on the device (and on the
+        account service when one is connected), reviewed by {LEGAL.operatorName}, and illegal
+        content is removed. A short reply is sent when you leave an email. Complaints about a
+        removal or block use the same address.
       </p>
 
       <nav className="flex flex-wrap gap-3 text-sm">

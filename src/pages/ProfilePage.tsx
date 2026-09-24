@@ -8,7 +8,9 @@ import { CITIES, CRAFTS, ROLE_LABELS } from '../data/constants'
 import { useAuth } from '../lib/auth'
 import { store, resetStore } from '../lib/store'
 import { giftWalletHref } from '../lib/gift'
+import { isFlagOn } from '../lib/flags'
 import { useI18n } from '../lib/i18n'
+import { ReportButton } from '../components/report/ReportButton'
 import { verificationLabel } from '../lib/utils'
 import type { Role } from '../types'
 
@@ -96,6 +98,7 @@ export function ProfilePage() {
             <span className="block text-xs text-muted">Jobs, Listings, Katalog</span>
           </span>
         </Link>
+        {isFlagOn('credits') && (
         <Link
           to="/wallet"
           className="card-hover flex items-center gap-3 rounded-2xl border border-border bg-surface-2 px-4 py-3"
@@ -106,6 +109,7 @@ export function ProfilePage() {
             <span className="block text-xs text-muted">Zahlungen · Demo, kein echtes Geld</span>
           </span>
         </Link>
+        )}
       </div>
 
       <form onSubmit={save} className="space-y-3 rounded-2xl border border-border bg-surface-2 p-5">
@@ -183,6 +187,9 @@ export function ProfilePage() {
         >
           Abmelden
         </Button>
+        {user && (
+          <ReportButton targetKind="profile" targetId={user.id} />
+        )}
         <Button
           variant="ghost"
           onClick={() => {
@@ -241,6 +248,7 @@ export function PublicProfilePage() {
       <p className="mt-4 text-amber-300">
         ⭐ {profile.rating.toFixed(1)} ({profile.reviewCount} Bewertungen)
       </p>
+      {isFlagOn('credits') && (
       <Link
         to={giftWalletHref({
           kind: profile.companyName ? 'company' : 'profile',
@@ -252,6 +260,10 @@ export function PublicProfilePage() {
       >
         <Gift size={16} /> {t('gift.nudgeDemo')}
       </Link>
+      )}
+      <div className="mt-4">
+        <ReportButton targetKind="profile" targetId={profile.id} />
+      </div>
     </div>
   )
 }

@@ -18,7 +18,7 @@ import {
   grantWelcomeAllocation,
   spendCredits,
 } from './credits'
-import { __setAppModeForTests } from './flags'
+import { __setAppModeForTests, __setFlagForTests } from './flags'
 import {
   __resetProtocolForTests,
   getProtocol,
@@ -30,6 +30,7 @@ describe('credit_events ledger', () => {
   beforeEach(() => {
     localStorage.clear()
     __setAppModeForTests(null)
+    __setFlagForTests('credits', true)
     __resetProtocolForTests()
     __resetCreditsForTests()
     __resetLedgerForTests()
@@ -98,6 +99,7 @@ describe('prod ledger (R1–R4)', () => {
   beforeEach(() => {
     localStorage.clear()
     __setAppModeForTests('prod')
+    __setFlagForTests('credits', true)
     __resetProtocolForTests()
     __resetCreditsForTests()
     __resetLedgerForTests()

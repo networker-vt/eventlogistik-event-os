@@ -74,7 +74,7 @@ export function RoleSwitcher({
             )}
           >
             <div className="font-semibold text-ink">{t(opt.titleKey)}</div>
-            <p className="mt-1 text-[11px] text-muted">{t(opt.hintKey)}</p>
+            <p className="mt-1 text-xs text-muted">{t(opt.hintKey)}</p>
             {side === opt.id && <Check size={14} className="mt-2 text-[var(--theme-accent)]" />}
           </button>
         ))}

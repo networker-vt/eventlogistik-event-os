@@ -15,6 +15,9 @@ fi
 echo "==> build"
 npm run build
 
+echo "==> public bundle check (phones, catalog mail, removed hosts)"
+node scripts/check-public-bundle.mjs
+
 echo "==> SPA fallback 404.html (unknown paths stay HTTP 404)"
 cp dist/index.html dist/404.html
 

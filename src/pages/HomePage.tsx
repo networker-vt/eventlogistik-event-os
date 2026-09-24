@@ -24,7 +24,7 @@ import { subscribeChannels } from '../lib/channels'
 import { rankFuerDich } from '../lib/fuerDich'
 import { NewsStrip } from '../components/home/NewsStrip'
 import { consumeAssistTurn } from '../lib/credits'
-import { isDemo } from '../lib/flags'
+import { isDemo, isFlagOn } from '../lib/flags'
 import { getResume, subscribeResume } from '../lib/resume'
 import { dueReminders, subscribeReminders, tapReminder } from '../lib/reminders'
 import { rankHomeNews } from '../lib/homeSuggestions'
@@ -164,12 +164,23 @@ export function HomePage() {
       return
     }
     const gate = await consumeAssistTurn()
-    if (gate === 'need_credits') {
+    if (!isFlagOn('credits')) {
+      if (gate !== 'ok') {
+        setAssistNote(t('home.assistLimit'))
+        return
+      }
+      setAssistNote(null)
+    } else if (gate === 'limit') {
+      setAssistNote(t('home.assistLimit'))
+      return
+    } else if (gate === 'need_credits') {
       setAssistNote(t('home.assistNeedCredits'))
       return
+    } else if (gate === 'paid') {
+      setAssistNote(t('home.assistPaid'))
+    } else {
+      setAssistNote(null)
     }
-    if (gate === 'paid') setAssistNote(t('home.assistPaid'))
-    else setAssistNote(null)
     abortRef.current?.abort()
     const ac = new AbortController()
     abortRef.current = ac
@@ -296,7 +307,7 @@ export function HomePage() {
               className="w-full resize-none rounded-2xl border border-border bg-surface-2 px-3 py-3 text-base text-ink placeholder:text-muted outline-none focus:border-[var(--theme-accent)]/50"
             />
           </label>
-          {assistNote && <p className="text-[11px] text-amber-200">{assistNote}</p>}
+          {assistNote && <p className="text-xs text-amber-200">{assistNote}</p>}
           <div className="flex items-center gap-2">
             {canListen() && (
               <Button
@@ -349,7 +360,7 @@ export function HomePage() {
                 <span aria-hidden>{tile.emoji}</span>
                 <span>{tile.label}</span>
                 {tile.demo && (
-                  <span className="text-[9px] font-medium uppercase tracking-wide">{t('home.demoBadge')}</span>
+                  <span className="text-xs font-medium uppercase tracking-wide">{t('home.demoBadge')}</span>
                 )}
               </Link>
             </li>

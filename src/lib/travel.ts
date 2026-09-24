@@ -360,7 +360,7 @@ export function mergeDeepScan(items: TravelOffer[], enabled: boolean): TravelOff
 }
 
 export const TRAVEL_DISCLAIMER_DE =
-  'Bahn: Live-Fahrplan über transport.rest, sonst Link zu bahn.de. Flüge, Hotels, Mietwagen und Packages sind nur ausgefüllte Suchlinks. Orbit bucht nicht und erfindet keine Preise.'
+  'Bahn: Link zu bahn.de. Flüge, Hotels, Mietwagen und Packages sind nur ausgefüllte Suchlinks. Orbit bucht nicht und erfindet keine Preise.'
 
 export const TRAVEL_DISCLAIMER_EN =
-  'Rail: live timetable via transport.rest, otherwise a bahn.de link. Flights, hotels, cars and packages are filled search links only. Orbit does not book and does not invent prices.'
+  'Rail: a bahn.de link. Flights, hotels, cars and packages are filled search links only. Orbit does not book and does not invent prices.'

@@ -150,8 +150,8 @@ export function JobsPage() {
                 className="card-elevated flex flex-col items-center gap-1 rounded-xl border border-border px-2 py-3 text-center"
               >
                 <x.icon size={16} className="text-cyan" />
-                <span className="text-[11px] font-medium text-neutral-200">{x.label}</span>
-                <span className="text-[10px] uppercase tracking-wider text-muted">{x.sub}</span>
+                <span className="text-xs font-medium text-neutral-200">{x.label}</span>
+                <span className="text-xs uppercase tracking-wider text-muted">{x.sub}</span>
               </div>
             ))}
           </div>

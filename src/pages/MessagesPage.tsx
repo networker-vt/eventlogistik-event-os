@@ -13,6 +13,7 @@ import type { ThreadKind } from '../types'
 import { KidsBlocked } from '../components/kids/KidsBlocked'
 import { kidsHidePublicChat } from '../lib/kids'
 import { chatHref } from '../lib/chatPath'
+import { ReportButton } from '../components/report/ReportButton'
 
 const KINDS: { id: 'all' | ThreadKind; key: string }[] = [
   { id: 'all', key: 'chat.all' },
@@ -92,7 +93,7 @@ export function MessagesPage() {
               type="button"
               onClick={() => setFilter(k.id)}
               className={cn(
-                'min-h-8 rounded-full border px-2.5 text-[11px]',
+                'min-h-8 rounded-full border px-2.5 text-xs',
                 filter === k.id
                   ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/15'
                   : 'border-border',
@@ -113,7 +114,7 @@ export function MessagesPage() {
                 <div className="truncate text-sm font-medium">
                   {th.participantNames.filter((n) => n !== user.name).join(', ') || 'Chat'}
                 </div>
-                <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-muted">
                   {kindLabel(th.kind)}
                 </span>
               </div>
@@ -162,9 +163,12 @@ export function MessagesPage() {
                     <div
                       className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${mine ? 'bg-cyan text-black' : 'bg-surface-3 text-neutral-200'}`}
                     >
-                      {!mine && <div className="mb-0.5 text-[11px] opacity-70">{m.senderName}</div>}
+                      {!mine && <div className="mb-0.5 text-xs opacity-70">{m.senderName}</div>}
                       <div>{m.body}</div>
-                      <div className={`mt-1 text-[10px] ${mine ? 'text-black/60' : 'text-muted'}`}>
+                      <div className="mt-1">
+                        <ReportButton targetKind="message" targetId={m.id} />
+                      </div>
+                      <div className={`mt-1 text-xs ${mine ? 'text-black/60' : 'text-muted'}`}>
                         {formatDateTime(m.createdAt)}
                       </div>
                     </div>

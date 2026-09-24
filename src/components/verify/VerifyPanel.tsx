@@ -43,7 +43,7 @@ export function VerifyPanel({ focus }: { focus?: 'offer' | 'payout' }) {
                 label={t('verify.phoneLabel')}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+49 171 …"
+                placeholder="Telefon"
               />
               <Button
                 size="sm"
@@ -92,7 +92,7 @@ export function VerifyPanel({ focus }: { focus?: 'offer' | 'payout' }) {
           )}
         </li>
       </ol>
-      <p className="text-[11px] text-muted">
+      <p className="text-xs text-muted">
         {t('verify.level')}: {level}
         {focus === 'offer' && !canOffer() ? ` · ${t('verify.needPhone')}` : ''}
         {focus === 'payout' && !canPayout() ? ` · ${t('verify.needId')}` : ''}

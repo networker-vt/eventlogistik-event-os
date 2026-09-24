@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Share2 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 export type TileTone = 'teal' | 'amber' | 'violet' | 'sky' | 'rose' | 'lime' | 'indigo' | 'slate' | 'orange'
@@ -9,6 +10,8 @@ export interface HubTile {
   label: string
   /** Visible emoji — required so every tip tile has a thematic mark. */
   emoji: string
+  /** Replaces the emoji when set. `share` is the neutral recommend mark. */
+  icon?: 'share'
   /** Optional small thematic image; emoji still shown if image fails. */
   image?: string
   tone: TileTone
@@ -54,7 +57,9 @@ export function TileGrid({
             )}
           >
             <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-surface/80 text-[1.65rem] leading-none shadow-sm">
-              {tile.image ? (
+              {tile.icon === 'share' ? (
+                <Share2 size={22} aria-hidden />
+              ) : tile.image ? (
                 <img src={tile.image} alt="" className="h-8 w-8 object-contain" />
               ) : (
                 <span aria-hidden>{tile.emoji}</span>
@@ -63,7 +68,7 @@ export function TileGrid({
             <span className="mt-3 flex w-full items-end justify-between gap-2">
               <span className="text-sm font-semibold leading-tight text-ink">{tile.label}</span>
               {tile.demo && (
-                <span className="shrink-0 rounded-full border border-current/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
+                <span className="shrink-0 rounded-full border border-current/30 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide">
                   Demo
                 </span>
               )}

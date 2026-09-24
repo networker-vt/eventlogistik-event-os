@@ -107,7 +107,7 @@ export function ChannelLinks() {
                       {ch.label}
                       <Badge tone="amber">{t('channels.demo')}</Badge>
                     </p>
-                    <p className="text-[11px] text-muted">{t(`channels.benefit.${ch.id}`)}</p>
+                    <p className="text-xs text-muted">{t(`channels.benefit.${ch.id}`)}</p>
                   </div>
                   {on ? <Badge tone="green">{t('channels.connected')}</Badge> : <Badge>{t('channels.off')}</Badge>}
                   {on ? (

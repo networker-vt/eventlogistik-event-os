@@ -145,7 +145,7 @@ function InterviewRoomView({ room }: { room: InterviewRoom }) {
                   }`}
                 >
                   <div>{m.body}</div>
-                  <div className="mt-1 text-[10px] opacity-70">{formatDateTime(m.at)}</div>
+                  <div className="mt-1 text-xs opacity-70">{formatDateTime(m.at)}</div>
                 </div>
               </div>
             ))}
@@ -190,7 +190,7 @@ function InterviewRoomView({ room }: { room: InterviewRoom }) {
               {!s.confirmed && (
                 <button
                   type="button"
-                  className="self-end text-[11px] text-violet-300 hover:underline"
+                  className="self-end text-xs text-violet-300 hover:underline"
                   onClick={() => {
                     void buyBoost('interview_slot').then((ok) => {
                       confirmInterviewSlot(room.id, s.id, { priority: Boolean(ok) })
@@ -212,7 +212,7 @@ function InterviewRoomView({ room }: { room: InterviewRoom }) {
           <div className="grid grid-cols-2 gap-2">
             <div className="overflow-hidden rounded-xl border border-border bg-black">
               <video ref={videoRef} autoPlay playsInline muted className="aspect-video w-full object-cover" />
-              <p className="px-2 py-1 text-[10px] text-muted">Du (lokal)</p>
+              <p className="px-2 py-1 text-xs text-muted">Du (lokal)</p>
             </div>
             <div className="flex aspect-video flex-col items-center justify-center rounded-xl border border-dashed border-border bg-black/40 text-center text-xs text-muted">
               <Video size={28} className="mb-2 opacity-50" />

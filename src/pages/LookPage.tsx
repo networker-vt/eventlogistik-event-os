@@ -207,7 +207,7 @@ export function LookPage() {
             <LaneBadge lane={current?.free ? 'free' : 'credits'} />
           </div>
           {current && current.id !== 'original' && (
-            <p className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/55 px-2 py-1 text-[11px] text-ink">
+            <p className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/55 px-2 py-1 text-xs text-ink">
               {current.labelDe} · {current.hintDe}
             </p>
           )}
@@ -248,7 +248,7 @@ export function LookPage() {
                 </Button>
               )}
             </div>
-            <p className="text-[11px] text-muted">{t('look.tryonHint')}</p>
+            <p className="text-xs text-muted">{t('look.tryonHint')}</p>
             {kids && <KidsBlocked title={t('kids.tryonBlocked')} />}
             <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:thin]">
               <ul className="flex snap-x gap-2">
@@ -265,7 +265,7 @@ export function LookPage() {
                       )}
                     >
                       <p className="text-xs font-medium text-ink">{v.labelDe}</p>
-                      <p className="mt-0.5 text-[10px] text-muted">{v.free ? t('look.free') : t('look.extra')}</p>
+                      <p className="mt-0.5 text-xs text-muted">{v.free ? t('look.free') : t('look.extra')}</p>
                     </button>
                   </li>
                 ))}
@@ -275,7 +275,7 @@ export function LookPage() {
 
           <section className="space-y-2">
             <h2 className="text-base font-semibold">{t('look.shops')}</h2>
-            <p className="text-[11px] text-muted">{t('look.shopsHint')}</p>
+            <p className="text-xs text-muted">{t('look.shopsHint')}</p>
             <ul className="grid gap-2 sm:grid-cols-2">
               {products.map((p) => (
                 <li key={p.id}>
@@ -285,7 +285,7 @@ export function LookPage() {
                       className="block rounded-xl border border-border bg-surface-2 px-3 py-3 hover:border-[var(--theme-accent)]/40"
                     >
                       <p className="text-sm font-medium text-ink">{p.title}</p>
-                      <p className="text-[11px] text-muted">
+                      <p className="text-xs text-muted">
                         {p.shop} · {p.priceLabel}
                       </p>
                     </Link>
@@ -297,7 +297,7 @@ export function LookPage() {
                       className="block rounded-xl border border-border bg-surface-2 px-3 py-3 hover:border-[var(--theme-accent)]/40"
                     >
                       <p className="text-sm font-medium text-ink">{p.title}</p>
-                      <p className="text-[11px] text-muted">
+                      <p className="text-xs text-muted">
                         {p.shop} · {p.priceLabel} · extern
                       </p>
                     </a>
@@ -309,7 +309,7 @@ export function LookPage() {
 
           <section className="space-y-2">
             <h2 className="text-base font-semibold">{t('look.nearby')}</h2>
-            <p className="text-[11px] text-muted">
+            <p className="text-xs text-muted">
               {t('look.nearbyHint')} · {city} · {getPrefs().seeker.radiusKm || 50} km
             </p>
             {places.length === 0 ? (
@@ -325,10 +325,10 @@ export function LookPage() {
                       <p className="text-sm font-medium text-ink">
                         {p.name}
                         {look.boostedShopId === p.id && (
-                          <span className="ml-2 text-[10px] uppercase text-violet-200">Featured</span>
+                          <span className="ml-2 text-xs uppercase text-violet-200">Featured</span>
                         )}
                       </p>
-                      <p className="text-[11px] text-muted">
+                      <p className="text-xs text-muted">
                         {p.kind} · {p.city} · {p.km.toFixed(1)} km · {p.hint}
                       </p>
                     </div>

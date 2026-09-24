@@ -1,8 +1,23 @@
+import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { LEGAL, LEGAL_ADDRESS_LINE, copyrightLine } from '../../lib/legal'
+import { LEGAL, LEGAL_ADDRESS_LINE, copyrightLine, isLegalPlaceholder } from '../../lib/legal'
 import { LegalLayout } from './LegalLayout'
 
 export function ImpressumPage() {
+  const [sent, setSent] = useState(false)
+
+  const send = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const data = new FormData(event.currentTarget)
+    const message = String(data.get('message') || '').trim()
+    const name = String(data.get('name') || '').trim()
+    if (!message) return
+    const subject = encodeURIComponent('Orbit Kontaktformular')
+    const body = encodeURIComponent(`${name ? `Name: ${name}\n\n` : ''}${message}`)
+    setSent(true)
+    window.location.href = `mailto:${LEGAL.email}?subject=${subject}&body=${body}`
+  }
+
   return (
     <LegalLayout title="Impressum">
       <p className="rounded-xl border border-cyan/30 bg-cyan/10 px-4 py-3 text-sm text-cyan">
@@ -27,14 +42,48 @@ export function ImpressumPage() {
       <p>
         E-Mail:{' '}
         <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>
+        {!isLegalPlaceholder(LEGAL.phone) && (
+          <>
+            <br />
+            Telefon: {LEGAL.phone}
+          </>
+        )}
         <br />
         Anschrift: {LEGAL_ADDRESS_LINE}
       </p>
+      <form onSubmit={send} className="space-y-2 rounded-xl border border-border p-3">
+        <p className="text-sm font-medium">Kontaktformular</p>
+        <label className="block text-sm">
+          Name (optional)
+          <input name="name" className="mt-1 min-h-11 w-full rounded-xl border border-border bg-surface-3 px-3" />
+        </label>
+        <label className="block text-sm">
+          Nachricht
+          <textarea name="message" required className="mt-1 min-h-24 w-full rounded-xl border border-border bg-surface-3 px-3 py-2" />
+        </label>
+        <button type="submit" className="min-h-11 rounded-xl bg-cyan px-4 text-sm font-semibold text-black">
+          Nachricht senden
+        </button>
+        {sent && <p className="text-sm text-neutral-200">Dein E-Mail-Programm öffnet sich mit der Nachricht.</p>}
+      </form>
       <p>
         <Link to="/privacy">Datenschutz / Privacy</Link>
         {' · '}
         <Link to="/support">Support</Link>
+        {' · '}
+        <Link to="/agb">AGB</Link>
       </p>
+
+      {!isLegalPlaceholder(LEGAL.tradeStatus) && (
+        <>
+          <h2>Gewerbe</h2>
+          <p>
+            {LEGAL.tradeStatus} Solange Orbit ohne Gewinnabsicht privat betrieben wird, bleibt der Hinweis
+            „privat betrieben“ stehen. Sobald eine Gewinnabsicht besteht, diesen Hinweis entfernen und die
+            Gewerbeangaben nachtragen.
+          </p>
+        </>
+      )}
 
       <h2>Register & Umsatzsteuer</h2>
       <p>
@@ -48,13 +97,9 @@ export function ImpressumPage() {
         {LEGAL.operatorName}, {LEGAL_ADDRESS_LINE}
       </p>
 
-      <h2>EU-Streitschlichtung</h2>
+      <h2>Streitbeilegung</h2>
       <p>
-        Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:{' '}
-        <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noreferrer">
-          https://ec.europa.eu/consumers/odr
-        </a>
-        . Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer
+        Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer
         Verbraucherschlichtungsstelle teilzunehmen.
       </p>
 

@@ -22,7 +22,7 @@ import {
   welcomeGrantFor,
   type CreditPoolId,
 } from './creditProtocol'
-import { __setAppModeForTests, isProdMode } from './flags'
+import { __setAppModeForTests, isFlagOn, isProdMode } from './flags'
 import { kidsCreditsFrozen } from './kids'
 import { getReferral, spendFeaturedCredits, simulateReferralSignup } from './referral'
 import { getWallet, mockAdjustBalance } from './wallet'
@@ -360,12 +360,17 @@ async function creditWallet(
  * Prod server: `apply_credit_intent` is one SQL transaction (supply row + credit_events).
  * The client protocol is a UX guardrail; the server ledger is the source of truth.
  */
+function creditsClosed() {
+  return !isFlagOn('credits')
+}
+
 export async function mintFromPoolToWallet(
   pool: CreditPoolId,
   amount: number,
   label: string,
   type: CreditTxType = 'earn',
 ): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (kidsCreditsFrozen()) return null
   const amt = Math.max(0, Math.round(amount))
   if (amt === 0) return getCredits()
@@ -385,6 +390,7 @@ export function earnCredits(amount: number, label: string): Promise<CreditsState
 }
 
 export async function grantWelcomeAllocation(): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (kidsCreditsFrozen()) return null
   const identity = ensureSignupIdentity()
   const grant = welcomeGrantFor(identity)
@@ -444,6 +450,7 @@ export function contributorProofMatches(
  * Private mint. Not exported — callers must go through `grantContributorMergedPrFromServer`.
  */
 async function mintMergedPrFromRewardsPool(prNumber: number): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (kidsCreditsFrozen()) return null
   const n = Math.trunc(prNumber)
   if (!isPositiveInt(n)) return null
@@ -475,6 +482,7 @@ export async function grantContributorMergedPrFromServer(
   prNumber: number,
   proof: ContributorMergedPrProof,
 ): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (kidsCreditsFrozen()) return null
   if (!contributorProofMatches(prNumber, proof)) return null
   return mintMergedPrFromRewardsPool(prNumber)
@@ -497,6 +505,7 @@ export async function spendCredits(
   kind: CreditSpendKind,
   label: string,
 ): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (kidsCreditsFrozen()) return null
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(amount))
@@ -541,6 +550,7 @@ export async function spendCredits(
 
 /** Gift / sponsoring: peer transfer, no mint. Tiny fee burned. */
 export async function giftCredits(amount: number, toLabel = 'Orbit-Nutzer (Demo)'): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (kidsCreditsFrozen()) return null
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(amount))
@@ -570,6 +580,7 @@ export async function giftCredits(amount: number, toLabel = 'Orbit-Nutzer (Demo)
 
 /** Mock exchange: Wallet EUR → Credits. Draws from the packs pool (system mint) or fails. */
 export async function exchangeEurToCredits(eur: number): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (kidsCreditsFrozen()) return null
   const wallet = getWallet()
   const amt = Math.max(0, eur)
@@ -592,6 +603,7 @@ export async function exchangeEurToCredits(eur: number): Promise<CreditsState | 
 }
 
 export async function exchangeCreditsToEur(credits: number): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (kidsCreditsFrozen()) return null
   const next = structuredClone(get())
   const amt = Math.max(0, Math.round(credits))
@@ -630,6 +642,7 @@ export async function exchangeCreditsToEur(credits: number): Promise<CreditsStat
 }
 
 export async function claimReferralCreditsDemo() {
+  if (creditsClosed()) return null
   if (!get().meaningfulAt) return null
   simulateReferralSignup()
   return earnCredits(40, 'Referral-Bonus (Demo) — nach erster sinnvoller Aktion, Rewards-Pool')
@@ -637,6 +650,7 @@ export async function claimReferralCreditsDemo() {
 
 /** Demo checkout — credits appear only if the packs pool still has room. */
 export function purchaseCreditPack(id: CreditPackId): Promise<CreditsState | null> {
+  if (creditsClosed()) return Promise.resolve(null)
   if (kidsCreditsFrozen()) return Promise.resolve(null)
   const pack = CREDIT_PACKS.find((p) => p.id === id)
   if (!pack) return Promise.resolve(null)
@@ -650,6 +664,7 @@ export function purchaseCreditPack(id: CreditPackId): Promise<CreditsState | nul
 }
 
 export async function buyP2POrder(orderId: string): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (kidsCreditsFrozen()) return null
   const order = P2P_ORDERS.find((o) => o.id === orderId)
   if (!order) return null
@@ -695,6 +710,7 @@ export function getSwipeBudget(): SwipeBudget {
 
 /** Consume one free/extra swipe. Returns false when today's allowance is exhausted. */
 export function consumeSwipe(): boolean {
+  if (creditsClosed()) return true
   const next = structuredClone(get())
   const remaining = FREE_SWIPES_PER_DAY + next.extraSwipes - next.swipesUsed
   if (remaining <= 0) return false
@@ -720,6 +736,7 @@ export function boostCost(kind: CreditSpendKind): number {
 }
 
 export async function buyBoost(kind: CreditSpendKind): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
   if (consumeFreeMonthlyBoost(kind)) return getCredits()
   const meta = CREDITS_COSTS[kind]
   const cost = boostCost(kind)
@@ -752,8 +769,18 @@ export function hasMeaningfulAction() {
   return Boolean(get().meaningfulAt)
 }
 
-/** Extra Assist after the free daily lane — money moment, not while scrolling. Kids never pay. */
-export async function consumeAssistTurn(): Promise<'ok' | 'paid' | 'need_credits'> {
+/** Pro Assist burns. While credits are off this never writes the ledger. */
+export const PRO_ASSIST_BURNS = [5, 25, 40] as const
+export type ProAssistBurn = (typeof PRO_ASSIST_BURNS)[number]
+
+export async function spendProAssist(burn: ProAssistBurn): Promise<CreditsState | null> {
+  if (creditsClosed()) return null
+  if (!PRO_ASSIST_BURNS.includes(burn)) return null
+  return spendCredits(burn, 'assist_priority', `Assist Pro (${burn})`)
+}
+
+/** Extra Assist after the free daily lane. Credits off: honest daily limit, no charge, no paywall. */
+export async function consumeAssistTurn(): Promise<'ok' | 'paid' | 'need_credits' | 'limit'> {
   const next = structuredClone(get())
   const day = todayKey()
   if (next.assistDay !== day) {
@@ -765,7 +792,7 @@ export async function consumeAssistTurn(): Promise<'ok' | 'paid' | 'need_credits
     commit(next)
     return 'ok'
   }
-  if (kidsCreditsFrozen()) return 'need_credits'
+  if (creditsClosed() || kidsCreditsFrozen()) return 'limit'
   const paid = await spendCredits(
     CREDITS_COSTS.assist_priority.credits,
     'assist_priority',

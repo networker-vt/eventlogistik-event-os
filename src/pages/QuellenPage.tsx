@@ -83,7 +83,7 @@ export function QuellenPage() {
               <div key={l.id} className="relative">
                 <ListingCard listing={l} />
                 {(l as Listing & { source?: string }).source && (
-                  <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full border border-violet-500/40 bg-violet-500/20 px-2 py-0.5 text-[10px] font-medium text-violet-200">
+                  <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full border border-violet-500/40 bg-violet-500/20 px-2 py-0.5 text-xs font-medium text-violet-200">
                     <ExternalLink size={10} />
                     {(l as Listing & { source?: string }).source}
                   </span>

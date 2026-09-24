@@ -2,6 +2,7 @@ import type { Listing } from '../types'
 import { deriveMarketType, isMarketplaceLane } from './market'
 import { filterMarketplaceByPrefs, filterListingsByPrefs, getPrefs, isCompanySide, type OrbitPrefs } from './prefs'
 import { grantSearchActivity } from './rewards'
+import { isFlagOn } from './flags'
 import { listTravelOffers, type TravelOffer } from './travel'
 import { channelBoostForText } from './channels'
 
@@ -145,7 +146,7 @@ export function rankForWorld(listings: Listing[], prefs?: OrbitPrefs): Listing[]
     if (industry && (p.seeker.industries || []).includes(industry as never)) score += 28
     if (industry && sectors[industry]) score += Math.min(24, sectors[industry] * 4)
     if (l.jobType && (p.seeker.jobTypes || []).includes(l.jobType as never)) score += 8
-    if (l.featured) score += 4
+    if (isFlagOn('credits') && l.featured) score += 4
     if (l.jobType === 'Minijob' && (p.seeker.jobTypes || []).includes('Minijob')) score += 6
     if (l.country && l.country !== 'Deutschland') score += 3
     if (l.workMode === 'remote') score += 2
@@ -182,7 +183,7 @@ export function rankForCompanyWorld(listings: Listing[], prefs?: OrbitPrefs): Li
       if (lane === 'service') score += 6
       if (lane === 'asset') score += 3
       if (l.kind === 'request') score += 5
-      if (l.featured) score += 3
+      if (isFlagOn('credits') && l.featured) score += 3
       if (isMarketplaceLane(l)) score += 4
       if (isEventSectorListing(l) && !eventOk) score -= 55
       return { l, score }
@@ -329,7 +330,7 @@ export function rankTopDeals(
       }
     }
 
-    if (l.featured) {
+    if (isFlagOn('credits') && l.featured) {
       score += 5
       if (score < 20) reason = dealReason(locale, 'featured')
     }

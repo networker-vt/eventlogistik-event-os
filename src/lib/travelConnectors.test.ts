@@ -6,6 +6,7 @@ import {
   hotelSearchUrl,
   offerOutboundHref,
   parseRailJourneys,
+  stripAffiliateParams,
   travelSearchLinks,
 } from './travelConnectors'
 
@@ -37,6 +38,16 @@ describe('travel connectors', () => {
     const links = travelSearchLinks({ from: 'Frankfurt', to: 'Berlin', dateIso: '2026-10-16' })
     expect(links.every((link) => link.mode === 'empty-cta' && link.href.startsWith('https://'))).toBe(true)
     expect(links.map((link) => link.kind)).toEqual(['flight', 'hotel', 'car', 'package'])
+    for (const link of links) {
+      expect(link.href).not.toMatch(/affiliate|partner_id|partnerid|\baid=/i)
+    }
+  })
+
+  it('strips affiliate parameters from search links', () => {
+    const dirty = 'https://www.booking.com/searchresults.html?ss=Berlin&aid=123&affiliate=abc'
+    const clean = stripAffiliateParams(dirty)
+    expect(clean).toContain('ss=Berlin')
+    expect(clean).not.toMatch(/aid=|affiliate=/)
   })
 
   it('turns an old demo offer into a public search, not a fare', () => {
@@ -50,7 +61,7 @@ describe('travel connectors', () => {
     expect(rail).toContain('bahn.de')
   })
 
-  it('parses transport.rest journeys and keeps a missing price empty', () => {
+  it('parses a HAFAS journeys payload and keeps a missing price empty', () => {
     const parsed = parseRailJourneys({
       journeys: [
         {

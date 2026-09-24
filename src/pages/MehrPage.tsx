@@ -44,6 +44,9 @@ export function MehrPage() {
         <Link to="/agb" className="hover:text-ink">
           {t('footer.terms')}
         </Link>
+        <Link to="/ranking" className="hover:text-ink">
+          Ranking
+        </Link>
       </nav>
     </div>
   )

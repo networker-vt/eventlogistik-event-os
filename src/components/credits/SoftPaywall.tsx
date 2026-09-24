@@ -1,6 +1,7 @@
 import { Button, ButtonLink } from '../ui/Button'
 import { CREDITS_FREE_DE, CREDITS_FREE_EN } from '../../lib/credits'
 import { useI18n } from '../../lib/i18n'
+import { isFlagOn } from '../../lib/flags'
 import { kidsHideSoftPaywall } from '../../lib/kids'
 
 /** Soft paywall — only at money moments (boosts, extra swipes, travel deep, priority interview). */
@@ -20,6 +21,7 @@ export function SoftPaywall({
   walletTo?: string
 }) {
   const { t, resolved } = useI18n()
+  if (!isFlagOn('credits')) return null
   if (kidsHideSoftPaywall()) {
     return (
       <div className="fixed inset-x-4 bottom-28 z-40 mx-auto max-w-sm rounded-2xl border border-border bg-surface-2 p-4 shadow-xl md:bottom-8">
@@ -37,8 +39,8 @@ export function SoftPaywall({
     <div className="fixed inset-x-4 bottom-28 z-40 mx-auto max-w-sm rounded-2xl border border-violet-400/40 bg-surface-2 p-4 shadow-xl md:bottom-8">
       <p className="text-sm font-semibold text-ink">{title}</p>
       <p className="mt-1 text-xs text-muted">{hint || t('paywall.hint')}</p>
-      <p className="mt-2 text-[11px] text-neutral-400">{t('paywall.freeLane')}</p>
-      <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] text-neutral-400">
+      <p className="mt-2 text-xs text-neutral-400">{t('paywall.freeLane')}</p>
+      <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-neutral-400">
         {free.slice(0, 4).map((row) => (
           <li key={row}>{row}</li>
         ))}

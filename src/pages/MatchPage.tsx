@@ -41,6 +41,7 @@ import {
   type MatchScore,
   type MutualMatch,
 } from '../lib/match'
+import { isFlagOn } from '../lib/flags'
 import { listingIsSafeForKids, kidsMaySeeJobs, isKidsMode, subscribeKids } from '../lib/kids'
 import type { Listing, Profile } from '../types'
 
@@ -347,12 +348,18 @@ export function MatchPage() {
           </p>
           <h1 className="text-xl font-bold tracking-tight">{heading}</h1>
           <p className="text-xs text-muted">
-            {deck.length} {t('match.cards')} · {t('match.swipesLeft')} {budget.remaining}/{budget.freeCap}
-            {budget.extra ? ` +${budget.extra}` : ''}
+            {deck.length} {t('match.cards')}
+            {isFlagOn('credits') && (
+              <>
+                {' '}
+                · {t('match.swipesLeft')} {budget.remaining}/{budget.freeCap}
+                {budget.extra ? ` +${budget.extra}` : ''}
+              </>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <LaneBadge lane="free" />
+          {isFlagOn('credits') && <LaneBadge lane="free" />}
           <Button size="sm" variant="secondary" onClick={() => navigate('/prefs')}>
             <SlidersHorizontal size={16} /> {t('match.tweakPrefs')}
           </Button>
@@ -519,7 +526,7 @@ function ScoreRing({ score }: { score: MatchScore }) {
       )}
     >
       <span className="text-lg font-bold tabular-nums leading-none">{score.percent}</span>
-      <span className="text-[9px] uppercase tracking-wider opacity-80">%</span>
+      <span className="text-xs uppercase tracking-wider opacity-80">%</span>
     </div>
   )
 }
@@ -592,7 +599,7 @@ function JobCard({
           )}
           <div className="mt-1 flex flex-wrap gap-1">
             {(listing.crafts || []).slice(0, 3).map((c) => (
-              <span key={c} className="rounded-md bg-ink/5 px-2 py-0.5 text-[10px] text-neutral-400">
+              <span key={c} className="rounded-md bg-ink/5 px-2 py-0.5 text-xs text-neutral-400">
                 {c}
               </span>
             ))}
@@ -653,7 +660,7 @@ function CandidateCard({
       <p className="mt-4 line-clamp-5 flex-1 text-sm text-neutral-300">{profile.bio}</p>
       <div className="mt-3 flex flex-wrap gap-1">
         {profile.crafts.map((c) => (
-          <span key={c} className="rounded-md bg-ink/5 px-2 py-0.5 text-[10px] text-neutral-400">
+          <span key={c} className="rounded-md bg-ink/5 px-2 py-0.5 text-xs text-neutral-400">
             {c}
           </span>
         ))}
@@ -701,7 +708,7 @@ function TravelCard({
       <p className="mt-4 text-lg font-semibold text-cyan">{formatPrice(offer.priceEur)}</p>
       <div className="mt-2 flex flex-wrap gap-1">
         {offer.tags.map((tag) => (
-          <span key={tag} className="rounded-md bg-ink/5 px-2 py-0.5 text-[10px] text-neutral-400">
+          <span key={tag} className="rounded-md bg-ink/5 px-2 py-0.5 text-xs text-neutral-400">
             {tag}
           </span>
         ))}

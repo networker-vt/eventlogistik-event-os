@@ -8,6 +8,7 @@ import { Button } from '../components/ui/Button'
 import { Input, Select, Textarea } from '../components/ui/Input'
 import { COMPANY_SIZES, COUNTRIES, INDUSTRIES, LANGUAGES, type Industry } from '../data/industries'
 import { useAuth } from '../lib/auth'
+import { isFlagOn } from '../lib/flags'
 import {
   addChip,
   addCompanyDoc,
@@ -78,12 +79,14 @@ export function FirmaPage() {
         </p>
         <h1 className="text-2xl font-bold tracking-tight">{t('firma.title')}</h1>
         <p className="text-sm text-muted">{t('firma.lead')}</p>
+        {isFlagOn('credits') && (
         <Link
           to="/wallet#gift"
           className="inline-flex min-h-10 items-center gap-1.5 text-sm text-violet-200 hover:underline"
         >
           <Gift size={16} /> {t('gift.nudgeFirma')}
         </Link>
+        )}
       </header>
 
       <RoleSwitcher />
@@ -376,7 +379,7 @@ export function FirmaPage() {
             >
               <span className="truncate">
                 {d.name}{' '}
-                <span className="text-[11px] text-muted">
+                <span className="text-xs text-muted">
                   · {d.kind} · {formatDate(d.addedAt.slice(0, 10))}
                 </span>
               </span>

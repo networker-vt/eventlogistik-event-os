@@ -64,6 +64,13 @@ export function markEmailVerified() {
 }
 
 /** SMS stub — stores a local flag, no carrier. */
+/** Demo login marks the phone lane without storing a phone number. */
+export function markDemoPhoneVerified() {
+  const next = { ...get(), email: true, phone: true, updatedAt: new Date().toISOString() }
+  commit(next)
+  return next
+}
+
 export function stubVerifyPhone(phone: string) {
   const cleaned = phone.replace(/\s+/g, '')
   if (cleaned.replace(/\D/g, '').length < 6) return get()

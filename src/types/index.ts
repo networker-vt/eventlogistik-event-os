@@ -114,6 +114,9 @@ export interface Listing {
   needTags?: string[]
   /** Jugendschutz: listing may appear in Orbit Kids Treffer. */
   safeForKids?: boolean
+  /** DSA: private or commercial seller. Missing means private. */
+  sellerKind?: 'private' | 'commercial'
+  trader?: { name: string; address: string; email: string; phone: string }
 }
 
 

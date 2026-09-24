@@ -21,7 +21,7 @@ export function BrandMark({
         />
         <span className="leading-tight">
           <span className="block font-bold tracking-tight text-ink">{ORBIT_BRAND}</span>
-          <span className="hidden text-[10px] uppercase tracking-wider text-cyan sm:block">
+          <span className="hidden text-xs uppercase tracking-wider text-cyan sm:block">
             Matching statt Spam
           </span>
         </span>
@@ -37,7 +37,7 @@ export function BrandMark({
       />
       <span className="leading-tight">
         <span className="block font-bold tracking-tight text-ink">{ORBIT_BRAND}</span>
-        <span className="block max-w-[11rem] truncate text-[10px] text-cyan">{ORBIT_TAGLINE_DE}</span>
+        <span className="block max-w-[11rem] truncate text-xs text-cyan">{ORBIT_TAGLINE_DE}</span>
       </span>
     </span>
   )

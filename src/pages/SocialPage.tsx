@@ -11,6 +11,7 @@ import { useAuth } from '../lib/auth'
 import { DEMO_USER_ID } from '../data/seed'
 import { useI18n } from '../lib/i18n'
 import { buyBoost, CREDITS_COSTS, getCredits, subscribeCredits } from '../lib/credits'
+import { isFlagOn } from '../lib/flags'
 import { LaneBadge } from '../components/credits/LaneBadge'
 import { Badge } from '../components/ui/Badge'
 import {
@@ -153,6 +154,7 @@ export function SocialPage() {
             ))}
           </select>
         </label>
+        {isFlagOn('credits') && (
         <label className="flex min-h-11 items-start gap-2 rounded-xl border border-border bg-black/20 px-3 py-2 text-sm">
           <input
             type="checkbox"
@@ -166,6 +168,7 @@ export function SocialPage() {
             <LaneBadge lane="credits" />
           </span>
         </label>
+        )}
         <Button onClick={publish} disabled={!draft.trim()} className="w-full">
           {t('social.post')}
         </Button>
