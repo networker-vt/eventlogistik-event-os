@@ -11,7 +11,6 @@ import { PrefsPage } from './pages/PrefsPage'
 import { MatchPage } from './pages/MatchPage'
 import { MehrPage } from './pages/MehrPage'
 import { AuthPage } from './pages/AuthPage'
-import { ListingDetailPage } from './pages/ListingDetailPage'
 import { MessagesPage } from './pages/MessagesPage'
 import { AgbPage } from './pages/legal/AgbPage'
 import { DatenschutzPage } from './pages/legal/DatenschutzPage'
@@ -29,6 +28,9 @@ import {
 import { captureRefFromSearch } from './lib/referral'
 import { hydrateSafeTweaks } from './lib/ideas'
 
+const ListingDetailPage = lazy(() =>
+  import('./pages/ListingDetailPage').then((m) => ({ default: m.ListingDetailPage })),
+)
 const LookPage = lazy(() => import('./pages/LookPage').then((m) => ({ default: m.LookPage })))
 const WalletPage = lazy(() => import('./pages/WalletPage').then((m) => ({ default: m.WalletPage })))
 const TravelPage = lazy(() => import('./pages/TravelPage').then((m) => ({ default: m.TravelPage })))

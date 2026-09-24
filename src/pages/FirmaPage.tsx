@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Building2, FileText, Gift, MapPin, Plus, Trash2 } from 'lucide-react'
+import { ContactButtons } from '../components/contact/ContactButtons'
 import { ListingCard } from '../components/listings/ListingCard'
 import { RoleSwitcher } from '../components/role/RoleSwitcher'
 import { Badge } from '../components/ui/Badge'
@@ -161,6 +162,7 @@ export function FirmaPage() {
           onChange={(e) => saveCompany({ website: e.target.value })}
           placeholder="https://…"
         />
+        <ContactButtons website={company.website} address={company.locations[0]} />
       </section>
 
       <section className="space-y-3 rounded-2xl border border-border bg-surface-2 p-4">

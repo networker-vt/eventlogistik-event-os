@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_NAME?: string
   readonly VITE_USE_MOCK?: string
   readonly VITE_APP_URL?: string
+  /** Public site used in share links. Defaults to the GitHub Pages URL. */
+  readonly VITE_PUBLIC_SITE_URL?: string
   readonly VITE_APP_MODE?: string
   readonly VITE_ORBIT_MODE?: string
   readonly VITE_LLM_API_KEY?: string

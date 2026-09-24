@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, MessageSquare, Share2, Users } from 'lucide-react'
+import { Heart, MessageCircle, MessageSquare, Users } from 'lucide-react'
+import { ShareActions } from '../components/share/ShareActions'
 import { chatHref } from '../lib/chatPath'
 import { Button } from '../components/ui/Button'
 import { Empty } from '../components/ui/Empty'
@@ -25,6 +26,7 @@ import {
   toggleLike,
 } from '../lib/social'
 import { store } from '../lib/store'
+import { absoluteUrl } from '../lib/share'
 import { formatDateTime, cn } from '../lib/utils'
 import { KidsBlocked } from '../components/kids/KidsBlocked'
 import { emitParentalRequired, kidsHideSocialChat, subscribeKids } from '../lib/kids'
@@ -41,7 +43,6 @@ export function SocialPage() {
   const [feature, setFeature] = useState(false)
   const [credits, setCredits] = useState(getCredits)
   const [kids, setKids] = useState(kidsHideSocialChat)
-  const [shareNote, setShareNote] = useState<string | null>(null)
 
   useEffect(() => subscribeSocial(() => setSocial(getSocial())), [])
   useEffect(() => subscribeCredits(() => setCredits(getCredits())), [])
@@ -76,25 +77,6 @@ export function SocialPage() {
     setFeature(false)
   }
 
-  const sharePost = async (body: string, author: string) => {
-    const text = `${author}: ${body}`
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: 'Orbit Social', text })
-        return
-      }
-    } catch {
-      /* fall through */
-    }
-    try {
-      await navigator.clipboard.writeText(text)
-      setShareNote(t('social.shared'))
-      window.setTimeout(() => setShareNote(null), 2000)
-    } catch {
-      setShareNote(t('social.shared'))
-    }
-  }
-
   return (
     <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome">
       <header className="space-y-1">
@@ -120,12 +102,6 @@ export function SocialPage() {
       <p className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
         {t('social.demo')}
       </p>
-      {shareNote && (
-        <p className="text-xs text-[var(--theme-accent)]" role="status">
-          {shareNote}
-        </p>
-      )}
-
       {kids ? (
         <KidsBlocked
           title={t('kids.socialBlocked')}
@@ -275,14 +251,12 @@ export function SocialPage() {
                     <span className="inline-flex items-center gap-1">
                       <MessageCircle size={14} /> {post.comments.length}
                     </span>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1"
-                      onClick={() => void sharePost(post.body, post.authorName)}
-                    >
-                      <Share2 size={14} /> {t('social.share')}
-                    </button>
                   </div>
+                  <ShareActions
+                    title="Orbit Social"
+                    text={`${post.authorName}: ${post.body}`}
+                    url={absoluteUrl('/social')}
+                  />
                   {post.comments.length > 0 && (
                     <ul className="mt-2 space-y-1 border-t border-border/60 pt-2">
                       {post.comments.map((c) => (

@@ -35,6 +35,15 @@ export type BookingStatus =
 
 export type VerificationLevel = 'none' | 'email' | 'id' | 'business'
 
+/** Network the person picked. Stored with the raw text they typed, nothing fetched. */
+export type ProfileLinkKind = 'instagram' | 'facebook' | 'tiktok' | 'website'
+
+export interface ProfileLinkInput {
+  kind: ProfileLinkKind
+  /** Exactly the handle or URL the person entered. */
+  input: string
+}
+
 export interface Profile {
   id: string
   name: string
@@ -48,6 +57,8 @@ export interface Profile {
   rating: number
   reviewCount: number
   phone?: string
+  /** Voluntary profile links. Only values the person typed. */
+  profileLinks?: ProfileLinkInput[]
   companyName?: string
   /** Verfügbarkeit Freelancer / Crew */
   available?: boolean
@@ -117,6 +128,20 @@ export interface Listing {
   /** DSA: private or commercial seller. Missing means private. */
   sellerKind?: 'private' | 'commercial'
   trader?: { name: string; address: string; email: string; phone: string }
+  /**
+   * Private listings only. Missing or false keeps contact off.
+   * Commercial listings use `trader` and ignore this flag.
+   */
+  showContact?: boolean
+  /** Snapshot copied at publish. Never the live account. */
+  publicContact?: ListingPublicContact
+}
+
+/** Contact the person released for one listing. Stored text only. */
+export interface ListingPublicContact {
+  phone?: string
+  email?: string
+  links?: ProfileLinkInput[]
 }
 
 

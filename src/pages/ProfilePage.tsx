@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Heart, Gift, Wallet } from 'lucide-react'
+import { ContactButtons } from '../components/contact/ContactButtons'
+import { ProfileLinkEditor } from '../components/profile/ProfileLinkEditor'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Input, Select, Textarea } from '../components/ui/Input'
@@ -12,9 +14,10 @@ import { isFlagOn } from '../lib/flags'
 import { useI18n } from '../lib/i18n'
 import { ReportButton } from '../components/report/ReportButton'
 import { verificationLabel } from '../lib/utils'
-import type { Role } from '../types'
+import type { ProfileLinkInput, Role } from '../types'
 
 export function ProfilePage() {
+  const { t } = useI18n()
   const { profile, user, updateProfile, logout, loginDemo } = useAuth()
   const navigate = useNavigate()
   const [bio, setBio] = useState(profile?.bio ?? '')
@@ -26,6 +29,8 @@ export function ProfilePage() {
   const [certs, setCerts] = useState((profile?.certifications ?? []).join(', '))
   const [available, setAvailable] = useState(profile?.available ?? true)
   const [insured, setInsured] = useState(profile?.insured ?? false)
+  const [phone, setPhone] = useState(profile?.phone ?? '')
+  const [links, setLinks] = useState<ProfileLinkInput[]>(profile?.profileLinks ?? [])
   const [saved, setSaved] = useState(false)
 
   if (!user || !profile) {
@@ -57,6 +62,8 @@ export function ProfilePage() {
         .filter(Boolean),
       available,
       insured,
+      phone: phone.trim() || undefined,
+      profileLinks: links,
     }
     updateProfile(next)
     store.upsertProfile(next)
@@ -73,6 +80,9 @@ export function ProfilePage() {
             <p className="text-sm text-muted">{profile.email}</p>
           </div>
           <Badge tone="cyan">{ROLE_LABELS[profile.role]}</Badge>
+        </div>
+        <div className="mt-4">
+          <ContactButtons phone={phone} email={profile.email} address={city} />
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge tone="teal">{verificationLabel(profile.verified)}</Badge>
@@ -141,6 +151,20 @@ export function ProfilePage() {
           value={certs}
           onChange={(e) => setCerts(e.target.value)}
           placeholder="IPAF, PSAgA, GrandMA3…"
+        />
+        <Input
+          label={t('profile.phone')}
+          value={phone}
+          inputMode="tel"
+          autoComplete="tel"
+          onChange={(e) => setPhone(e.target.value)}
+        />
+        <ProfileLinkEditor
+          links={links}
+          onChange={(next) => {
+            setLinks(next)
+            updateProfile({ profileLinks: next })
+          }}
         />
         <div className="flex flex-wrap gap-4 text-sm">
           <label className="inline-flex min-h-11 items-center gap-2">
@@ -234,7 +258,15 @@ export function PublicProfilePage() {
         {profile.city}
         {profile.travelRadiusKm != null ? ` · Radius ${profile.travelRadiusKm} km` : ''}
       </p>
-      <p className="mt-4 text-neutral-300">{profile.bio}</p>
+      <p className="mt-4 text-base text-neutral-300">{profile.bio}</p>
+      <div className="mt-4">
+        <ContactButtons
+          phone={profile.phone}
+          email={profile.email}
+          address={profile.city}
+          links={profile.profileLinks}
+        />
+      </div>
       <div className="mt-4 flex flex-wrap gap-2">
         {profile.crafts.map((c) => (
           <Badge key={c}>{c}</Badge>

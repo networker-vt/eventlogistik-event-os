@@ -143,6 +143,14 @@ html[data-scheme="dark"] {
 .text-neutral-500 {
   color: var(--color-neutral-500);
 }
+
+/* Invalid-link hints. The Tailwind amber-200 utility stays #fde68a and fails on cream. */
+.text-warn {
+  color: #92400e;
+}
+html[data-scheme="dark"] .text-warn {
+  color: #fde68a;
+}
 html[data-scheme="dark"] [data-theme="home"] {
   --theme-accent: #2dd4bf;
   --theme-accent-2: #5eead4;

@@ -21,6 +21,8 @@ import { canOffer, subscribeVerify } from '../lib/verify'
 import { isFlagOn } from '../lib/flags'
 import { commercialTraderComplete, type SellerKind, type TraderDetails } from '../lib/seller'
 import { SellerFields, emptyTrader } from '../components/listings/SellerFields'
+import { ListingContactOptIn } from '../components/listings/ListingContactOptIn'
+import { publicContactFromOptIn } from '../lib/listingContact'
 import { VerifyPanel } from '../components/verify/VerifyPanel'
 import { LaneBadge } from '../components/credits/LaneBadge'
 import { useI18n } from '../lib/i18n'
@@ -31,8 +33,10 @@ import type {
   CreateIntent,
   ExpensesCover,
   ListingKind,
+  ListingPublicContact,
   MarketType,
   OvernightCover,
+  Profile,
   TravelCover,
   Vertical,
 } from '../types'
@@ -47,6 +51,33 @@ const EMOJI: Record<Vertical, string> = {
   hotel: '🏨',
   job: '💼',
   partnership: '🔗',
+}
+
+type ReleasedContact =
+  | { error: string }
+  | { showContact?: false }
+  | { showContact: true; publicContact: ListingPublicContact }
+
+function releasedContact(
+  sellerKind: SellerKind,
+  showContact: boolean,
+  reuseProfile: boolean,
+  email: string,
+  phone: string,
+  profile: Profile | null,
+): ReleasedContact {
+  if (sellerKind !== 'private') return {}
+  const result = publicContactFromOptIn({ showContact, reuseProfile, email, phone, profile })
+  if (!result.ok) {
+    return {
+      error:
+        result.error === 'missing'
+          ? 'Kontakt im Inserat: bitte E-Mail oder Telefon angeben, oder die Profilangaben übernehmen.'
+          : 'Kontakt im Inserat: die Angabe ist ungültig.',
+    }
+  }
+  if (!result.showContact) return { showContact: false as const }
+  return { showContact: true as const, publicContact: result.publicContact }
 }
 
 function parseIntent(params: URLSearchParams): CreateIntent {
@@ -89,6 +120,10 @@ function SimpleCreateListing() {
   const [sellerKind, setSellerKind] = useState<SellerKind>('private')
   const [trader, setTrader] = useState<TraderDetails>(emptyTrader)
   const [sellerError, setSellerError] = useState<string | null>(null)
+  const [showContact, setShowContact] = useState(false)
+  const [reuseProfile, setReuseProfile] = useState(false)
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
 
   useEffect(() => subscribeVerify(() => setOfferOk(canOffer())), [])
 
@@ -117,6 +152,11 @@ function SimpleCreateListing() {
     if (isFlagOn('verifyId') && intent !== 'need' && !canOffer()) return
     if (sellerKind === 'commercial' && !commercialTraderComplete(trader)) {
       setSellerError('Gewerblich: Name, Anschrift, E-Mail und Telefon sind Pflicht.')
+      return
+    }
+    const released = releasedContact(sellerKind, showContact, reuseProfile, contactEmail, contactPhone, p)
+    if ('error' in released) {
+      setSellerError(released.error)
       return
     }
     setSellerError(null)
@@ -155,6 +195,7 @@ function SimpleCreateListing() {
       matchReason: featured ? 'Orbit Credits Boost (Demo)' : undefined,
       sellerKind,
       trader: sellerKind === 'commercial' ? trader : undefined,
+      ...released,
     })
     navigate(`/listings/${listing.id}`)
   }
@@ -251,7 +292,6 @@ function SimpleCreateListing() {
         </label>
         )}
         <SellerFields kind={sellerKind} onKind={setSellerKind} trader={trader} onTrader={setTrader} />
-        {sellerError && <p className="text-sm text-amber-200">{sellerError}</p>}
         <button
           type="button"
           className="text-sm text-[var(--theme-accent)] hover:underline"
@@ -284,6 +324,19 @@ function SimpleCreateListing() {
           </p>
         )}
         {isFlagOn('verifyId') && intent !== 'need' && !offerOk && <VerifyPanel focus="offer" />}
+        {sellerKind === 'private' && (
+          <ListingContactOptIn
+            showContact={showContact}
+            onShowContact={setShowContact}
+            reuseProfile={reuseProfile}
+            onReuseProfile={setReuseProfile}
+            email={contactEmail}
+            onEmail={setContactEmail}
+            phone={contactPhone}
+            onPhone={setContactPhone}
+          />
+        )}
+        {sellerError && <p className="text-sm text-warn">{sellerError}</p>}
         <div className="flex flex-wrap gap-2">
           <Button type="submit" disabled={intent !== 'need' && !offerOk}>
             {t('create.publish')}
@@ -333,6 +386,10 @@ function FullCreateListing() {
   const [sellerKind, setSellerKind] = useState<SellerKind>('private')
   const [trader, setTrader] = useState<TraderDetails>(emptyTrader)
   const [sellerError, setSellerError] = useState<string | null>(null)
+  const [showContact, setShowContact] = useState(false)
+  const [reuseProfile, setReuseProfile] = useState(false)
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
 
   const meta = useMemo(() => VERTICAL_META[vertical], [vertical])
   const isJob = vertical === 'job'
@@ -350,6 +407,11 @@ function FullCreateListing() {
     if (!title.trim() || !description.trim()) return
     if (sellerKind === 'commercial' && !commercialTraderComplete(trader)) {
       setSellerError('Gewerblich: Name, Anschrift, E-Mail und Telefon sind Pflicht.')
+      return
+    }
+    const released = releasedContact(sellerKind, showContact, reuseProfile, contactEmail, contactPhone, p)
+    if ('error' in released) {
+      setSellerError(released.error)
       return
     }
     setSellerError(null)
@@ -405,6 +467,7 @@ function FullCreateListing() {
         : undefined,
       sellerKind,
       trader: sellerKind === 'commercial' ? trader : undefined,
+      ...released,
     })
     navigate(`/listings/${listing.id}`)
   }
@@ -627,7 +690,19 @@ function FullCreateListing() {
         )}
 
         <SellerFields kind={sellerKind} onKind={setSellerKind} trader={trader} onTrader={setTrader} />
-        {sellerError && <p className="text-sm text-amber-200">{sellerError}</p>}
+        {sellerKind === 'private' && (
+          <ListingContactOptIn
+            showContact={showContact}
+            onShowContact={setShowContact}
+            reuseProfile={reuseProfile}
+            onReuseProfile={setReuseProfile}
+            email={contactEmail}
+            onEmail={setContactEmail}
+            phone={contactPhone}
+            onPhone={setContactPhone}
+          />
+        )}
+        {sellerError && <p className="text-sm text-warn">{sellerError}</p>}
         {!user && (
           <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
             Nicht eingeloggt — beim Speichern starten wir die Demo-Session und veröffentlichen sofort.

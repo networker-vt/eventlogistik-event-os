@@ -85,11 +85,11 @@ export const WALLET_DISCLAIMER_DE =
 
 const DEMO_DISPLAY: Record<WalletMethodId, string> = {
   paypal: 'demo@example.invalid',
-  card: '•••• 4242',
-  sepa: 'DE•• •••• •••• •••• 8901',
-  btc: 'bc1q…orbit (Demo)',
-  usdc: '0xLOAD…USDC (Demo)',
-  usdt: 'TLoad…USDT (Demo)',
+  card: 'Karte (Demo)',
+  sepa: 'SEPA (Demo)',
+  btc: 'BTC (Demo)',
+  usdc: 'USDC (Demo)',
+  usdt: 'USDT (Demo)',
 }
 
 function defaultState(): WalletState {
