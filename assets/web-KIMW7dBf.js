@@ -1,0 +1,1 @@
+import{nr as e}from"./index-DEJ1oaD2.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};

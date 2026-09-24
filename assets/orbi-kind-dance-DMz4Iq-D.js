@@ -1,0 +1,1 @@
+var e=`/eventlogistik-event-os/assets/orbi-kind-dance-DX-8ANmk.webp`;export{e as default};

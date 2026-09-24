@@ -1,0 +1,1 @@
+var e=`/eventlogistik-event-os/assets/orbi-kind-work-r3h-NOxn.webp`;export{e as default};
