@@ -31,10 +31,10 @@ export function EmpfehlenPage() {
     return (
       <div className="mx-auto max-w-2xl space-y-6 pb-scroll-chrome">
         <header className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Orbit weiterempfehlen</h1>
-          <p className="text-sm text-muted">
-            Teile den Link, wenn dir Orbit gefällt. Es gibt keine Belohnung und keine Credits.
-          </p>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <Share2 size={22} aria-hidden /> Orbit weiterempfehlen
+          </h1>
+          <p className="text-sm text-muted">Teile den Link, wenn dir Orbit gefällt. Es gibt keine Belohnung.</p>
         </header>
         <section className="rounded-3xl border border-border bg-surface-2 p-5">
           <p className="text-xs uppercase tracking-wider text-muted">Dein Link</p>

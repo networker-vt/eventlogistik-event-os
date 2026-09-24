@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { __resetReportsForTests, listContentReports, submitContentReport, validateReport } from './reports'
+import { LEGAL } from './legal'
+import { __resetReportsForTests, listContentReports, reportMailto, submitContentReport, validateReport } from './reports'
 
 describe('content reports', () => {
   beforeEach(() => {
@@ -49,5 +50,11 @@ describe('content reports', () => {
     expect(saved.stored).toBe('local')
     expect(listContentReports()).toHaveLength(1)
     expect(listContentReports()[0]?.email).toBeUndefined()
+    const href = reportMailto(saved)
+    expect(href.startsWith(`mailto:${LEGAL.email}?`)).toBe(true)
+    const decoded = decodeURIComponent(href)
+    expect(decoded).toContain('Inhalt melden')
+    expect(decoded).toContain('user-2')
+    expect(decoded).toContain('Beleidigungen im Profiltext.')
   })
 })

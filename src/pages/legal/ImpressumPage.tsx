@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { LEGAL, LEGAL_ADDRESS_LINE, copyrightLine } from '../../lib/legal'
+import { LEGAL, LEGAL_ADDRESS_LINE, copyrightLine, isLegalPlaceholder } from '../../lib/legal'
 import { LegalLayout } from './LegalLayout'
 
 export function ImpressumPage() {
@@ -42,8 +42,12 @@ export function ImpressumPage() {
       <p>
         E-Mail:{' '}
         <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>
-        <br />
-        Telefon: {LEGAL.phone}
+        {!isLegalPlaceholder(LEGAL.phone) && (
+          <>
+            <br />
+            Telefon: {LEGAL.phone}
+          </>
+        )}
         <br />
         Anschrift: {LEGAL_ADDRESS_LINE}
       </p>
@@ -70,12 +74,16 @@ export function ImpressumPage() {
         <Link to="/agb">AGB</Link>
       </p>
 
-      <h2>Gewerbe</h2>
-      <p>
-        {LEGAL.tradeStatus} Solange Orbit ohne Gewinnabsicht privat betrieben wird, bleibt der Hinweis
-        „privat betrieben“ stehen. Sobald eine Gewinnabsicht besteht, diesen Hinweis entfernen und die
-        Gewerbeangaben nachtragen.
-      </p>
+      {!isLegalPlaceholder(LEGAL.tradeStatus) && (
+        <>
+          <h2>Gewerbe</h2>
+          <p>
+            {LEGAL.tradeStatus} Solange Orbit ohne Gewinnabsicht privat betrieben wird, bleibt der Hinweis
+            „privat betrieben“ stehen. Sobald eine Gewinnabsicht besteht, diesen Hinweis entfernen und die
+            Gewerbeangaben nachtragen.
+          </p>
+        </>
+      )}
 
       <h2>Register & Umsatzsteuer</h2>
       <p>

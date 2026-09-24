@@ -164,16 +164,23 @@ export function HomePage() {
       return
     }
     const gate = await consumeAssistTurn()
-    if (gate === 'limit' || (gate === 'need_credits' && !isFlagOn('credits'))) {
+    if (!isFlagOn('credits')) {
+      if (gate !== 'ok') {
+        setAssistNote(t('home.assistLimit'))
+        return
+      }
+      setAssistNote(null)
+    } else if (gate === 'limit') {
       setAssistNote(t('home.assistLimit'))
       return
-    }
-    if (gate === 'need_credits') {
+    } else if (gate === 'need_credits') {
       setAssistNote(t('home.assistNeedCredits'))
       return
+    } else if (gate === 'paid') {
+      setAssistNote(t('home.assistPaid'))
+    } else {
+      setAssistNote(null)
     }
-    if (gate === 'paid') setAssistNote(t('home.assistPaid'))
-    else setAssistNote(null)
     abortRef.current?.abort()
     const ac = new AbortController()
     abortRef.current = ac

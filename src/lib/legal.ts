@@ -19,6 +19,11 @@ export const LEGAL = {
 
 export const LEGAL_ADDRESS_LINE = `${LEGAL.street}, ${LEGAL.zip} ${LEGAL.city}`
 
+/** True while Mirco has not replaced a `[BITTE AUSFÜLLEN]` value. */
+export function isLegalPlaceholder(value: string) {
+  return value.includes('BITTE AUSFÜLLEN')
+}
+
 export function copyrightLine(year = LEGAL.year) {
   return `© ${year} ${LEGAL.operatorName} / ${LEGAL.brand}`
 }

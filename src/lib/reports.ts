@@ -1,3 +1,4 @@
+import { LEGAL } from './legal'
 import { uid } from './utils'
 import { isSupabaseConfigured, supabase } from './supabase'
 
@@ -86,6 +87,23 @@ export async function submitContentReport(input: ContentReportInput): Promise<Co
     if (!dbError) report.stored = 'local+supabase'
   }
   return report
+}
+
+/** Prefilled operator mail so a report arrives even without Supabase. */
+export function reportMailto(report: Pick<ContentReport, 'targetKind' | 'targetId' | 'reason' | 'description' | 'name' | 'email'>): string {
+  const reasonLabel = REPORT_REASONS.find((item) => item.id === report.reason)?.de ?? report.reason
+  const subject = `Inhalt melden: ${reasonLabel}`
+  const body = [
+    `Art: ${report.targetKind}`,
+    `ID: ${report.targetId}`,
+    `Grund: ${reasonLabel}`,
+    `Beschreibung: ${report.description}`,
+    report.name?.trim() ? `Name: ${report.name.trim()}` : '',
+    report.email?.trim() ? `E-Mail: ${report.email.trim()}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
+  return `mailto:${LEGAL.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }
 
 export function __resetReportsForTests() {

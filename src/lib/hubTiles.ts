@@ -86,8 +86,8 @@ export const MEIN_ACCOUNT_DEFS: HubTileDef[] = [
   { id: 'profile', to: '/profile', labelKey: 'nav.mein', emoji: '👤', tone: 'slate', surface: 'account' },
   { id: 'verify', to: '/mein#verify', labelKey: 'verify.title', emoji: '🛡️', tone: 'lime', surface: 'account', hide: () => !isFlagOn('verifyId') },
   { id: 'prefs', to: '/prefs', labelKey: 'match.tweakPrefs', emoji: '⚙️', tone: 'amber', surface: 'account' },
-  { id: 'create', to: '/listings/new', labelKey: 'nav.create', emoji: '➕', tone: 'slate', surface: 'account', demo: true, hide: (c) => c.kids },
-  { id: 'offer', to: '/listings/new?kind=offer', labelKey: 'mein.offer', emoji: '📣', tone: 'orange', surface: 'account', demo: true, hide: (c) => c.kids },
+  { id: 'create', to: '/listings/new', labelKey: 'nav.create', emoji: '➕', tone: 'slate', surface: 'account', hide: (c) => c.kids },
+  { id: 'offer', to: '/listings/new?kind=offer', labelKey: 'mein.offer', emoji: '📣', tone: 'orange', surface: 'account', hide: (c) => c.kids },
   { id: 'channels', to: '/channels', labelKey: 'channels.nav', emoji: '📡', tone: 'violet', surface: 'account', hide: () => !isFlagOn('channels') },
   { id: 'ideas', to: '/ideen', labelKey: 'mehr.ideas', emoji: '💡', tone: 'orange', surface: 'account', hide: () => !isFlagOn('ideas') },
   { id: 'language', to: '/mein#sprache', labelKey: 'mein.language', emoji: '🌐', tone: 'amber', surface: 'account' },
@@ -109,15 +109,19 @@ export function resolveHubTiles(
   t: (key: string) => string,
   labelOverrides?: Partial<Record<HubTileId, string>>,
 ): HubTile[] {
-  return visibleDefs(defs, ctx).map((d) => ({
-    id: d.id,
-    to: d.to,
-    label: labelOverrides?.[d.id] ?? t(d.labelKey),
-    emoji: d.emoji,
-    image: d.image,
-    tone: d.tone,
-    demo: d.demo,
-  }))
+  return visibleDefs(defs, ctx).map((d) => {
+    const shareRefer = d.id === 'refer' && !isFlagOn('credits')
+    return {
+      id: d.id,
+      to: d.to,
+      label: labelOverrides?.[d.id] ?? (shareRefer ? t('mehr.referPlain') : t(d.labelKey)),
+      emoji: shareRefer ? '↗' : d.emoji,
+      icon: shareRefer ? ('share' as const) : undefined,
+      image: d.image,
+      tone: d.tone,
+      demo: d.demo,
+    }
+  })
 }
 
 export function homeDiscoverTiles(t: (key: string) => string, ctx: HubCtx = hubCtx()): HubTile[] {

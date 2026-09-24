@@ -7,7 +7,7 @@ export function AgbPage() {
     <LegalLayout title="Allgemeine Geschäftsbedingungen (AGB)">
       <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
         <strong>Startklar, aber nicht anwaltlich geprüft.</strong> Für den Marktplatz
-        (Angebote und Gesuche — Reise, Kabine, Lernen, Services, B2B, Jobs und mehr)
+        (Angebote und Gesuche — Reise, Services, B2B, Jobs und mehr)
         braucht es vor kommerziellem Betrieb eine fachliche AGB-Prüfung — Haftungs-,
         Vermittlungs- und Entgeltregeln sind hier bewusst vorsichtig formuliert und können
         sich ändern.

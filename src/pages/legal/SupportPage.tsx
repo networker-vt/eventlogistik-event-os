@@ -22,7 +22,7 @@ export function SupportPage() {
 
       <h2>Wobei diese Adresse hilft</h2>
       <ul>
-        <li>Fragen zur Demo-App Orbit (PWA).</li>
+        <li>Fragen zur App Orbit (PWA).</li>
         <li>Fehlermeldungen: was du getippt hast, welche Seite, was stattdessen passiert ist.</li>
         <li>
           Datenschutz: Auskunft oder Löschung. Lokale Demo-Daten liegen im Browser — Speicher leeren
@@ -60,7 +60,7 @@ export function SupportPage() {
       </p>
       <p>
         Write to <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a> ({LEGAL_ADDRESS_LINE}, Germany)
-        about the demo app, a bug, or a privacy request. Local demo data stays in the browser until
+        about the Orbit app, a bug, or a privacy request. Local data stays in the browser until
         you clear site data. Orbit does not sell tickets and does not take payment.
       </p>
       <p>

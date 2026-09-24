@@ -4,6 +4,7 @@ import { Button } from '../ui/Button'
 import { useI18n } from '../../lib/i18n'
 import {
   REPORT_REASONS,
+  reportMailto,
   submitContentReport,
   validateReport,
   type ReportReason,
@@ -29,11 +30,13 @@ export function ReportButton({
   const [truthful, setTruthful] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [mailHref, setMailHref] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
   const close = () => {
     setOpen(false)
     setDone(false)
+    setMailHref(null)
     setError(null)
   }
 
@@ -46,8 +49,11 @@ export function ReportButton({
     }
     setBusy(true)
     try {
-      await submitContentReport(input)
+      const saved = await submitContentReport(input)
+      const href = reportMailto(saved)
+      setMailHref(href)
       setDone(true)
+      window.location.href = href
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Meldung fehlgeschlagen')
     } finally {
@@ -84,6 +90,11 @@ export function ReportButton({
                 <p className="text-sm text-neutral-200">
                   {de ? 'Danke, wir prüfen das.' : 'Thank you, we will review this.'}
                 </p>
+                {mailHref && (
+                  <a href={mailHref} className="inline-flex min-h-11 items-center text-sm text-cyan underline">
+                    {de ? 'Per E-Mail an den Betreiber senden' : 'Email the operator'}
+                  </a>
+                )}
                 <Button type="button" onClick={close}>
                   OK
                 </Button>

@@ -41,6 +41,7 @@ import {
   type MatchScore,
   type MutualMatch,
 } from '../lib/match'
+import { isFlagOn } from '../lib/flags'
 import { listingIsSafeForKids, kidsMaySeeJobs, isKidsMode, subscribeKids } from '../lib/kids'
 import type { Listing, Profile } from '../types'
 
@@ -347,12 +348,18 @@ export function MatchPage() {
           </p>
           <h1 className="text-xl font-bold tracking-tight">{heading}</h1>
           <p className="text-xs text-muted">
-            {deck.length} {t('match.cards')} · {t('match.swipesLeft')} {budget.remaining}/{budget.freeCap}
-            {budget.extra ? ` +${budget.extra}` : ''}
+            {deck.length} {t('match.cards')}
+            {isFlagOn('credits') && (
+              <>
+                {' '}
+                · {t('match.swipesLeft')} {budget.remaining}/{budget.freeCap}
+                {budget.extra ? ` +${budget.extra}` : ''}
+              </>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <LaneBadge lane="free" />
+          {isFlagOn('credits') && <LaneBadge lane="free" />}
           <Button size="sm" variant="secondary" onClick={() => navigate('/prefs')}>
             <SlidersHorizontal size={16} /> {t('match.tweakPrefs')}
           </Button>

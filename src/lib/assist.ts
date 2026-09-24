@@ -14,6 +14,7 @@ import {
 import { uid } from './utils'
 import { detectCampusIntent } from './campus'
 import { detectLookIntent } from './look'
+import { isFlagOn } from './flags'
 import { detectTripIntent, proposeTripOptions, type TripIntent, type TripOption } from './trip'
 
 const KEY = 'orbit_assist_v1'
@@ -453,8 +454,12 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
       step(
         de ? 'Varianten vergleichen' : 'Compare variants',
         de
-          ? 'Foto plus 1–2 Filter frei. Extra-Try-on-Pack aus dem 21M-Credits-Pool.'
-          : 'Photo plus 1–2 filters free. Extra try-on pack from the 21M credits pool.',
+          ? isFlagOn('credits')
+            ? 'Foto plus 1–2 Filter frei. Extra-Try-on-Pack aus dem 21M-Credits-Pool.'
+            : 'Foto plus 1–2 Filter. Die Vorschläge bleiben ohne Aufpreis.'
+          : isFlagOn('credits')
+            ? 'Photo plus 1–2 filters free. Extra try-on pack from the 21M credits pool.'
+            : 'Photo plus 1–2 filters. Suggestions stay free of charge.',
         { actionTo: `/kabine?${qs.toString()}`, actionLabel: de ? 'Anprobe (Demo)' : 'Try-on (demo)' },
       ),
       step(
@@ -468,8 +473,12 @@ export function heuristicPlan(intent: ParsedIntent, locale: 'de' | 'en'): Omit<A
     tips.push({
       title: de ? 'Orbit berät (Kabine)' : 'Orbit advises (Kabine)',
       body: de
-        ? 'Kein echtes Virtual-Try-on-ML auf dem Gerät. Filter + Labels + Seed-Shops. Featured Nearby kostet Credits, mintet nicht über 21M.'
-        : 'No real virtual try-on ML on device. Filters + labels + seeded shops. Featured nearby costs Credits, never mints above 21M.',
+        ? isFlagOn('credits')
+          ? 'Kein echtes Virtual-Try-on-ML auf dem Gerät. Filter + Labels + Seed-Shops. Featured Nearby kostet Credits, mintet nicht über 21M.'
+          : 'Kein echtes Virtual-Try-on-ML auf dem Gerät. Filter, Labels und Beispiel-Shops. Kein Aufpreis.'
+        : isFlagOn('credits')
+          ? 'No real virtual try-on ML on device. Filters + labels + seeded shops. Featured nearby costs Credits, never mints above 21M.'
+          : 'No real virtual try-on ML on device. Filters, labels and sample shops. No extra charge.',
     })
   } else if (intent.kind === 'travel') {
     const dest = intent.city || (de ? 'dein Ziel' : 'your destination')

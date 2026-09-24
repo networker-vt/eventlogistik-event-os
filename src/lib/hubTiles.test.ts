@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { __setFlagForTests } from './flags'
 import { tStatic } from './i18n'
 import {
   HOME_DISCOVER_DEFS,
@@ -18,6 +19,9 @@ const adult = { kids: false, hideTravel: false, hideWallet: false }
 const kids = { kids: true, hideTravel: true, hideWallet: true }
 
 describe('Orbit 2.8.1 hub split', () => {
+  beforeEach(() => {
+    __setFlagForTests(null)
+  })
   it('Home discover is destinations only — no Mein, Social, Wallet', () => {
     const tiles = homeDiscoverTiles((k) => tStatic(k, 'de'), adult)
     const paths = tiles.map((t) => t.to)
@@ -46,6 +50,12 @@ describe('Orbit 2.8.1 hub split', () => {
     expect(tiles.some((t) => t.to === '/channels')).toBe(false)
     expect(tiles.some((t) => t.to === '/wallet')).toBe(false)
     expect(tiles.some((t) => t.to === '/listings/new')).toBe(true)
+    expect(tiles.find((t) => t.id === 'create')?.demo).toBeFalsy()
+    expect(tiles.find((t) => t.id === 'offer')?.demo).toBeFalsy()
+    const refer = tiles.find((t) => t.id === 'refer')
+    expect(refer?.emoji).not.toBe('🎁')
+    expect(refer?.icon).toBe('share')
+    expect(refer?.label).toBe('Orbit weiterempfehlen')
   })
 
   it('Kids hide Wallet / create / offer on Mein and travel / firma / crew on Home', () => {

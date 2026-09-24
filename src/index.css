@@ -127,7 +127,8 @@ html[data-scheme="dark"] {
   --color-neutral-200: #e5e5e5;
   --color-neutral-300: #d4d4d4;
   --color-neutral-400: #a3a3a3;
-  --color-neutral-500: #a3a3a3;
+  /* Dimmer than neutral-400, still ≥ 4.5:1 on #0a0a0a / #111 / #171717. */
+  --color-neutral-500: #868686;
   --color-neutral-600: #525252;
   --color-amber-100: #fef3c7;
   --color-amber-200: #fde68a;

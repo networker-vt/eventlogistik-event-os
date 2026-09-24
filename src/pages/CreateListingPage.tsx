@@ -163,7 +163,7 @@ function SimpleCreateListing() {
     <div className="mx-auto max-w-lg space-y-5 pb-scroll-chrome">
       <div>
         <h1 className="text-2xl font-bold">{t('create.title')}</h1>
-        <p className="text-sm text-muted">{t('create.simpleLead')}</p>
+        <p className="text-sm text-muted">{isFlagOn('credits') ? t('create.simpleLead') : t('create.simpleLeadPlain')}</p>
       </div>
       <form onSubmit={submit} className="space-y-4 rounded-2xl border border-border bg-surface-2 p-5">
         <fieldset>
