@@ -25,6 +25,10 @@ import { isFlagOn } from '../lib/flags'
 import { useI18n } from '../lib/i18n'
 import { ReportButton } from '../components/report/ReportButton'
 import { SellerLabel } from '../components/listings/SellerLabel'
+import { ContactButtons } from '../components/contact/ContactButtons'
+import { ShareActions } from '../components/share/ShareActions'
+import { absoluteUrl } from '../lib/share'
+import { resolveSeller } from '../lib/seller'
 
 export function ListingDetailPage() {
   const { t } = useI18n()
@@ -71,6 +75,9 @@ export function ListingDetailPage() {
 
   const meta = VERTICAL_META[listing.vertical]
   const owner = store.getProfile(listing.ownerId)
+  const seller = resolveSeller(listing)
+  const contactAddress =
+    seller.trader?.address || [listing.venue, listing.city].filter(Boolean).join(', ')
   const rate = formatPriceRange(listing.priceFrom, listing.priceTo, listing.priceUnit)
   const isOwner = Boolean(user && user.id === listing.ownerId)
   const apps = isJob ? store.listBookingsForListing(listing.id) : []
@@ -180,8 +187,19 @@ export function ListingDetailPage() {
                 </span>
               )}
             </p>
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 space-y-3">
               <SellerLabel listing={listing} />
+              <ShareActions
+                title={listing.title}
+                text={listing.description.slice(0, 180)}
+                url={absoluteUrl(`/listings/${listing.id}`)}
+              />
+              <ContactButtons
+                phone={seller.trader?.phone || owner?.phone}
+                email={seller.trader?.email || owner?.email}
+                address={contactAddress}
+                links={owner?.profileLinks}
+              />
               <ReportButton targetKind="listing" targetId={listing.id} />
             </div>
           </div>

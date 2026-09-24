@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Copy, Gift, Share2 } from 'lucide-react'
+import { Gift, Share2 } from 'lucide-react'
+import { ShareActions } from '../components/share/ShareActions'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { useReferral } from '../hooks/useReferral'
@@ -10,22 +11,11 @@ import { formatDateTime } from '../lib/utils'
 
 export function EmpfehlenPage() {
   const { referral } = useReferral()
-  const [copied, setCopied] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
   const [credits, setCredits] = useState(getCredits)
   const url = shareUrl()
 
   useEffect(() => subscribeCredits(() => setCredits(getCredits())), [])
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(url)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1800)
-    } catch {
-      setFlash('Kopieren nicht möglich — Link manuell teilen.')
-    }
-  }
 
   if (!isFlagOn('credits')) {
     return (
@@ -38,29 +28,11 @@ export function EmpfehlenPage() {
         </header>
         <section className="rounded-3xl border border-border bg-surface-2 p-5">
           <p className="text-xs uppercase tracking-wider text-muted">Dein Link</p>
-          <p className="mt-2 break-all text-sm text-neutral-200">{url}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => void copy()}>
-              <Copy size={14} /> {copied ? 'Kopiert' : 'Link kopieren'}
-            </Button>
-            {'share' in navigator && (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() =>
-                  void navigator.share?.({
-                    title: 'Orbit',
-                    text: 'Orbit weiterempfehlen',
-                    url,
-                  })
-                }
-              >
-                <Share2 size={14} /> Teilen
-              </Button>
-            )}
+          <p className="mt-2 break-all text-base text-neutral-200">{url}</p>
+          <div className="mt-4">
+            <ShareActions title="Orbit" text="Orbit weiterempfehlen" url={url} />
           </div>
         </section>
-        {flash && <p className="text-sm text-amber-200">{flash}</p>}
       </div>
     )
   }
@@ -81,26 +53,13 @@ export function EmpfehlenPage() {
       <section className="relative overflow-hidden rounded-3xl border border-cyan/30 bg-gradient-to-br from-cyan/15 via-surface-2 to-black p-5">
         <p className="text-xs uppercase tracking-wider text-cyan">Dein Code</p>
         <div className="mt-1 font-mono text-3xl font-bold tracking-widest text-ink">{referral.code}</div>
-        <p className="mt-2 break-all text-xs text-neutral-300">{url}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => void copy()}>
-            <Copy size={14} /> {copied ? 'Kopiert' : 'Link kopieren'}
-          </Button>
-          {'share' in navigator && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() =>
-                void navigator.share?.({
-                  title: 'Orbit',
-                  text: 'Orbit — Matching statt Spam. Dein persönlicher Job-Orbit.',
-                  url,
-                })
-              }
-            >
-              <Share2 size={14} /> Teilen
-            </Button>
-          )}
+        <p className="mt-2 break-all text-sm text-neutral-300">{url}</p>
+        <div className="mt-4">
+          <ShareActions
+            title="Orbit"
+            text="Orbit — Matching statt Spam. Dein persönlicher Job-Orbit."
+            url={url}
+          />
         </div>
       </section>
 

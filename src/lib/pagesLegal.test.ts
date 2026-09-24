@@ -102,6 +102,22 @@ describe('legal routes', () => {
     await impressum.unmount()
   })
 
+  it('loads and reloads every footer link, including a trailing slash', async () => {
+    const hrefs = ['/impressum', '/privacy', '/support', '/agb', '/ranking']
+    for (const href of hrefs) {
+      const view = await renderAt(href)
+      expect(view.host.textContent).not.toContain('missing-legal-route')
+      const title = view.host.querySelector('h1')?.textContent?.trim()
+      expect(title).toBeTruthy()
+      await view.unmount()
+
+      const reload = await renderAt(`${href}/`)
+      expect(reload.host.textContent).not.toContain('missing-legal-route')
+      expect(reload.host.querySelector('h1')?.textContent?.trim()).toBe(title)
+      await reload.unmount()
+    }
+  })
+
   it('navigates in-app between impressum, privacy, and support', async () => {
     const view = await renderAt('/impressum')
     expect(view.host.querySelector('h1')?.textContent).toBe('Impressum')

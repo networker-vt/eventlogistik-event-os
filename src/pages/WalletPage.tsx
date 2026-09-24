@@ -665,9 +665,9 @@ export function WalletPage() {
           <VerifyPanel focus="payout" />
         ) : (
           <>
-        <Input label="Kontoinhaber" value={holder} onChange={(e) => setHolder(e.target.value)} placeholder="Mirco Küßner" />
-        <Input label="IBAN" value={iban} onChange={(e) => setIban(e.target.value)} placeholder="DE89 ACCT-000034" />
-        <Input label="BIC (optional)" value={bic} onChange={(e) => setBic(e.target.value)} placeholder="COBADEFFXXX" />
+        <Input label="Kontoinhaber" value={holder} onChange={(e) => setHolder(e.target.value)} placeholder="Name" />
+        <Input label="IBAN" value={iban} onChange={(e) => setIban(e.target.value)} placeholder="IBAN" />
+        <Input label="BIC (optional)" value={bic} onChange={(e) => setBic(e.target.value)} placeholder="BIC" />
         <Input
           label="Betrag €"
           type="number"
@@ -705,7 +705,7 @@ export function WalletPage() {
           label="Adresse / Invoice"
           value={cryptoAddr}
           onChange={(e) => setCryptoAddr(e.target.value)}
-          placeholder="bc1q… oder 0x… / T…"
+          placeholder="Adresse"
         />
         <Input
           label="Betrag € (Gegenwert)"
